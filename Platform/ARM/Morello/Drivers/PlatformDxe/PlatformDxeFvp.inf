@@ -16,22 +16,28 @@
 
 [Sources.common]
   PlatformDxeFvp.c
+  VirtioDevices.c
 
 [Packages]
   MdePkg/MdePkg.dec
+  OvmfPkg/OvmfPkg.dec
+  Platform/ARM/Morello/MorelloPlatform.dec
 
 [LibraryClasses]
   UefiDriverEntryPoint
+  VirtioMmioDeviceLib
 
 [Protocols]
   gEfiRamDiskProtocolGuid
 
 [FeaturePcd]
   gArmMorelloTokenSpaceGuid.PcdRamDiskSupported
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkSupported
 
 [FixedPcd]
   gArmMorelloTokenSpaceGuid.PcdRamDiskBase
   gArmMorelloTokenSpaceGuid.PcdRamDiskSize
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkBaseAddress
 
 [Depex]
   gEfiRamDiskProtocolGuid

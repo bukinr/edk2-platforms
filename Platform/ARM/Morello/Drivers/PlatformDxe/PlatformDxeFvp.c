@@ -10,6 +10,11 @@
 #include <Library/UefiBootServicesTableLib.h>
 #include <Protocol/RamDisk.h>
 
+VOID
+InitVirtioDevices (
+  VOID
+  );
+
 EFI_STATUS
 EFIAPI
 ArmMorelloEntryPoint (
@@ -22,6 +27,8 @@ ArmMorelloEntryPoint (
   EFI_DEVICE_PATH_PROTOCOL   *DevicePath;
 
   Status = EFI_SUCCESS;
+
+  InitVirtioDevices ();
 
   if (FeaturePcdGet (PcdRamDiskSupported)) {
     Status = gBS->LocateProtocol (
