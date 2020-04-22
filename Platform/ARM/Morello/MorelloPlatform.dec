@@ -1,0 +1,40 @@
+#
+#  Copyright (c) 2020, ARM Limited. All rights reserved.
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+
+[Defines]
+  DEC_SPECIFICATION              = 0x0001001A
+  PACKAGE_NAME                   = Morello
+  PACKAGE_GUID                   = f09a2c11-7864-4b1d-869e-03ee2ad79288
+  PACKAGE_VERSION                = 0.1
+
+################################################################################
+#
+# Include Section - list of Include Paths that are provided by this package.
+#                   Comments are used for Keywords and Module Types.
+#
+################################################################################
+[Includes.common]
+  Include                        # Root include for the package
+
+[Guids.common]
+  gArmMorelloTokenSpaceGuid =  { 0x0a8c3a78, 0xa56f, 0x4788, { 0x83, 0xb4, 0xcd, 0x29, 0x62, 0x96, 0x77, 0x51 } }
+
+[PcdsFixedAtBuild]
+  # Ramdisk
+  gArmMorelloTokenSpaceGuid.PcdRamDiskBase|0x88000000|UINT32|0x00000001
+  gArmMorelloTokenSpaceGuid.PcdRamDiskSize|0x18000000|UINT32|0x00000002
+
+  # Secondary DDR memory
+  gArmMorelloTokenSpaceGuid.PcdDramBlock2Base|0|UINT64|0x00000003
+
+  # Virtio Block device
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkBaseAddress|0x00000000|UINT32|0x00000004
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkSize|0x00000000|UINT32|0x00000005
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkInterrupt|0x00000000|UINT32|0x00000006
+
+[PcdsFeatureFlag.common]
+  gArmMorelloTokenSpaceGuid.PcdRamDiskSupported|FALSE|BOOLEAN|0x00000007
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkSupported|FALSE|BOOLEAN|0x00000008
