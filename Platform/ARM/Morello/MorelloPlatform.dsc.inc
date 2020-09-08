@@ -4,6 +4,8 @@
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
 
+!include Platform/ARM/Morello/MorelloCap.dsc.inc
+
 [LibraryClasses.common]
   ArmLib|ArmPkg/Library/ArmLib/ArmBaseLib.inf
   ArmMmuLib|ArmPkg/Library/ArmMmuLib/ArmMmuBaseLib.inf
