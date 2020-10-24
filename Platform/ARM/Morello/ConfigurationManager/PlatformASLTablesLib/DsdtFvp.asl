@@ -65,5 +65,16 @@ DefinitionBlock("Dsdt.aml", "DSDT", 1, "ARMLTD", "MORELLO", 0x20181101) {
         }
       })
     }
+
+    // SMC91X
+    Device(NET0) {
+      Name(_HID, "LNRO0003")
+      Name(_UID, 0)
+
+      Name(_CRS, ResourceTemplate() {
+        Memory32Fixed(ReadWrite, 0x1D100000, 0x00001000)
+        Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) { 130 }
+      })
+    }
   } // Scope(_SB)
 }
