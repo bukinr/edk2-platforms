@@ -48,5 +48,22 @@ DefinitionBlock("Dsdt.aml", "DSDT", 1, "ARMLTD", "MORELLO", 0x20181101) {
         Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) { 95 }
       })
     }
+
+    // VIRTIO DISK
+    Device(VR00) {
+      Name(_HID, "LNRO0005")
+      Name(_UID, 0)
+
+      Name(_CRS, ResourceTemplate() {
+        Memory32Fixed(
+          ReadWrite,
+          FixedPcdGet32(PcdVirtioBlkBaseAddress),
+          FixedPcdGet32(PcdVirtioBlkSize)
+        )
+        Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) {
+          FixedPcdGet32(PcdVirtioBlkInterrupt)
+        }
+      })
+    }
   } // Scope(_SB)
 }
