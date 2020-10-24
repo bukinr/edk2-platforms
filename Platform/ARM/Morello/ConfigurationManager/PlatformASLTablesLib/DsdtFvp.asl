@@ -43,13 +43,10 @@ DefinitionBlock("Dsdt.aml", "DSDT", 1, "ARMLTD", "MORELLO", 0x20181101) {
         Return(0xF)
       }
 
-      Method(_CRS, 0x0, NotSerialized) {
-        Name(RBUF, ResourceTemplate() {
-          Memory32Fixed(ReadWrite, 0x2A400000, 0x1000)
-          Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) { 95 }
-        })
-        Return (RBUF)
-      }
+      Name(_CRS, ResourceTemplate() {
+        Memory32Fixed(ReadWrite, 0x2A400000, 0x1000)
+        Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) { 95 }
+      })
     }
   } // Scope(_SB)
 }
