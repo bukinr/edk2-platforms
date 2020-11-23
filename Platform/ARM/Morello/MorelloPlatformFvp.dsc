@@ -47,7 +47,7 @@
   # Virtio Disk
   gArmMorelloTokenSpaceGuid.PcdVirtioBlkBaseAddress|0x1c170000
   gArmMorelloTokenSpaceGuid.PcdVirtioBlkSize|0x200
-  gArmMorelloTokenSpaceGuid.PcdVirtioBlkInterrupt|96
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkInterrupt|128
 
 [Components.common]
   OvmfPkg/VirtioBlkDxe/VirtioBlk.inf

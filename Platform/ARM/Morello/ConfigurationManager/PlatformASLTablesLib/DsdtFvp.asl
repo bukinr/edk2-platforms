@@ -43,13 +43,60 @@ DefinitionBlock("Dsdt.aml", "DSDT", 1, "ARMLTD", "MORELLO", 0x20181101) {
         Return(0xF)
       }
 
-      Method(_CRS, 0x0, NotSerialized) {
-        Name(RBUF, ResourceTemplate() {
-          Memory32Fixed(ReadWrite, 0x2A400000, 0x1000)
-          Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) { 95 }
-        })
-        Return (RBUF)
-      }
+      Name(_CRS, ResourceTemplate() {
+        Memory32Fixed(ReadWrite, 0x2A400000, 0x1000)
+        Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) { 95 }
+      })
+    }
+
+    // VIRTIO DISK
+    Device(VR00) {
+      Name(_HID, "LNRO0005")
+      Name(_UID, 0)
+
+      Name(_CRS, ResourceTemplate() {
+        Memory32Fixed(
+          ReadWrite,
+          FixedPcdGet32(PcdVirtioBlkBaseAddress),
+          FixedPcdGet32(PcdVirtioBlkSize)
+        )
+        Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) {
+          FixedPcdGet32(PcdVirtioBlkInterrupt)
+        }
+      })
+    }
+
+    // VIRTIO NET
+    Device(VR01) {
+      Name(_HID, "LNRO0005")
+      Name(_UID, 0)
+
+      Name(_CRS, ResourceTemplate() {
+        Memory32Fixed(ReadWrite, 0x1C180000, 0x00000200)
+        Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) { 134 }
+      })
+    }
+
+    // VIRTIO RANDOM
+    Device(VR02) {
+      Name(_HID, "LNRO0005")
+      Name(_UID, 0)
+
+      Name(_CRS, ResourceTemplate() {
+        Memory32Fixed(ReadWrite, 0x1C190000, 0x00000200)
+        Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) { 133 }
+      })
+    }
+
+    // SMC91X
+    Device(NET0) {
+      Name(_HID, "LNRO0003")
+      Name(_UID, 0)
+
+      Name(_CRS, ResourceTemplate() {
+        Memory32Fixed(ReadWrite, 0x1D100000, 0x00001000)
+        Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) { 130 }
+      })
     }
   } // Scope(_SB)
 }

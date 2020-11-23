@@ -27,3 +27,8 @@
 [Packages]
   MdePkg/MdePkg.dec
   Platform/ARM/Morello/MorelloPlatform.dec
+
+[FixedPcd]
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkBaseAddress
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkSize
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkInterrupt
