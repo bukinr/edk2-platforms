@@ -13,7 +13,7 @@
 #include <MorelloPlatform.h>
 
 // The total number of descriptors, including the final "end-of-table" descriptor.
-#define MAX_VIRTUAL_MEMORY_MAP_DESCRIPTORS  9
+#define MAX_VIRTUAL_MEMORY_MAP_DESCRIPTORS  12
 
 /**
   Returns the Virtual Memory Map of the platform.
@@ -114,6 +114,27 @@ ArmPlatformGetVirtualMemoryMap (
   VirtualMemoryTable[++Index].PhysicalBase  = MORELLO_EXP_PERIPH_BASE;
   VirtualMemoryTable[Index].VirtualBase     = MORELLO_EXP_PERIPH_BASE;
   VirtualMemoryTable[Index].Length          = MORELLO_EXP_PERIPH_BASE_SZ;
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
+
+  // PCI Configuration Space
+  VirtualMemoryTable[++Index].PhysicalBase  = PcdGet64 (PcdPciExpressBaseAddress);
+  VirtualMemoryTable[Index].VirtualBase     = PcdGet64 (PcdPciExpressBaseAddress);
+  VirtualMemoryTable[Index].Length          = (FixedPcdGet32 (PcdPciBusMax) -
+                                               FixedPcdGet32 (PcdPciBusMin) + 1) *
+                                               SIZE_1MB;
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
+
+  // PCI MMIO32/IO Space
+  VirtualMemoryTable[++Index].PhysicalBase  = PcdGet32 (PcdPciMmio32Base);
+  VirtualMemoryTable[Index].VirtualBase     = PcdGet32 (PcdPciMmio32Base);
+  VirtualMemoryTable[Index].Length          = PcdGet32 (PcdPciMmio32Size) +
+                                              PcdGet32 (PcdPciIoSize);
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
+
+  // PCI MMIO64 Space
+  VirtualMemoryTable[++Index].PhysicalBase  = PcdGet64 (PcdPciMmio64Base);
+  VirtualMemoryTable[Index].VirtualBase     = PcdGet64 (PcdPciMmio64Base);
+  VirtualMemoryTable[Index].Length          = PcdGet64 (PcdPciMmio64Size);
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
 
   // End of Table
