@@ -33,22 +33,6 @@ DefinitionBlock("Dsdt.aml", "DSDT", 1, "ARMLTD", "MORELLO", 0x20181101) {
       Name(_STA, 0xF)
     }
 
-    // UART PL011
-    Device(COM1) {
-      Name(_HID, "ARMH0011")
-      Name(_CID, "PL011")
-      Name(_UID, 0)
-
-      Method(_STA) {
-        Return(0xF)
-      }
-
-      Name(_CRS, ResourceTemplate() {
-        Memory32Fixed(ReadWrite, 0x2A400000, 0x1000)
-        Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) { 95 }
-      })
-    }
-
     // VIRTIO DISK
     Device(VR00) {
       Name(_HID, "LNRO0005")
@@ -69,7 +53,7 @@ DefinitionBlock("Dsdt.aml", "DSDT", 1, "ARMLTD", "MORELLO", 0x20181101) {
     // VIRTIO NET
     Device(VR01) {
       Name(_HID, "LNRO0005")
-      Name(_UID, 0)
+      Name(_UID, 1)
 
       Name(_CRS, ResourceTemplate() {
         Memory32Fixed(ReadWrite, 0x1C180000, 0x00000200)
@@ -80,7 +64,7 @@ DefinitionBlock("Dsdt.aml", "DSDT", 1, "ARMLTD", "MORELLO", 0x20181101) {
     // VIRTIO RANDOM
     Device(VR02) {
       Name(_HID, "LNRO0005")
-      Name(_UID, 0)
+      Name(_UID, 2)
 
       Name(_CRS, ResourceTemplate() {
         Memory32Fixed(ReadWrite, 0x1C190000, 0x00000200)

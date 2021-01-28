@@ -1,6 +1,6 @@
 /** @file
 
-  Copyright (c) 2020, ARM Limited. All rights reserved.
+  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -13,6 +13,12 @@
 #define FVP_CONFIGURATION_MANAGER_H__
 
 #include "ConfigurationManager.h"
+
+/** C array containing the compiled AML template.
+    These symbols are defined in the auto generated C file
+    containing the AML bytecode array.
+*/
+extern CHAR8  dsdtfvp_aml_code[];
 
 //Add FVP Platform specific information
 typedef struct FvpPlatformRepositoryInfo {

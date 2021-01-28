@@ -1,7 +1,7 @@
 ## @file
 #  Configuration Manager Dxe
 #
-#  Copyright (c) 2020, ARM Limited. All rights reserved.
+#  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 ##
@@ -21,6 +21,7 @@
 #
 
 [Sources]
+  AslTables/DsdtFvp.asl
   ConfigurationManagerFvp.c
   ConfigurationManager.c
 
@@ -33,7 +34,6 @@
   Platform/ARM/Morello/MorelloPlatform.dec
 
 [LibraryClasses]
-  PlatformAslTablesLib
   UefiDriverEntryPoint
   UefiRuntimeServicesTableLib
 
@@ -65,6 +65,10 @@
 
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialRegisterBase
   gEfiMdePkgTokenSpaceGuid.PcdUartDefaultBaudRate
+
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkBaseAddress
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkSize
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkInterrupt
 [Pcd]
 
 [Depex]
