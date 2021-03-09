@@ -1,6 +1,6 @@
 /** @file
 
-  Copyright (c) 2020, ARM Limited. All rights reserved.
+  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -18,7 +18,8 @@
 
 /** The OEM ID
 */
-#define CFG_MGR_OEM_ID    { 'A', 'R', 'M', 'L', 'T', 'D' }
+#define CFG_MGR_OEM_ID        { 'A', 'R', 'M', 'L', 'T', 'D' }
+#define CFG_MGR_OEM_REVISION  0x20181101
 
 /** A helper macro for mapping a reference token
 */
@@ -188,10 +189,6 @@
 /** The number of CPUs
 */
 #define PLAT_CPU_COUNT              4
-
-/** The number of ACPI tables to install
-*/
-#define PLAT_ACPI_TABLE_COUNT       7
 
 /** The number of platform generic timer blocks
 */
