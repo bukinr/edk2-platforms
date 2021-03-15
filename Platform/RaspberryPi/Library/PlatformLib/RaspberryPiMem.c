@@ -25,7 +25,7 @@ UINT32 mBoardRevision;
 
 
 // The total number of descriptors, including the final "end-of-table" descriptor.
-#define MAX_VIRTUAL_MEMORY_MAP_DESCRIPTORS 10
+#define MAX_VIRTUAL_MEMORY_MAP_DESCRIPTORS 11
 
 STATIC BOOLEAN                  VirtualMemoryInfoInitialized = FALSE;
 STATIC RPI_MEMORY_REGION_INFO   VirtualMemoryInfo[MAX_VIRTUAL_MEMORY_MAP_DESCRIPTORS];
@@ -38,8 +38,6 @@ STATIC RPI_MEMORY_REGION_INFO   VirtualMemoryInfo[MAX_VIRTUAL_MEMORY_MAP_DESCRIP
 #define VariablesBase (FixedPcdGet64(PcdFdBaseAddress) + \
                        FixedPcdGet32(PcdFdSize) - \
                        VariablesSize)
-
-#define ATFBase (FixedPcdGet64(PcdFdBaseAddress) + FixedPcdGet32(PcdFdSize))
 
 /**
   Return the Virtual Memory Map of your platform
@@ -59,17 +57,54 @@ ArmPlatformGetVirtualMemoryMap (
   )
 {
   UINTN                         Index = 0;
-  UINTN                         GpuIndex;
-  INT64                         SystemMemorySize;
+  INT64                         TotalMemorySize;
+  INT64                         MemorySizeBelow3GB;
+  INT64                         MemorySizeBelow4GB;
   ARM_MEMORY_REGION_DESCRIPTOR  *VirtualMemoryTable;
 
   // Early output of the info we got from VideoCore can prove valuable.
   DEBUG ((DEBUG_INFO, "Board Rev: 0x%lX\n", mBoardRevision));
-  DEBUG ((DEBUG_INFO, "Base RAM : 0x%ll08X (Size 0x%ll08X)\n", mSystemMemoryBase, mSystemMemoryEnd + 1));
+  DEBUG ((DEBUG_INFO, "RAM < 1GB: 0x%ll08X (Size 0x%ll08X)\n", mSystemMemoryBase, mSystemMemoryEnd + 1));
   DEBUG ((DEBUG_INFO, "VideoCore: 0x%ll08X (Size 0x%ll08X)\n", mVideoCoreBase, mVideoCoreSize));
 
   ASSERT (mSystemMemoryBase == 0);
   ASSERT (VirtualMemoryMap != NULL);
+
+  // Compute the total RAM size available on this platform
+  TotalMemorySize = SIZE_256MB;
+  TotalMemorySize <<= (mBoardRevision >> 20) & 0x07;
+  DEBUG ((DEBUG_INFO, "Total RAM: 0x%ll08X\n", TotalMemorySize));
+
+  //
+  // Ensure that what we declare as System Memory doesn't overlap with the
+  // SoC MMIO registers. This can be achieved through a MIN () with the
+  // base address since SystemMemoryBase is 0 (we assert if it isn't).
+  //
+  ASSERT (BCM2836_SOC_REGISTERS < 4UL * SIZE_1GB);
+  MemorySizeBelow4GB = MIN(TotalMemorySize, 4UL * SIZE_1GB);
+  MemorySizeBelow4GB = MIN(MemorySizeBelow4GB, BCM2836_SOC_REGISTERS);
+  if (BCM2711_SOC_REGISTERS > 0) {
+    ASSERT (BCM2836_SOC_REGISTERS < 4UL * SIZE_1GB);
+    MemorySizeBelow4GB = MIN(MemorySizeBelow4GB, BCM2711_SOC_REGISTERS);
+  }
+
+  //
+  // By default we limit the memory to 3 GB to work around OS support for
+  // DMA bugs in the SoC, for OSes that don't support _DMA range descriptors.
+  // On boards with more RAM (4GB, 8GB), the extra memory is  added by ConfigDxe
+  // provided the configuration setting for 3GB limit is off.
+  //
+  MemorySizeBelow3GB = MIN(MemorySizeBelow4GB, 3UL * SIZE_1GB);
+
+  //
+  // On Pi 3 we've seen SoC registers may overlap the reported VideoCore range,
+  // so clamp that down as well.
+  //
+  if (mVideoCoreBase + mVideoCoreSize > BCM2836_SOC_REGISTERS) {
+    mVideoCoreSize = BCM2836_SOC_REGISTERS - mVideoCoreBase;
+    DEBUG ((DEBUG_WARN, "VideoCore range overlapped SoC MMIO, now 0x%ll08X (Size 0x%ll08X)\n",
+            mVideoCoreBase, mVideoCoreSize));
+  }
 
   VirtualMemoryTable = (ARM_MEMORY_REGION_DESCRIPTOR*)AllocatePages
                        (EFI_SIZE_TO_PAGES (sizeof (ARM_MEMORY_REGION_DESCRIPTOR) *
@@ -77,7 +112,6 @@ ArmPlatformGetVirtualMemoryMap (
   if (VirtualMemoryTable == NULL) {
     return;
   }
-
 
   // Firmware Volume
   VirtualMemoryTable[Index].PhysicalBase    = FixedPcdGet64 (PcdFdBaseAddress);
@@ -95,13 +129,28 @@ ArmPlatformGetVirtualMemoryMap (
   VirtualMemoryInfo[Index].Type             = RPI_MEM_RUNTIME_REGION;
   VirtualMemoryInfo[Index++].Name           = L"FD Variables";
 
-  // TF-A reserved RAM
-  VirtualMemoryTable[Index].PhysicalBase    = ATFBase;
+  //
+  // Both the the Pi 4 and Pi 3 implementations expect the DTB to directly follow the FD.
+  //
+  VirtualMemoryTable[Index].PhysicalBase    = FixedPcdGet32 (PcdFdtBaseAddress);
   VirtualMemoryTable[Index].VirtualBase     = VirtualMemoryTable[Index].PhysicalBase;
-  VirtualMemoryTable[Index].Length          = FixedPcdGet64 (PcdSystemMemoryBase) - ATFBase;
+  VirtualMemoryTable[Index].Length          = FixedPcdGet32 (PcdFdtSize);;
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK;
   VirtualMemoryInfo[Index].Type             = RPI_MEM_RESERVED_REGION;
-  VirtualMemoryInfo[Index++].Name           = L"TF-A RAM";
+  VirtualMemoryInfo[Index++].Name           = L"Flattened Device Tree";
+  if (BCM2711_SOC_REGISTERS == 0) {
+    //
+    // TF-A reserved RAM only exists for the Pi 3 TF-A.
+    //
+    // This is 2MB that directly follows the FD.
+    //
+    VirtualMemoryTable[Index].PhysicalBase    = (FixedPcdGet64(PcdFdBaseAddress) + FixedPcdGet32(PcdFdSize));
+    VirtualMemoryTable[Index].VirtualBase     = VirtualMemoryTable[Index].PhysicalBase;
+    VirtualMemoryTable[Index].Length          = FixedPcdGet64 (PcdSystemMemoryBase) - VirtualMemoryTable[Index].PhysicalBase;
+    VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK;
+    VirtualMemoryInfo[Index].Type             = RPI_MEM_RESERVED_REGION;
+    VirtualMemoryInfo[Index++].Name           = L"TF-A RAM";
+  }
 
   // Base System RAM
   VirtualMemoryTable[Index].PhysicalBase    = FixedPcdGet64 (PcdSystemMemoryBase);
@@ -109,10 +158,9 @@ ArmPlatformGetVirtualMemoryMap (
   VirtualMemoryTable[Index].Length          = mSystemMemoryEnd + 1 - FixedPcdGet64 (PcdSystemMemoryBase);
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK;
   VirtualMemoryInfo[Index].Type             = RPI_MEM_BASIC_REGION;
-  VirtualMemoryInfo[Index++].Name           = L"Base System RAM";
+  VirtualMemoryInfo[Index++].Name           = L"System RAM < 1GB";
 
   // GPU Reserved
-  GpuIndex = Index;
   VirtualMemoryTable[Index].PhysicalBase    = mVideoCoreBase;
   VirtualMemoryTable[Index].VirtualBase     = VirtualMemoryTable[Index].PhysicalBase;
   VirtualMemoryTable[Index].Length          = mVideoCoreSize;
@@ -120,21 +168,9 @@ ArmPlatformGetVirtualMemoryMap (
   VirtualMemoryInfo[Index].Type             = RPI_MEM_UNMAPPED_REGION;
   VirtualMemoryInfo[Index++].Name           = L"GPU Reserved";
 
-  // Compute the total RAM size available on this platform
-  SystemMemorySize = SIZE_256MB;
-  SystemMemorySize <<= (mBoardRevision >> 20) & 0x07;
-
-  //
-  // Ensure that what we declare as System Memory doesn't overlap with the
-  // Bcm2836 SoC registers. This can be achieved through a MIN () with the
-  // base address since SystemMemoryBase is 0 (we assert if it isn't).
-  //
-  SystemMemorySize = MIN(SystemMemorySize, BCM2836_SOC_REGISTERS);
 
   // Extended SoC registers (PCIe, genet, ...)
   if (BCM2711_SOC_REGISTERS > 0) {
-    // Same overlap protection as above for the Bcm2711 SoC registers
-    SystemMemorySize                        = MIN(SystemMemorySize, BCM2711_SOC_REGISTERS);
     VirtualMemoryTable[Index].PhysicalBase  = BCM2711_SOC_REGISTERS;
     VirtualMemoryTable[Index].VirtualBase   = VirtualMemoryTable[Index].PhysicalBase;
     VirtualMemoryTable[Index].Length        = BCM2711_SOC_REGISTER_LENGTH;
@@ -145,32 +181,44 @@ ArmPlatformGetVirtualMemoryMap (
 
   // Base SoC registers
   VirtualMemoryTable[Index].PhysicalBase    = BCM2836_SOC_REGISTERS;
-  // On the Pi 3 the SoC registers may overlap VideoCore => fix this
-  if (VirtualMemoryTable[GpuIndex].PhysicalBase + VirtualMemoryTable[GpuIndex].Length > VirtualMemoryTable[Index].PhysicalBase) {
-    VirtualMemoryTable[GpuIndex].Length = VirtualMemoryTable[Index].PhysicalBase - VirtualMemoryTable[GpuIndex].PhysicalBase;
-  }
   VirtualMemoryTable[Index].VirtualBase     = VirtualMemoryTable[Index].PhysicalBase;
   VirtualMemoryTable[Index].Length          = BCM2836_SOC_REGISTER_LENGTH;
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
   VirtualMemoryInfo[Index].Type             = RPI_MEM_UNMAPPED_REGION;
   VirtualMemoryInfo[Index++].Name           = L"SoC Reserved (283x)";
 
-  if (FeaturePcdGet (PcdAcpiBasicMode)) {
-    //
-    // Limit the memory to 3 GB to work around the DMA bugs in the SoC without
-    // having to rely on IORT or _DMA descriptions.
-    //
-    SystemMemorySize = MIN(SystemMemorySize, 3U * SIZE_1GB);
-  }
 
-  // If we have RAM above the 1 GB mark, declare it
-  if (SystemMemorySize - SIZE_1GB > 0) {
-    VirtualMemoryTable[Index].PhysicalBase  = FixedPcdGet64 (PcdExtendedMemoryBase);
+  // Memory in the 1GB - 3GB range is always available.
+  if (MemorySizeBelow3GB > SIZE_1GB) {
+    VirtualMemoryTable[Index].PhysicalBase  = SIZE_1GB;
     VirtualMemoryTable[Index].VirtualBase   = VirtualMemoryTable[Index].PhysicalBase;
-    VirtualMemoryTable[Index].Length        = SystemMemorySize - SIZE_1GB;
+    VirtualMemoryTable[Index].Length        = MemorySizeBelow3GB - VirtualMemoryTable[Index].PhysicalBase;
     VirtualMemoryTable[Index].Attributes    = ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK;
     VirtualMemoryInfo[Index].Type           = RPI_MEM_BASIC_REGION;
-    VirtualMemoryInfo[Index++].Name         = L"Extended System RAM";
+    VirtualMemoryInfo[Index++].Name         = L"Extended System RAM < 3GB";
+  }
+
+  //
+  // If we have RAM in the 3GB - 4GB range, declare it as mapped, but don't
+  // add it to the memory map. This is done later by ConfigDxe if necessary.
+  //
+  if (MemorySizeBelow4GB > 3UL * SIZE_1GB) {
+    VirtualMemoryTable[Index].PhysicalBase  = 3UL * SIZE_1GB;
+    VirtualMemoryTable[Index].VirtualBase   = VirtualMemoryTable[Index].PhysicalBase;
+    VirtualMemoryTable[Index].Length        = MemorySizeBelow4GB - VirtualMemoryTable[Index].PhysicalBase;
+    VirtualMemoryTable[Index].Attributes    = ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK;
+    VirtualMemoryInfo[Index].Type           = RPI_MEM_UNMAPPED_REGION;
+    VirtualMemoryInfo[Index++].Name         = L"Extended System RAM < 4GB";
+  }
+
+  // Same treatment for the memory above 4GB.
+  if (TotalMemorySize > 4UL * SIZE_1GB) {
+    VirtualMemoryTable[Index].PhysicalBase  = 4UL * SIZE_1GB;
+    VirtualMemoryTable[Index].VirtualBase   = VirtualMemoryTable[Index].PhysicalBase;
+    VirtualMemoryTable[Index].Length        = TotalMemorySize - VirtualMemoryTable[Index].PhysicalBase;
+    VirtualMemoryTable[Index].Attributes    = ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK;
+    VirtualMemoryInfo[Index].Type           = RPI_MEM_UNMAPPED_REGION;
+    VirtualMemoryInfo[Index++].Name         = L"Extended System RAM >= 4GB";
   }
 
   // End of Table

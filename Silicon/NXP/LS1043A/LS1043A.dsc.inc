@@ -1,11 +1,18 @@
 #  LS1043A.dsc
 #  LS1043A Soc package.
 #
-#  Copyright 2017-2019 NXP
+#  Copyright 2017-2020 NXP
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
 #
+
+!include Silicon/NXP/Chassis2/Chassis2.dsc.inc
+
+[LibraryClasses.common]
+  SocLib|Silicon/NXP/LS1043A/Library/SocLib/SocLib.inf
+  SerialPortLib|Silicon/NXP/Library/DUartPortLib/DUartPortLib.inf
+  SerDesHelperLib|Silicon/NXP/Library/SerDesHelperLib/SerDesHelperLib.inf
 
 ################################################################################
 #
@@ -20,42 +27,16 @@
   gArmTokenSpaceGuid.PcdGicInterruptInterfaceBase|0x01402000
 
 [PcdsFixedAtBuild.common]
+  gEfiMdeModulePkgTokenSpaceGuid.PcdSerialRegisterBase|0x021c0500
 
-  #
-  # CCSR Address Space and other attached Memories
-  #
-  gNxpQoriqLsTokenSpaceGuid.PcdCcsrBaseAddr|0x01000000
-  gNxpQoriqLsTokenSpaceGuid.PcdCcsrSize|0x0F000000
-  gNxpQoriqLsTokenSpaceGuid.PcdClkBaseAddr|0x01EE1000
-  gNxpQoriqLsTokenSpaceGuid.PcdIfcRegion1BaseAddr|0x60000000
-  gNxpQoriqLsTokenSpaceGuid.PcdIfcRegion1Size|0x20000000
-  gNxpQoriqLsTokenSpaceGuid.PcdIfcRegion2BaseAddr|0x0620000000
-  gNxpQoriqLsTokenSpaceGuid.PcdIfcRegion2Size|0x00E0000000
-  gNxpQoriqLsTokenSpaceGuid.PcdIfcNandReservedSize|0x2EA
-  gNxpQoriqLsTokenSpaceGuid.PcdQmanSwpBaseAddr|0x0500000000
-  gNxpQoriqLsTokenSpaceGuid.PcdQmanSwpSize|0x0080000000
-  gNxpQoriqLsTokenSpaceGuid.PcdBmanSwpBaseAddr|0x0508000000
-  gNxpQoriqLsTokenSpaceGuid.PcdBmanSwpSize|0x0080000000
+[PcdsFeatureFlag]
+  gNxpQoriqLsTokenSpaceGuid.PcdDcfgBigEndian|TRUE
+  gNxpQoriqLsTokenSpaceGuid.PcdPciLutBigEndian|TRUE
+
+[PcdsFixedAtBuild.common]
   gNxpQoriqLsTokenSpaceGuid.PcdPciExp1BaseAddr|0x4000000000
-  gNxpQoriqLsTokenSpaceGuid.PcdPciExp1BaseSize|0x800000000
-  gNxpQoriqLsTokenSpaceGuid.PcdPciExp2BaseAddr|0x4800000000
-  gNxpQoriqLsTokenSpaceGuid.PcdPciExp2BaseSize|0x800000000
-  gNxpQoriqLsTokenSpaceGuid.PcdPciExp3BaseAddr|0x5000000000
-  gNxpQoriqLsTokenSpaceGuid.PcdPciExp3BaseSize|0x800000000
-  gNxpQoriqLsTokenSpaceGuid.PcdScfgBaseAddr|0x1570000
-  gNxpQoriqLsTokenSpaceGuid.PcdGutsBaseAddr|0x01EE0000
-  gNxpQoriqLsTokenSpaceGuid.PcdWatchdog1BaseAddr|0x02AD0000
-  gNxpQoriqLsTokenSpaceGuid.PcdSdxcBaseAddr|0x01560000
-  gNxpQoriqLsTokenSpaceGuid.PcdI2c0BaseAddr|0x02180000
-  gNxpQoriqLsTokenSpaceGuid.PcdI2cSize|0x10000
-  gNxpQoriqLsTokenSpaceGuid.PcdNumI2cController|4
-  gNxpQoriqLsTokenSpaceGuid.PcdQspiRegionBaseAddr|0x40000000
-  gNxpQoriqLsTokenSpaceGuid.PcdQspiRegionSize|0x20000000
-
-  #
-  # Big Endian IPs
-  #
-  gNxpQoriqLsTokenSpaceGuid.PcdGurBigEndian|TRUE
-  gNxpQoriqLsTokenSpaceGuid.PcdWatchdogBigEndian|TRUE
-
+  gNxpQoriqLsTokenSpaceGuid.PcdNumPciController|3
+  gNxpQoriqLsTokenSpaceGuid.PcdPcieLutBase|0x10000
+  gNxpQoriqLsTokenSpaceGuid.PcdPcieLutDbg|0x7FC
+  gNxpQoriqLsTokenSpaceGuid.PcdSerDesLanes|0x4
 ##

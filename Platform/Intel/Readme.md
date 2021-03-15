@@ -19,7 +19,7 @@ package.
 ## Board Naming Convention
 The board packages supported by Intel follow the naming convention \<xxx\>OpenBoardPkg where xxx refers to the
 encompassing platform name for a particular platform generation. For example, the [`KabylakeOpenBoardPkg`](https://github.com/tianocore/edk2-platforms/tree/master/Platform/Intel/KabylakeOpenBoardPkg) contains the
-board code for Intel Kaby Lake reference systems. Intel uses the moniker "OpenBoardPkg" to indicate that this package
+board code for Intel KabyLake reference systems. Intel uses the moniker "OpenBoardPkg" to indicate that this package
 is the open source board code. A closed source counterpart may exist which simply uses "BoardPkg". Both directly use
 the MinPlatformPkg from edk2-platforms.
 
@@ -53,11 +53,19 @@ A UEFI firmware implementation using MinPlatformPkg is constructed using the fol
 
 
 ## Board Support
-* The `KabylakeOpenBoardPkg` contains board implementations for Kaby Lake systems.
+* The `KabylakeOpenBoardPkg` contains board implementations for KabyLake systems.
 * The `SimicsOpenBoardPkg` contains board implementations for the Simics hardware simulator.
-* The `WhiskeylakeOpenBoardPkg` contains board implementations for Whiskey Lake systems.
+* The `WhiskeylakeOpenBoardPkg` contains board implementations for WhiskeyLake systems.
+* The `CometlakeOpenBoardPkg` contains board implementations for CometLake systems.
+* The `TigerlakeOpenBoardPkg` contains board implementations for TigerLake systems.
 
 ### **Supported Hardware**
+
+#### AAEON
+
+| Machine Name                          | Supported Chipsets                         | BoardPkg                     | Board Name         |
+----------------------------------------|--------------------------------------------|------------------------------|--------------------|
+| UP Xtreme                             | Whiskey Lake                               | WhiskeylakeOpenBoardPkg      | UpXtreme           |
 
 #### Intel
 
@@ -65,8 +73,10 @@ A UEFI firmware implementation using MinPlatformPkg is constructed using the fol
 
 | Machine Name                          | Supported Chipsets                         | BoardPkg                     | Board Name         |
 ----------------------------------------|--------------------------------------------|------------------------------|--------------------|
-| RVP 3                                 | Sky Lake, Kaby Lake, Kaby Lake Refresh     | KabylakeOpenBoardPkg         | KabylakeRvp3       |
-| WHL-U DDR4 RVP                        | Whiskey Lake                               | WhiskeylakeOpenBoardPkg      | WhiskeylakeURvp    |
+| RVP 3                                 | SkyLake, KabyLake, KabyLake Refresh        | KabylakeOpenBoardPkg         | KabylakeRvp3       |
+| WHL-U DDR4 RVP                        | WhiskeyLake                                | WhiskeylakeOpenBoardPkg      | WhiskeylakeURvp    |
+| CML-U LPDDR3 RVP                      | CometLake V1                               | CometlakeOpenBoardPkg        | CometlakeURvp      |
+| TGL-U DDR4 RVP                        | TigerLake                                  | TigerlakeOpenBoardPkg        | TigerlakeURvp      |
 
 *Note: RVP = Reference and Validation Platform*
 
@@ -82,8 +92,8 @@ A UEFI firmware implementation using MinPlatformPkg is constructed using the fol
 
 | Machine Name                          | Supported Chipsets                         | BoardPkg                     | Board Name         |
 ----------------------------------------|--------------------------------------------|------------------------------|--------------------|
-| galp2                                 | Kaby Lake                                  | KabylakeOpenBoardPkg         | GalagoPro3         |
-| galp3 & galp3-b                       | Kaby Lake Refresh                          | KabylakeOpenBoardPkg         | GalagoPro3         |
+| galp2                                 | KabyLake                                   | KabylakeOpenBoardPkg         | GalagoPro3         |
+| galp3 & galp3-b                       | KabyLake Refresh                           | KabylakeOpenBoardPkg         | GalagoPro3         |
 
 ## Board Package Organization
 The board package follows the standard EDK II package structure with the following additional elements and guidelines:
@@ -233,8 +243,21 @@ return back to the minimum platform caller.
           |       |        |                                     build settings, environment variables.
           |       |        |
           |       |        |------WhiskeylakeOpenBoardPkg
+          |       |        |       |------UpXtreme
+          |       |        |               |---build_config.cfg: UpXtreme specific build
+          |       |        |                                     settings environment variables.
           |       |        |       |------WhiskeylakeURvp
           |       |        |               |---build_config.cfg: WhiskeylakeURvp specific build
+          |       |        |                                     settings environment variables.
+          |       |        |
+          |       |        |------CometlakeOpenBoardPkg
+          |       |        |       |------CometlakeURvp
+          |       |        |               |---build_config.cfg: CometlakeURvp specific build
+          |       |        |                                     settings environment variables.
+          |       |        |
+          |       |        |------TigerlakeOpenBoardPkg
+          |       |        |       |------TigerlakeURvp
+          |       |        |               |---build_config.cfg: TigerlakeURvp specific build
           |       |        |                                     settings environment variables.
           |       |        |
           |------FSP
@@ -254,8 +277,22 @@ return back to the minimum platform caller.
 1. This firmware project has only been tested booting to Microsoft Windows 10 x64 and Ubuntu 17.10 with AHCI mode.
 
 **WhiskeylakeOpenBoardPkg**
-1. This firmware project has only been tested booting to Microsoft Windows 10 x64 with AHCI mode and Integrated Graphic
+1. This firmware project has mainly been tested booting to Microsoft Windows 10 x64 with AHCI mode and Integrated Graphic
    Device.
+2. UP Xtreme boards might hang during Windows 10 boot.
+3. The UP Xtreme boards below boot to x64 windows 10 home edition and Ubuntu 18.04
+      * UP Xtreme Intel(R) Core(TM) i3-8145UE CPU @ 2.20GHz with 8GB RAM
+      * UP Xtreme Intel(R) Core(TM) i7-8565U CPU @ 1.80GHz with 16GB RAM
+      * UP Xtreme Intel(R) Core(TM) i7-8665UE CPU @ 1.70GHz with 16GB RAM
+      * UP Xtreme Intel(R) Celeron(R) CPU 4305UE @ 2.00GHz with 4GB RAM
+
+**CometlakeOpenBoardPkg**
+1. This firmware project has been tested booting to Microsoft Windows 10 x64 with AHCI mode and External Graphic Device.
+2. This firmware project has been also tested booting to Ubuntu 17.10 with AHCI mode and Integrated Graphic Device.
+
+**TigerlakeOpenBoardPkg**
+1. This firmware project has been tested booting to Microsoft Windows 10 x64 with AHCI mode and Integrated Graphic Device.
+2. This firmware project has been also tested booting to Puppy Linux BionicPup64 8.0 with AHCI mode and Integrated Graphic Device.
 
 ### **Package Builds**
 
@@ -293,5 +330,5 @@ If you would like to help but are not sure where to start some areas currently i
  * Adding board ports for more motherboards and systems
  * Adding Clang support
 
-Please feel free to contact Michael Kubacki (michael.a.kubacki at intel.com) and Isaac Oram (isaac.w.oram at intel.com)
+Please feel free to contact Isaac Oram (isaac.w.oram at intel.com)
 if you would like to discuss contribution ideas.

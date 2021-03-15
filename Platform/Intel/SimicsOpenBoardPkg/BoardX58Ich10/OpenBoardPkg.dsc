@@ -1,7 +1,7 @@
 ## @file
 #  The main build description file for the X58Ich10 board.
 #
-# Copyright (c) 2019, Intel Corporation. All rights reserved.<BR>
+# Copyright (c) 2019 - 2020, Intel Corporation. All rights reserved.<BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -42,7 +42,7 @@
   DEFINE NETWORK_ISCSI_ENABLE           = FALSE
   DEFINE NETWORK_ALLOW_HTTP_CONNECTIONS = TRUE
 
-  !include AdvancedFeaturePkg/TemporaryBuildWorkaround/TemporaryBuildWorkaround.dsc
+  !include AdvancedFeaturePkg/Include/AdvancedFeaturesPcd.dsc
   !include $(PROJECT)/OpenBoardPkgPcd.dsc
   !include AdvancedFeaturePkg/Include/AdvancedFeatures.dsc
 
@@ -135,6 +135,7 @@
   #######################################
   PeiResourcePublicationLib|MdePkg/Library/PeiResourcePublicationLib/PeiResourcePublicationLib.inf
   MpInitLib|UefiCpuPkg/Library/MpInitLib/PeiMpInitLib.inf
+  VmgExitLib|UefiCpuPkg/Library/VmgExitLibNull/VmgExitLibNull.inf
 
   #####################################
   # Platform Package
@@ -144,12 +145,20 @@
 !endif
   TestPointLib|$(PLATFORM_PACKAGE)/Test/Library/TestPointLib/PeiTestPointLib.inf
   SetCacheMtrrLib|$(PLATFORM_PACKAGE)/Library/SetCacheMtrrLib/SetCacheMtrrLib.inf
+  ReportCpuHobLib|$(PLATFORM_PACKAGE)/PlatformInit/Library/ReportCpuHobLib/ReportCpuHobLib.inf
 
 [LibraryClasses.common.DXE_DRIVER]
+
+  #####################################
+  # Platform Package
+  #####################################
+  PlatformBootManagerLib|$(PLATFORM_PACKAGE)/Bds/Library/DxePlatformBootManagerLib/DxePlatformBootManagerLib.inf
+
   #######################################
   # Board Package
   #######################################
-  PlatformBootManagerLib|$(BOARD_PKG)/Library/PlatformBootManagerLib/PlatformBootManagerLib.inf
+  BoardBdsHookLib|$(BOARD_PKG)/Library/BoardBdsHookLib/BoardBdsHookLib.inf
+  BoardBootManagerLib|$(BOARD_PKG)/Library/BoardBootManagerLib/BoardBootManagerLib.inf
 
 [LibraryClasses.common.DXE_SMM_DRIVER]
   #######################################
@@ -294,3 +303,4 @@
   $(BOARD_PKG)/SimicsVideoDxe/SimicsVideoDxe.inf
   $(BOARD_PKG)/SmbiosPlatformDxe/SmbiosPlatformDxe.inf
   BoardModulePkg/LegacySioDxe/LegacySioDxe.inf
+  BoardModulePkg/BoardBdsHookDxe/BoardBdsHookDxe.inf

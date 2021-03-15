@@ -6,7 +6,7 @@
 # INF files to generate AutoGen.c and AutoGen.h files
 # for the build infrastructure.
 #
-# Copyright (c) 2017 - 2019, Intel Corporation. All rights reserved.<BR>
+# Copyright (c) 2017 - 2020, Intel Corporation. All rights reserved.<BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -46,6 +46,11 @@
   gDefaultDataFileGuid              = {0x1ae42876, 0x008f, 0x4161, {0xb2, 0xb7, 0x1c, 0x0d, 0x15, 0xc5, 0xef, 0x43}}
   gDefaultDataOptSizeFileGuid       = {0x003e7b41, 0x98a2, 0x4be2, {0xb2, 0x7a, 0x6c, 0x30, 0xc7, 0x65, 0x52, 0x25}}
 
+  # BDS Hook point event Guids
+  gBdsEventBeforeConsoleAfterTrustedConsoleGuid  = {0x51e49ff5, 0x28a9, 0x4159, { 0xac, 0x8a, 0xb8, 0xc4, 0x88, 0xa7, 0xfd, 0xee}}
+  gBdsEventBeforeConsoleBeforeEndOfDxeGuid       = {0xfcf26e41, 0xbda6, 0x4633, { 0xb5, 0x73, 0xd4, 0xb8, 0x0e, 0x6d, 0xd0, 0x78}}
+  gBdsEventAfterConsoleReadyBeforeBootOptionGuid = {0x8eb3d5dc, 0xf4e7, 0x4b57, { 0xa9, 0xe7, 0x27, 0x39, 0x10, 0xf2, 0x18, 0x9f}}
+
 [LibraryClasses]
 
   PeiLib|Include/Library/PeiLib.h
@@ -68,7 +73,15 @@
   TestPointLib|Include/Library/TestPointLib.h
   TestPointCheckLib|Include/Library/TestPointCheckLib.h
 
-SetCacheMtrrLib|Include/Library/SetCacheMtrrLib.h
+  SetCacheMtrrLib|Include/Library/SetCacheMtrrLib.h
+
+  ReportCpuHobLib|Include/Library/ReportCpuHobLib.h
+
+  BoardBootManagerLib|Include/Library/BoardBootManagerLib.h
+  CompressLib|Include/Library/CompressLib.h
+  HobVariableLib|Include/Library/HobVariableLib.h
+  MultiBoardAcpiSupportLib|Include/Library/MultiBoardAcpiSupportLib.h
+  ReportFvLib|Include/Library/ReportFvLib.h
 
 [PcdsFixedAtBuild, PcdsPatchableInModule]
 
@@ -311,3 +324,4 @@ SetCacheMtrrLib|Include/Library/SetCacheMtrrLib.h
   gMinPlatformPkgTokenSpaceGuid.PcdTpm2Enable             |FALSE|BOOLEAN|0xF00000A5
   gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable|FALSE|BOOLEAN|0xF00000A6
   gMinPlatformPkgTokenSpaceGuid.PcdPerformanceEnable      |FALSE|BOOLEAN|0xF00000A7
+  gMinPlatformPkgTokenSpaceGuid.PcdSerialTerminalEnable   |FALSE|BOOLEAN|0xF00000B0

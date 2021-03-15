@@ -35,10 +35,6 @@
 
 [Guids]
   gFdtTableGuid
-  gRaspberryPi3ModelBFdtGuid
-  gRaspberryPi3ModelBPlusFdtGuid
-  gRaspberryPi4ModelBFdtGuid
-  gRaspberryPiDefaultFdtGuid
 
 [Protocols]
   gRaspberryPiFirmwareProtocolGuid              ## CONSUMES
@@ -48,3 +44,6 @@
 
 [FixedPcd]
   gRaspberryPiTokenSpaceGuid.PcdFdtBaseAddress
+
+[Pcd]
+  gRaspberryPiTokenSpaceGuid.PcdSystemTableMode

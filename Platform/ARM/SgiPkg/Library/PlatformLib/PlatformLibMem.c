@@ -1,6 +1,6 @@
 /** @file
 *
-*  Copyright (c) 2018, ARM Limited. All rights reserved.
+*  Copyright (c) 2018-2020, ARM Limited. All rights reserved.
 *
 *  SPDX-License-Identifier: BSD-2-Clause-Patent
 *
@@ -16,7 +16,8 @@
 #include <SgiPlatform.h>
 
 // Total number of descriptors, including the final "end-of-table" descriptor.
-#define MAX_VIRTUAL_MEMORY_MAP_DESCRIPTORS  13
+#define MAX_VIRTUAL_MEMORY_MAP_DESCRIPTORS                 \
+          (10 + (FixedPcdGet32 (PcdChipCount) * 2))
 
 /**
   Returns the Virtual Memory Map of the platform.
@@ -52,6 +53,48 @@ ArmPlatformGetVirtualMemoryMap (
     FixedPcdGet64 (PcdDramBlock2Base),
     FixedPcdGet64 (PcdDramBlock2Size));
 
+#if (FixedPcdGet32 (PcdChipCount) > 1)
+  BuildResourceDescriptorHob (
+     EFI_RESOURCE_SYSTEM_MEMORY,
+     ResourceAttributes,
+     SYSTEM_MEMORY_BASE_REMOTE (1),
+     PcdGet64 (PcdSystemMemorySize));
+
+   BuildResourceDescriptorHob (
+     EFI_RESOURCE_SYSTEM_MEMORY,
+     ResourceAttributes,
+     DRAM_BLOCK2_BASE_REMOTE (1),
+     FixedPcdGet64 (PcdDramBlock2Size));
+
+#if (FixedPcdGet32 (PcdChipCount) > 2)
+  BuildResourceDescriptorHob (
+     EFI_RESOURCE_SYSTEM_MEMORY,
+     ResourceAttributes,
+     SYSTEM_MEMORY_BASE_REMOTE (2),
+     FixedPcdGet64 (PcdSystemMemorySize));
+
+   BuildResourceDescriptorHob (
+     EFI_RESOURCE_SYSTEM_MEMORY,
+     ResourceAttributes,
+     DRAM_BLOCK2_BASE_REMOTE (2),
+     FixedPcdGet64 (PcdDramBlock2Size));
+
+#if (FixedPcdGet32 (PcdChipCount) > 3)
+  BuildResourceDescriptorHob (
+     EFI_RESOURCE_SYSTEM_MEMORY,
+     ResourceAttributes,
+     SYSTEM_MEMORY_BASE_REMOTE (3),
+     FixedPcdGet64 (PcdSystemMemorySize));
+
+   BuildResourceDescriptorHob (
+     EFI_RESOURCE_SYSTEM_MEMORY,
+     ResourceAttributes,
+     DRAM_BLOCK2_BASE_REMOTE (3),
+     FixedPcdGet64 (PcdDramBlock2Size));
+#endif
+#endif
+#endif
+
   ASSERT (VirtualMemoryMap != NULL);
   Index = 0;
 
@@ -63,27 +106,21 @@ ArmPlatformGetVirtualMemoryMap (
   }
 
   // Expansion AXI - SMC Chip Select 0 (NOR Flash)
-  VirtualMemoryTable[Index].PhysicalBase    = SGI_EXP_SMC_CS0_BASE;
-  VirtualMemoryTable[Index].VirtualBase     = SGI_EXP_SMC_CS0_BASE;
+  VirtualMemoryTable[Index].PhysicalBase    = FixedPcdGet64 (PcdSmcCs0Base);
+  VirtualMemoryTable[Index].VirtualBase     = FixedPcdGet64 (PcdSmcCs0Base);
   VirtualMemoryTable[Index].Length          = SIZE_64MB;
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
 
   // Expansion AXI - SMC Chip Select 1 (NOR Flash)
-  VirtualMemoryTable[++Index].PhysicalBase  = SGI_EXP_SMC_CS1_BASE;
-  VirtualMemoryTable[Index].VirtualBase     = SGI_EXP_SMC_CS1_BASE;
+  VirtualMemoryTable[++Index].PhysicalBase  = FixedPcdGet64 (PcdSmcCs1Base);
+  VirtualMemoryTable[Index].VirtualBase     = FixedPcdGet64 (PcdSmcCs1Base);
   VirtualMemoryTable[Index].Length          = SIZE_64MB;
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
 
-  // Expansion AXI - SMSC 91X (Ethernet)
-  VirtualMemoryTable[++Index].PhysicalBase  = SGI_EXP_SMSC91X_BASE;
-  VirtualMemoryTable[Index].VirtualBase     = SGI_EXP_SMSC91X_BASE;
-  VirtualMemoryTable[Index].Length          = SGI_EXP_SMSC91X_SZ;
-  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
-
   // Expansion AXI - System Peripherals
-  VirtualMemoryTable[++Index].PhysicalBase  = SGI_EXP_SYS_PERIPH_BASE;
-  VirtualMemoryTable[Index].VirtualBase     = SGI_EXP_SYS_PERIPH_BASE;
-  VirtualMemoryTable[Index].Length          = SGI_EXP_SYS_PERIPH_SZ;
+  VirtualMemoryTable[++Index].PhysicalBase  = FixedPcdGet64 (PcdSysPeriphBase);
+  VirtualMemoryTable[Index].VirtualBase     = FixedPcdGet64 (PcdSysPeriphBase);
+  VirtualMemoryTable[Index].Length          = SIZE_32MB;
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
 
   // Sub System Peripherals - Generic Watchdog
@@ -93,21 +130,21 @@ ArmPlatformGetVirtualMemoryMap (
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
 
   // Sub System Peripherals - GIC-600
-  VirtualMemoryTable[++Index].PhysicalBase  = SGI_SUBSYS_GENERIC_GIC_BASE;
-  VirtualMemoryTable[Index].VirtualBase     = SGI_SUBSYS_GENERIC_GIC_BASE;
-  VirtualMemoryTable[Index].Length          = SGI_SUBSYS_GENERIC_GIC_SZ;
+  VirtualMemoryTable[++Index].PhysicalBase  = FixedPcdGet64(PcdGicDistributorBase);
+  VirtualMemoryTable[Index].VirtualBase     = FixedPcdGet64(PcdGicDistributorBase);
+  VirtualMemoryTable[Index].Length          = FixedPcdGet64(PcdGicSize);
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
 
   // Expansion AXI - Platform Peripherals - HDLCD1
-  VirtualMemoryTable[++Index].PhysicalBase  = SGI_EXP_PLAT_PERIPH_HDLCD1_BASE;
-  VirtualMemoryTable[Index].VirtualBase     = SGI_EXP_PLAT_PERIPH_HDLCD1_BASE;
-  VirtualMemoryTable[Index].Length          = SGI_EXP_PLAT_PERIPH_HDLCD1_SZ;
+  VirtualMemoryTable[++Index].PhysicalBase  = FixedPcdGet32 (PcdArmHdLcdBase);
+  VirtualMemoryTable[Index].VirtualBase     = FixedPcdGet32 (PcdArmHdLcdBase);
+  VirtualMemoryTable[Index].Length          = SIZE_64KB;
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
 
   // Expansion AXI - Platform Peripherals - UART1
-  VirtualMemoryTable[++Index].PhysicalBase  = SGI_EXP_PLAT_PERIPH_UART1_BASE;
-  VirtualMemoryTable[Index].VirtualBase     = SGI_EXP_PLAT_PERIPH_UART1_BASE;
-  VirtualMemoryTable[Index].Length          = SGI_EXP_PLAT_PERIPH_UART1_SZ;
+  VirtualMemoryTable[++Index].PhysicalBase  = FixedPcdGet64 (PcdSerialRegisterBase);
+  VirtualMemoryTable[Index].VirtualBase     = FixedPcdGet64 (PcdSerialRegisterBase);
+  VirtualMemoryTable[Index].Length          = SIZE_64KB;
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
 
   // DDR - (2GB - 16MB)
@@ -121,6 +158,48 @@ ArmPlatformGetVirtualMemoryMap (
   VirtualMemoryTable[Index].VirtualBase     = PcdGet64 (PcdDramBlock2Base);
   VirtualMemoryTable[Index].Length          = PcdGet64 (PcdDramBlock2Size);
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK;
+
+#if (FixedPcdGet32 (PcdChipCount) > 1)
+  // Chip 1 DDR Block 1 - (2GB)
+  VirtualMemoryTable[++Index].PhysicalBase  = SYSTEM_MEMORY_BASE_REMOTE (1),
+  VirtualMemoryTable[Index].VirtualBase     = SYSTEM_MEMORY_BASE_REMOTE (1),
+  VirtualMemoryTable[Index].Length          = PcdGet64 (PcdSystemMemorySize);
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK;
+
+  // Chip 1 DDR Block 2 - (6GB)
+  VirtualMemoryTable[++Index].PhysicalBase  = DRAM_BLOCK2_BASE_REMOTE (1),
+  VirtualMemoryTable[Index].VirtualBase     = DRAM_BLOCK2_BASE_REMOTE (1),
+  VirtualMemoryTable[Index].Length          = PcdGet64 (PcdDramBlock2Size);
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK;
+
+#if (FixedPcdGet32 (PcdChipCount) > 2)
+  // Chip 2 DDR Block 1 - (2GB)
+  VirtualMemoryTable[++Index].PhysicalBase  = SYSTEM_MEMORY_BASE_REMOTE (2),
+  VirtualMemoryTable[Index].VirtualBase     = SYSTEM_MEMORY_BASE_REMOTE (2),
+  VirtualMemoryTable[Index].Length          = PcdGet64 (PcdSystemMemorySize);
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK;
+
+  // Chip 2 DDR Block 2 - (6GB)
+  VirtualMemoryTable[++Index].PhysicalBase  = DRAM_BLOCK2_BASE_REMOTE (2),
+  VirtualMemoryTable[Index].VirtualBase     = DRAM_BLOCK2_BASE_REMOTE (2),
+  VirtualMemoryTable[Index].Length          = PcdGet64 (PcdDramBlock2Size);
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK;
+
+#if (FixedPcdGet32 (PcdChipCount) > 3)
+  // Chip 3 DDR Block 1 - (2GB)
+  VirtualMemoryTable[++Index].PhysicalBase  = SYSTEM_MEMORY_BASE_REMOTE (3),
+  VirtualMemoryTable[Index].VirtualBase     = SYSTEM_MEMORY_BASE_REMOTE (3),
+  VirtualMemoryTable[Index].Length          = PcdGet64 (PcdSystemMemorySize);
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK;
+
+  // Chip 3 DDR Block 2 - (6GB)
+  VirtualMemoryTable[++Index].PhysicalBase  = DRAM_BLOCK2_BASE_REMOTE (3),
+  VirtualMemoryTable[Index].VirtualBase     = DRAM_BLOCK2_BASE_REMOTE (3),
+  VirtualMemoryTable[Index].Length          = PcdGet64 (PcdDramBlock2Size);
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK;
+#endif
+#endif
+#endif
 
   // PCI Configuration Space
   VirtualMemoryTable[++Index].PhysicalBase  = PcdGet64 (PcdPciExpressBaseAddress);

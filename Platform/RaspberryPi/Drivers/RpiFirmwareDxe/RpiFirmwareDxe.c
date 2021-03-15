@@ -1,7 +1,8 @@
 /** @file
  *
+ *  Copyright (c) 2020, Pete Batard <pete@akeo.ie>
  *  Copyright (c) 2019, ARM Limited. All rights reserved.
- *  Copyright (c) 2017-2018, Andrei Warkentin <andrey.warkentin@gmail.com>
+ *  Copyright (c) 2017-2020, Andrei Warkentin <andrey.warkentin@gmail.com>
  *  Copyright (c) 2016, Linaro, Ltd. All rights reserved.
  *
  *  SPDX-License-Identifier: BSD-2-Clause-Patent
@@ -30,12 +31,6 @@
 //
 #define NUM_PAGES   1
 
-//
-// The number of iterations to perform when waiting for the mailbox
-// status to change
-//
-#define MAX_TRIES   0x100000
-
 STATIC VOID  *mDmaBuffer;
 STATIC VOID  *mDmaBufferMapping;
 STATIC UINTN mDmaBufferBusAddress;
@@ -62,7 +57,7 @@ DrainMailbox (
     }
     ArmDataSynchronizationBarrier ();
     MmioRead32 (BCM2836_MBOX_BASE_ADDRESS + BCM2836_MBOX_READ_OFFSET);
-  } while (++Tries < MAX_TRIES);
+  } while (++Tries < RPI_MBOX_MAX_TRIES);
 
   return FALSE;
 }
@@ -86,7 +81,7 @@ MailboxWaitForStatusCleared (
       return TRUE;
     }
     ArmDataSynchronizationBarrier ();
-  } while (++Tries < MAX_TRIES);
+  } while (++Tries < RPI_MBOX_MAX_TRIES);
 
   return FALSE;
 }
@@ -394,8 +389,9 @@ RpiFirmwareGetSerial (
   }
 
   *Serial = Cmd->TagBody.Serial;
-  // Some platforms return 0 for serial. For those, try to use the MAC address.
-  if (*Serial == 0) {
+  // Some platforms return 0 or 0x0000000010000000 for serial.
+  // For those, try to use the MAC address.
+  if ((*Serial == 0) || ((*Serial & 0xFFFFFFFF0FFFFFFFULL) == 0)) {
     Status = RpiFirmwareGetMacAddress ((UINT8*) Serial);
     // Convert to a more user-friendly value
     *Serial = SwapBytes64 (*Serial << 16);
@@ -600,9 +596,39 @@ RpiFirmwareGetModelName (
     return "Raspberry Pi Compute Module 3+";
   case 0x11:
     return "Raspberry Pi 4 Model B";
+  case 0x13:
+    return "Raspberry Pi 400";
+  case 0x14:
+    return "Raspberry Pi Compute Module 4";
   default:
     return "Unknown Raspberry Pi Model";
   }
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+RPiFirmwareGetModelInstalledMB (
+  OUT   UINT32 *InstalledMB
+  )
+{
+  EFI_STATUS Status;
+  UINT32     Revision;
+
+  Status = RpiFirmwareGetModelRevision(&Revision);
+  if (EFI_ERROR(Status)) {
+    DEBUG ((DEBUG_ERROR, "%a: Could not get the board revision: Status == %r\n",
+      __FUNCTION__, Status));
+    return EFI_DEVICE_ERROR;
+  }
+
+  //
+  // www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
+  // Bits [20-22] indicate the amount of memory starting with 256MB (000b)
+  // and doubling in size for each value (001b = 512 MB, 010b = 1GB, etc.)
+  //
+  *InstalledMB = 256 << ((Revision >> 20) & 0x07);
+  return EFI_SUCCESS;
 }
 
 STATIC
@@ -648,6 +674,8 @@ RPiFirmwareGetModelFamily (
       *ModelFamily = 3;
       break;
   case 0x11:          // Raspberry Pi 4 Model B
+  case 0x13:          // Raspberry Pi 400
+  case 0x14:          // Raspberry Pi Computer Module 4
       *ModelFamily = 4;
       break;
   default:
@@ -1062,7 +1090,6 @@ RpiFirmwareSetClockRate (
   return EFI_SUCCESS;
 }
 
-
 #pragma pack()
 typedef struct {
   UINT32                    ClockId;
@@ -1079,7 +1106,6 @@ typedef struct {
 
 STATIC
 EFI_STATUS
-EFIAPI
 RpiFirmwareGetClockRate (
   IN  UINT32 ClockId,
   IN  UINT32 ClockKind,
@@ -1125,6 +1151,17 @@ RpiFirmwareGetClockRate (
 STATIC
 EFI_STATUS
 EFIAPI
+RpiFirmwareGetCurrentClockState (
+  IN  UINT32    ClockId,
+  OUT UINT32    *ClockState
+  )
+{
+  return RpiFirmwareGetClockRate (ClockId, RPI_MBOX_GET_CLOCK_STATE, ClockState);
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
 RpiFirmwareGetCurrentClockRate (
   IN  UINT32    ClockId,
   OUT UINT32    *ClockRate
@@ -1157,6 +1194,63 @@ RpiFirmwareGetMinClockRate (
 
 #pragma pack()
 typedef struct {
+  UINT32                    ClockId;
+  UINT32                    ClockState;
+} RPI_FW_GET_CLOCK_STATE_TAG;
+
+typedef struct {
+  RPI_FW_BUFFER_HEAD         BufferHead;
+  RPI_FW_TAG_HEAD            TagHead;
+  RPI_FW_GET_CLOCK_STATE_TAG TagBody;
+  UINT32                     EndTag;
+} RPI_FW_SET_CLOCK_STATE_CMD;
+#pragma pack()
+
+STATIC
+EFI_STATUS
+RpiFirmwareSetClockState (
+  IN  UINT32 ClockId,
+  IN  UINT32 ClockState
+  )
+{
+  RPI_FW_SET_CLOCK_STATE_CMD  *Cmd;
+  EFI_STATUS                  Status;
+  UINT32                      Result;
+
+  if (!AcquireSpinLockOrFail (&mMailboxLock)) {
+    DEBUG ((DEBUG_ERROR, "%a: failed to acquire spinlock\n", __FUNCTION__));
+    return EFI_DEVICE_ERROR;
+  }
+
+  Cmd = mDmaBuffer;
+  ZeroMem (Cmd, sizeof (*Cmd));
+
+  Cmd->BufferHead.BufferSize  = sizeof (*Cmd);
+  Cmd->BufferHead.Response    = 0;
+  Cmd->TagHead.TagId          = RPI_MBOX_SET_CLOCK_STATE;
+  Cmd->TagHead.TagSize        = sizeof (Cmd->TagBody);
+  Cmd->TagHead.TagValueSize   = 0;
+  Cmd->TagBody.ClockId        = ClockId;
+  Cmd->TagBody.ClockState     = ClockState;
+  Cmd->EndTag                 = 0;
+
+  Status = MailboxTransaction (Cmd->BufferHead.BufferSize, RPI_MBOX_VC_CHANNEL, &Result);
+
+  ReleaseSpinLock (&mMailboxLock);
+
+  if (EFI_ERROR (Status) ||
+      Cmd->BufferHead.Response != RPI_MBOX_RESP_SUCCESS) {
+    DEBUG ((DEBUG_ERROR,
+      "%a: mailbox transaction error: Status == %r, Response == 0x%x\n",
+      __FUNCTION__, Status, Cmd->BufferHead.Response));
+    return EFI_DEVICE_ERROR;
+  }
+
+  return EFI_SUCCESS;
+}
+
+#pragma pack()
+typedef struct {
   UINT32 Pin;
   UINT32 State;
 } RPI_FW_SET_GPIO_TAG;
@@ -1171,8 +1265,10 @@ typedef struct {
 
 STATIC
 VOID
-RpiFirmwareSetLed (
-  IN  BOOLEAN On
+EFIAPI
+RpiFirmwareSetGpio (
+  IN  UINT32  Gpio,
+  IN  BOOLEAN State
   )
 {
   RPI_FW_SET_GPIO_CMD *Cmd;
@@ -1192,14 +1288,10 @@ RpiFirmwareSetLed (
   Cmd->TagHead.TagId          = RPI_MBOX_SET_GPIO;
   Cmd->TagHead.TagSize        = sizeof (Cmd->TagBody);
   /*
-   * GPIO_PIN_2 = Activity LED
-   * GPIO_PIN_4 = HDMI Detect (Input / Active Low)
-   * GPIO_PIN_7 = Power LED (Input / Active Low)
-   *
    * There's also a 128 pin offset.
    */
-  Cmd->TagBody.Pin = 128 + 2;
-  Cmd->TagBody.State = On;
+  Cmd->TagBody.Pin = 128 + Gpio;
+  Cmd->TagBody.State = State;
   Cmd->TagHead.TagValueSize   = 0;
   Cmd->EndTag                 = 0;
 
@@ -1213,6 +1305,215 @@ RpiFirmwareSetLed (
       "%a: mailbox  transaction error: Status == %r, Response == 0x%x\n",
       __FUNCTION__, Status, Cmd->BufferHead.Response));
   }
+}
+
+STATIC
+VOID
+EFIAPI
+RpiFirmwareSetLed (
+  IN  BOOLEAN On
+  )
+{
+  RpiFirmwareSetGpio (RPI_EXP_GPIO_LED, On);
+}
+
+#pragma pack()
+typedef struct {
+  UINT32                       DeviceAddress;
+} RPI_FW_NOTIFY_XHCI_RESET_TAG;
+
+typedef struct {
+  RPI_FW_BUFFER_HEAD           BufferHead;
+  RPI_FW_TAG_HEAD              TagHead;
+  RPI_FW_NOTIFY_XHCI_RESET_TAG TagBody;
+  UINT32                       EndTag;
+} RPI_FW_NOTIFY_XHCI_RESET_CMD;
+#pragma pack()
+
+STATIC
+EFI_STATUS
+EFIAPI
+RpiFirmwareNotifyXhciReset (
+  IN UINTN BusNumber,
+  IN UINTN DeviceNumber,
+  IN UINTN FunctionNumber
+  )
+{
+  RPI_FW_NOTIFY_XHCI_RESET_CMD *Cmd;
+  EFI_STATUS                   Status;
+  UINT32                       Result;
+
+  if (!AcquireSpinLockOrFail (&mMailboxLock)) {
+    DEBUG ((DEBUG_ERROR, "%a: failed to acquire spinlock\n", __FUNCTION__));
+    return EFI_DEVICE_ERROR;
+  }
+
+  Cmd = mDmaBuffer;
+  ZeroMem (Cmd, sizeof (*Cmd));
+
+  Cmd->BufferHead.BufferSize  = sizeof (*Cmd);
+  Cmd->BufferHead.Response    = 0;
+  Cmd->TagHead.TagId          = RPI_MBOX_NOTIFY_XHCI_RESET;
+  Cmd->TagHead.TagSize        = sizeof (Cmd->TagBody);
+  Cmd->TagHead.TagValueSize   = 0;
+  Cmd->TagBody.DeviceAddress  = BusNumber << 20 | DeviceNumber << 15 | FunctionNumber << 12;
+  Cmd->EndTag                 = 0;
+
+  Status = MailboxTransaction (Cmd->BufferHead.BufferSize, RPI_MBOX_VC_CHANNEL, &Result);
+
+  ReleaseSpinLock (&mMailboxLock);
+
+  if (EFI_ERROR (Status) ||
+      Cmd->BufferHead.Response != RPI_MBOX_RESP_SUCCESS) {
+    DEBUG ((DEBUG_ERROR,
+      "%a: mailbox  transaction error: Status == %r, Response == 0x%x\n",
+      __FUNCTION__, Status, Cmd->BufferHead.Response));
+  }
+
+  return Status;
+}
+
+#pragma pack()
+typedef struct {
+  UINT32                       Gpio;
+  UINT32                       Direction;
+  UINT32                       Polarity;
+  UINT32                       TermEn;
+  UINT32                       TermPullUp;
+} RPI_FW_GPIO_GET_CFG_TAG;
+
+typedef struct {
+  RPI_FW_BUFFER_HEAD           BufferHead;
+  RPI_FW_TAG_HEAD              TagHead;
+  RPI_FW_GPIO_GET_CFG_TAG      TagBody;
+  UINT32                       EndTag;
+} RPI_FW_NOTIFY_GPIO_GET_CFG_CMD;
+#pragma pack()
+
+
+STATIC
+EFI_STATUS
+EFIAPI
+RpiFirmwareNotifyGpioGetCfg (
+  IN UINTN  Gpio,
+  IN UINT32 *Polarity
+  )
+{
+  RPI_FW_NOTIFY_GPIO_GET_CFG_CMD *Cmd;
+  EFI_STATUS                   Status;
+  UINT32                       Result;
+
+  if (!AcquireSpinLockOrFail (&mMailboxLock)) {
+    DEBUG ((DEBUG_ERROR, "%a: failed to acquire spinlock\n", __FUNCTION__));
+    return EFI_DEVICE_ERROR;
+  }
+
+  Cmd = mDmaBuffer;
+  ZeroMem (Cmd, sizeof (*Cmd));
+
+  Cmd->BufferHead.BufferSize  = sizeof (*Cmd);
+  Cmd->BufferHead.Response    = 0;
+  Cmd->TagHead.TagId          = RPI_MBOX_GET_GPIO_CONFIG;
+  Cmd->TagHead.TagSize        = sizeof (Cmd->TagBody);
+  Cmd->TagBody.Gpio = 128 + Gpio;
+
+  Cmd->TagHead.TagValueSize   = 0;
+  Cmd->EndTag                 = 0;
+
+  Status = MailboxTransaction (Cmd->BufferHead.BufferSize, RPI_MBOX_VC_CHANNEL, &Result);
+
+  *Polarity = Cmd->TagBody.Polarity;
+
+  ReleaseSpinLock (&mMailboxLock);
+
+  if (EFI_ERROR (Status) ||
+      Cmd->BufferHead.Response != RPI_MBOX_RESP_SUCCESS) {
+    DEBUG ((DEBUG_ERROR,
+      "%a: mailbox  transaction error: Status == %r, Response == 0x%x\n",
+      __FUNCTION__, Status, Cmd->BufferHead.Response));
+  }
+
+  return Status;
+}
+
+
+#pragma pack()
+typedef struct {
+  UINT32                       Gpio;
+  UINT32                       Direction;
+  UINT32                       Polarity;
+  UINT32                       TermEn;
+  UINT32                       TermPullUp;
+  UINT32                       State;
+} RPI_FW_GPIO_SET_CFG_TAG;
+
+typedef struct {
+  RPI_FW_BUFFER_HEAD           BufferHead;
+  RPI_FW_TAG_HEAD              TagHead;
+  RPI_FW_GPIO_SET_CFG_TAG      TagBody;
+  UINT32                       EndTag;
+} RPI_FW_NOTIFY_GPIO_SET_CFG_CMD;
+#pragma pack()
+
+
+STATIC
+EFI_STATUS
+EFIAPI
+RpiFirmwareNotifyGpioSetCfg (
+  IN UINTN Gpio,
+  IN UINTN Direction,
+  IN UINTN State
+  )
+{
+  RPI_FW_NOTIFY_GPIO_SET_CFG_CMD *Cmd;
+  EFI_STATUS                   Status;
+  UINT32                       Result;
+
+  Status = RpiFirmwareNotifyGpioGetCfg (Gpio, &Result);
+  if (EFI_ERROR (Status)) {
+	  DEBUG ((DEBUG_ERROR, "%a: Failed to get GPIO polarity\n", __FUNCTION__));
+	  Result = 0; //default polarity
+  }
+
+
+  if (!AcquireSpinLockOrFail (&mMailboxLock)) {
+    DEBUG ((DEBUG_ERROR, "%a: failed to acquire spinlock\n", __FUNCTION__));
+    return EFI_DEVICE_ERROR;
+  }
+
+  Cmd = mDmaBuffer;
+  ZeroMem (Cmd, sizeof (*Cmd));
+
+  Cmd->BufferHead.BufferSize  = sizeof (*Cmd);
+  Cmd->BufferHead.Response    = 0;
+  Cmd->TagHead.TagId          = RPI_MBOX_SET_GPIO_CONFIG;
+  Cmd->TagHead.TagSize        = sizeof (Cmd->TagBody);
+
+  Cmd->TagBody.Gpio = 128 + Gpio;
+  Cmd->TagBody.Direction = Direction;
+  Cmd->TagBody.Polarity = Result;
+  Cmd->TagBody.TermEn = 0;
+  Cmd->TagBody.TermPullUp = 0;
+  Cmd->TagBody.State = State;
+
+  Cmd->TagHead.TagValueSize   = 0;
+  Cmd->EndTag                 = 0;
+
+  Status = MailboxTransaction (Cmd->BufferHead.BufferSize, RPI_MBOX_VC_CHANNEL, &Result);
+
+  ReleaseSpinLock (&mMailboxLock);
+
+  if (EFI_ERROR (Status) ||
+      Cmd->BufferHead.Response != RPI_MBOX_RESP_SUCCESS) {
+    DEBUG ((DEBUG_ERROR,
+      "%a: mailbox  transaction error: Status == %r, Response == 0x%x\n",
+      __FUNCTION__, Status, Cmd->BufferHead.Response));
+  }
+
+  RpiFirmwareSetGpio (Gpio,!State);
+
+
+  return Status;
 }
 
 STATIC RASPBERRY_PI_FIRMWARE_PROTOCOL mRpiFirmwareProtocol = {
@@ -1235,7 +1536,12 @@ STATIC RASPBERRY_PI_FIRMWARE_PROTOCOL mRpiFirmwareProtocol = {
   RpiFirmwareGetFirmwareRevision,
   RpiFirmwareGetManufacturerName,
   RpiFirmwareGetCpuName,
-  RpiFirmwareGetArmMemory
+  RpiFirmwareGetArmMemory,
+  RPiFirmwareGetModelInstalledMB,
+  RpiFirmwareNotifyXhciReset,
+  RpiFirmwareGetCurrentClockState,
+  RpiFirmwareSetClockState,
+  RpiFirmwareNotifyGpioSetCfg
 };
 
 /**

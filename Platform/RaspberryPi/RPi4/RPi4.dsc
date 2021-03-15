@@ -1,6 +1,6 @@
 # @file
 #
-#  Copyright (c) 2011 - 2019, ARM Limited. All rights reserved.
+#  Copyright (c) 2011 - 2020, ARM Limited. All rights reserved.
 #  Copyright (c) 2017 - 2018, Andrei Warkentin <andrey.warkentin@gmail.com>
 #  Copyright (c) 2015 - 2016, Intel Corporation. All rights reserved.
 #  Copyright (c) 2014, Linaro Limited. All rights reserved.
@@ -26,20 +26,26 @@
   FLASH_DEFINITION               = Platform/RaspberryPi/$(PLATFORM_NAME)/$(PLATFORM_NAME).fdf
 
   #
-  # Network definition
-  #
-  DEFINE NETWORK_TLS_ENABLE       = FALSE
-  DEFINE NETWORK_HTTP_BOOT_ENABLE = FALSE
-
-  #
   # Defines for default states.  These can be changed on the command line.
   # -D FLAG=VALUE
   #
   DEFINE SECURE_BOOT_ENABLE      = FALSE
   DEFINE INCLUDE_TFTP_COMMAND    = FALSE
   DEFINE DEBUG_PRINT_ERROR_LEVEL = 0x8000004F
-  DEFINE PL011_ENABLE            = FALSE
-  DEFINE ACPI_BASIC_MODE_ENABLE  = FALSE
+
+!ifndef TFA_BUILD_ARTIFACTS
+  #
+  # Default TF-A binary checked into edk2-non-osi.
+  #
+  DEFINE TFA_BUILD_BL31 = Platform/RaspberryPi/$(PLATFORM_NAME)/TrustedFirmware/bl31.bin
+!else
+  #
+  # Usually we use the checked-in binaries, but for developers working
+  # on the firmware, being able to use a local TF-A build without extra copy
+  # operations ends up being very helpful.
+  #
+  DEFINE TFA_BUILD_BL31 = $(TFA_BUILD_ARTIFACTS)/bl31.bin
+!endif
 
 ################################################################################
 #
@@ -118,21 +124,17 @@
   ArmHvcLib|ArmPkg/Library/ArmHvcLib/ArmHvcLib.inf
   ArmGenericTimerCounterLib|ArmPkg/Library/ArmGenericTimerPhyCounterLib/ArmGenericTimerPhyCounterLib.inf
 
-!if $(PL011_ENABLE) == TRUE
+  # Dual serial port library
   PL011UartClockLib|ArmPlatformPkg/Library/PL011UartClockLib/PL011UartClockLib.inf
   PL011UartLib|ArmPlatformPkg/Library/PL011UartLib/PL011UartLib.inf
-  SerialPortLib|ArmPlatformPkg/Library/PL011SerialPortLib/PL011SerialPortLib.inf
-!else
-  PciCf8Lib|MdePkg/Library/BasePciCf8Lib/BasePciCf8Lib.inf
-  PciLib|MdePkg/Library/BasePciLibCf8/BasePciLibCf8.inf
-  PlatformHookLib|MdeModulePkg/Library/BasePlatformHookLibNull/BasePlatformHookLibNull.inf
-  SerialPortLib|MdeModulePkg/Library/BaseSerialPortLib16550/BaseSerialPortLib16550.inf
-!endif
+  SerialPortLib|Platform/RaspberryPi/Library/DualSerialPortLib/DebugDualSerialPortLib.inf
 
   # Cryptographic libraries
+  RngLib|MdePkg/Library/DxeRngLib/DxeRngLib.inf
   IntrinsicLib|CryptoPkg/Library/IntrinsicLib/IntrinsicLib.inf
   BaseCryptLib|CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
   OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLib.inf
+  TlsLib|CryptoPkg/Library/TlsLib/TlsLib.inf
 
   #
   # Uncomment (and comment out the next line) For RealView Debugger. The Standard IO window
@@ -167,6 +169,8 @@
   AuthVariableLib|MdeModulePkg/Library/AuthVariableLibNull/AuthVariableLibNull.inf
 !endif
   VarCheckLib|MdeModulePkg/Library/VarCheckLib/VarCheckLib.inf
+  VariablePolicyLib|MdeModulePkg/Library/VariablePolicyLib/VariablePolicyLib.inf
+  VariablePolicyHelperLib|MdeModulePkg/Library/VariablePolicyHelperLib/VariablePolicyHelperLib.inf
   GpioLib|Silicon/Broadcom/Bcm283x/Library/GpioLib/GpioLib.inf
 
   #
@@ -224,6 +228,7 @@
   CapsuleLib|MdeModulePkg/Library/DxeCapsuleLibNull/DxeCapsuleLibNull.inf
   EfiResetSystemLib|Platform/RaspberryPi/Library/ResetLib/ResetLib.inf
   ArmSmcLib|ArmPkg/Library/ArmSmcLib/ArmSmcLib.inf
+  VariablePolicyLib|MdeModulePkg/Library/VariablePolicyLib/VariablePolicyLibRuntimeDxe.inf
 
 !if $(SECURE_BOOT_ENABLE) == TRUE
   BaseCryptLib|CryptoPkg/Library/BaseCryptLib/RuntimeCryptLib.inf
@@ -236,14 +241,12 @@
 ###################################################################################################
 
 [BuildOptions]
-  GCC:*_*_AARCH64_DLINK_FLAGS = -Wl,--fix-cortex-a53-843419
+  GCC:*_*_*_CC_FLAGS          = -DRPI_MODEL=4
+  GCC:*_*_*_PP_FLAGS          = -DRPI_MODEL=4
+  GCC:*_*_*_ASLPP_FLAGS       = -DRPI_MODEL=4
+  GCC:*_*_*_ASLCC_FLAGS       = -DRPI_MODEL=4
+  GCC:*_*_*_VFRPP_FLAGS       = -DRPI_MODEL=4
   GCC:RELEASE_*_*_CC_FLAGS    = -DMDEPKG_NDEBUG -DNDEBUG
-
-!if $(PL011_ENABLE) == TRUE
-  GCC:*_*_*_CC_FLAGS          = -DPL011_ENABLE
-  GCC:*_*_*_ASLPP_FLAGS       = -DPL011_ENABLE
-  GCC:*_*_*_ASLCC_FLAGS       = -DPL011_ENABLE
-!endif
 
 [BuildOptions.common.EDKII.DXE_RUNTIME_DRIVER]
   GCC:*_*_AARCH64_DLINK_FLAGS = -z common-page-size=0x10000
@@ -265,8 +268,7 @@
   #  It could be set FALSE to save size.
   gEfiMdeModulePkgTokenSpaceGuid.PcdConOutGopSupport|TRUE
   gEfiMdeModulePkgTokenSpaceGuid.PcdConOutUgaSupport|FALSE
-
-  gRaspberryPiTokenSpaceGuid.PcdAcpiBasicMode|$(ACPI_BASIC_MODE_ENABLE)
+  gEfiMdePkgTokenSpaceGuid.PcdUgaConsumeSupport|FALSE
 
 [PcdsFixedAtBuild.common]
   gEfiMdePkgTokenSpaceGuid.PcdMaximumUnicodeStringLength|1000000
@@ -277,7 +279,6 @@
   gEfiMdePkgTokenSpaceGuid.PcdPerformanceLibraryPropertyMask|1
   gEfiMdePkgTokenSpaceGuid.PcdPostCodePropertyMask|0
   gEfiMdePkgTokenSpaceGuid.PcdUefiLibMaxPrintBufferSize|320
-  gRaspberryPiTokenSpaceGuid.PcdFdtBaseAddress|0x20000
 
   # DEBUG_ASSERT_ENABLED       0x01
   # DEBUG_PRINT_ENABLED        0x02
@@ -353,6 +354,11 @@
   gEfiSecurityPkgTokenSpaceGuid.PcdRemovableMediaImageVerificationPolicy|0x04
 !endif
 
+  gEfiNetworkPkgTokenSpaceGuid.PcdAllowHttpConnections|TRUE
+
+  # Default platform supported RFC 4646 languages: (American) English
+  gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultPlatformLangCodes|"en-US"
+
 [LibraryClasses.common]
   ArmLib|ArmPkg/Library/ArmLib/ArmBaseLib.inf
   ArmMmuLib|ArmPkg/Library/ArmMmuLib/ArmMmuBaseLib.inf
@@ -364,6 +370,7 @@
   PlatformBootManagerLib|Platform/RaspberryPi/Library/PlatformBootManagerLib/PlatformBootManagerLib.inf
   CustomizedDisplayLib|MdeModulePkg/Library/CustomizedDisplayLib/CustomizedDisplayLib.inf
   FileExplorerLib|MdeModulePkg/Library/FileExplorerLib/FileExplorerLib.inf
+  AcpiLib|EmbeddedPkg/Library/AcpiLib/AcpiLib.inf
 
 [LibraryClasses.common.UEFI_DRIVER]
   UefiScsiLib|MdePkg/Library/UefiScsiLib/UefiScsiLib.inf
@@ -390,19 +397,22 @@
   # Size of the region used by UEFI in permanent memory (Reserved 64MB)
   gArmPlatformTokenSpaceGuid.PcdSystemMemoryUefiRegionSize|0x04000000
   #
-  # This matches PcdFvBaseAddress, since everything less is ATF, and
+  # 0x00000000 - 0x001F0000  FD (PcdFdBaseAddress, PcdFdSize)
+  # 0x001F0000 - 0x00200000 DTB (PcdFdtBaseAddress, PcdFdtSize)
+  # 0x00200000 - ...        RAM (PcdSystemMemoryBase, PcdSystemMemorySize)
+  #
+  # This matches PcdFvBaseAddress, since everything less is the FD, and
   # will be reserved away.
   #
-  gArmTokenSpaceGuid.PcdSystemMemoryBase|0x00400000
-  gArmTokenSpaceGuid.PcdSystemMemorySize|0x3fc00000
+  gArmTokenSpaceGuid.PcdSystemMemoryBase|0x00200000
+  gArmTokenSpaceGuid.PcdSystemMemorySize|0x3fe00000
 
   #
   # Device specific addresses
   #
-  gRaspberryPiTokenSpaceGuid.PcdExtendedMemoryBase|0x40000000
   gBcm27xxTokenSpaceGuid.PcdBcm27xxRegistersAddress|0xfc000000
+  gBcm27xxTokenSpaceGuid.PcdBcmGenetRegistersAddress|0xfd580000
   gBcm283xTokenSpaceGuid.PcdBcm283xRegistersAddress|0xfe000000
-  gBcmNetTokenSpaceGuid.PcdBcmGenetRegistersAddress|0xfd580000
 
   # PCIe specific addresses
   gBcm27xxTokenSpaceGuid.PcdBcm27xxPciRegBase|0xfd500000
@@ -410,22 +420,15 @@
   gBcm27xxTokenSpaceGuid.PcdBcm27xxPciBusMmioLen|0x3ffffff
   gBcm27xxTokenSpaceGuid.PcdBcm27xxPciCpuMmioAdr|0x600000000
 
-!if $(PL011_ENABLE) == TRUE
-  ## PL011 UART
-  gEfiMdeModulePkgTokenSpaceGuid.PcdSerialRegisterBase|0xfe201000
+  # UARTs
   gArmPlatformTokenSpaceGuid.PL011UartInteger|0
   gArmPlatformTokenSpaceGuid.PL011UartFractional|0
   gArmPlatformTokenSpaceGuid.PL011UartClkInHz|48000000
-!else
-  ## NS16550 compatible UART
-  gEfiMdeModulePkgTokenSpaceGuid.PcdSerialRegisterBase|0xfe215040
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialUseMmio|TRUE
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialRegisterStride|4
-  gEfiMdeModulePkgTokenSpaceGuid.PcdSerialClockRate|500000000
+  gEfiMdeModulePkgTokenSpaceGuid.PcdSerialClockRate|1000000000
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialFifoControl|0x27
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialExtendedTxFifoSize|8
-!endif
-
   gEfiMdePkgTokenSpaceGuid.PcdUartDefaultBaudRate|115200
   gEfiMdePkgTokenSpaceGuid.PcdUartDefaultReceiveFifoDepth|0
 
@@ -434,6 +437,20 @@
   #
   gArmTokenSpaceGuid.PcdGicDistributorBase|0xFF841000
   gArmTokenSpaceGuid.PcdGicInterruptInterfaceBase|0xFF842000
+  gRaspberryPiTokenSpaceGuid.PcdGicInterruptInterfaceHBase|0xFF844000
+  gRaspberryPiTokenSpaceGuid.PcdGicInterruptInterfaceVBase|0xFF846000
+  gRaspberryPiTokenSpaceGuid.PcdGicGsivId|0x19
+  gRaspberryPiTokenSpaceGuid.PcdGicPmuIrq0|0x30
+  gRaspberryPiTokenSpaceGuid.PcdGicPmuIrq1|0x31
+  gRaspberryPiTokenSpaceGuid.PcdGicPmuIrq2|0x32
+  gRaspberryPiTokenSpaceGuid.PcdGicPmuIrq3|0x33
+
+  #
+  # Fixed CPU settings.
+  #
+  gRaspberryPiTokenSpaceGuid.PcdCpuLowSpeedMHz|800
+  gRaspberryPiTokenSpaceGuid.PcdCpuDefSpeedMHz|1500
+  gRaspberryPiTokenSpaceGuid.PcdCpuMaxSpeedMHz|2200
 
   ## Default Terminal Type
   ## 0-PCANSI, 1-VT100, 2-VT00+, 3-UTF8, 4-TTYTERM
@@ -451,32 +468,66 @@
   # Clock overrides.
   #
 
-  gRaspberryPiTokenSpaceGuid.PcdCpuClock|L"CpuClock"|gConfigDxeFormSetGuid|0x0|0
-  gRaspberryPiTokenSpaceGuid.PcdCustomCpuClock|L"CustomCpuClock"|gConfigDxeFormSetGuid|0x0|600
+  gRaspberryPiTokenSpaceGuid.PcdCpuClock|L"CpuClock"|gConfigDxeFormSetGuid|0x0|1
+  gRaspberryPiTokenSpaceGuid.PcdCustomCpuClock|L"CustomCpuClock"|gConfigDxeFormSetGuid|0x0|gRaspberryPiTokenSpaceGuid.PcdCpuDefSpeedMHz
 
   #
   # SD-related.
   #
 
-  gRaspberryPiTokenSpaceGuid.PcdSdIsArasan|L"SdIsArasan"|gConfigDxeFormSetGuid|0x0|1
+  gRaspberryPiTokenSpaceGuid.PcdSdIsArasan|L"SdIsArasan"|gConfigDxeFormSetGuid|0x0|0
   gRaspberryPiTokenSpaceGuid.PcdMmcForce1Bit|L"MmcForce1Bit"|gConfigDxeFormSetGuid|0x0|0
   gRaspberryPiTokenSpaceGuid.PcdMmcForceDefaultSpeed|L"MmcForceDefaultSpeed"|gConfigDxeFormSetGuid|0x0|0
   gRaspberryPiTokenSpaceGuid.PcdMmcSdDefaultSpeedMHz|L"MmcSdDefaultSpeedMHz"|gConfigDxeFormSetGuid|0x0|25
   gRaspberryPiTokenSpaceGuid.PcdMmcSdHighSpeedMHz|L"MmcSdHighSpeedMHz"|gConfigDxeFormSetGuid|0x0|50
   gRaspberryPiTokenSpaceGuid.PcdMmcDisableMulti|L"MmcDisableMulti"|gConfigDxeFormSetGuid|0x0|0
+  gRaspberryPiTokenSpaceGuid.PcdMmcEnableDma|L"MmcEnableDma"|gConfigDxeFormSetGuid|0x0|0
 
   #
   # Debug-related.
   #
 
   gRaspberryPiTokenSpaceGuid.PcdDebugEnableJTAG|L"DebugEnableJTAG"|gConfigDxeFormSetGuid|0x0|0
-  gRaspberryPiTokenSpaceGuid.PcdDebugShowUEFIExit|L"DebugShowUEFIExit"|gConfigDxeFormSetGuid|0x0|0
 
   #
   # Display-related.
   #
-  gRaspberryPiTokenSpaceGuid.PcdDisplayEnableScaledVModes|L"DisplayEnableScaledVModes"|gConfigDxeFormSetGuid|0x0|0xff
+
+  #
+  # Just enable native resolution by default.
+  #
+  gRaspberryPiTokenSpaceGuid.PcdDisplayEnableScaledVModes|L"DisplayEnableScaledVModes"|gConfigDxeFormSetGuid|0x0|0x20
   gRaspberryPiTokenSpaceGuid.PcdDisplayEnableSShot|L"DisplayEnableSShot"|gConfigDxeFormSetGuid|0x0|1
+
+  #
+  # Supporting > 3GB of memory.
+  #
+  gRaspberryPiTokenSpaceGuid.PcdRamMoreThan3GB|L"RamMoreThan3GB"|gConfigDxeFormSetGuid|0x0|0
+  gRaspberryPiTokenSpaceGuid.PcdRamLimitTo3GB|L"RamLimitTo3GB"|gConfigDxeFormSetGuid|0x0|1
+
+  #
+  # Device Tree and ACPI selection.
+  #
+  # 0 - SYSTEM_TABLE_MODE_ACPI (default)
+  # 1 - SYSTEM_TABLE_MODE_BOTH
+  # 2 - SYSTEM_TABLE_MODE_DT
+  #
+  gRaspberryPiTokenSpaceGuid.PcdSystemTableMode|L"SystemTableMode"|gConfigDxeFormSetGuid|0x0|0
+
+  #
+  # Enable a fan in the ACPI thermal zone on GPIO pin #
+  #
+  # 0  - DISABLED
+  # 19 - Enabled on pin 19
+  #
+  gRaspberryPiTokenSpaceGuid.PcdFanOnGpio|L"FanOnGpio"|gConfigDxeFormSetGuid|0x0|0
+  gRaspberryPiTokenSpaceGuid.PcdFanTemp|L"FanTemp"|gConfigDxeFormSetGuid|0x0|60
+
+  #
+  # Reset-related.
+  #
+
+  gRaspberryPiTokenSpaceGuid.PcdPlatformResetDelay|L"ResetDelay"|gRaspberryPiTokenSpaceGuid|0x0|0
 
   #
   # Common UEFI ones.
@@ -514,7 +565,10 @@
   #
   # PEI Phase modules
   #
-  ArmPlatformPkg/PrePi/PeiUniCore.inf
+  ArmPlatformPkg/PrePi/PeiUniCore.inf {
+    <LibraryClasses>
+      SerialPortLib|Platform/RaspberryPi/Library/DualSerialPortLib/DualSerialPortLib.inf
+  }
 
   #
   # DXE
@@ -560,9 +614,12 @@
 
   MdeModulePkg/Universal/Console/ConPlatformDxe/ConPlatformDxe.inf
   MdeModulePkg/Universal/Console/ConSplitterDxe/ConSplitterDxe.inf
-  Platform/RaspberryPi/Drivers/GraphicsConsoleDxe/GraphicsConsoleDxe.inf
+  MdeModulePkg/Universal/Console/GraphicsConsoleDxe/GraphicsConsoleDxe.inf
   MdeModulePkg/Universal/Console/TerminalDxe/TerminalDxe.inf
-  MdeModulePkg/Universal/SerialDxe/SerialDxe.inf
+  MdeModulePkg/Universal/SerialDxe/SerialDxe.inf {
+    <LibraryClasses>
+      SerialPortLib|Platform/RaspberryPi/Library/DualSerialPortLib/DualSerialPortLib.inf
+  }
   Platform/RaspberryPi/Drivers/DisplayDxe/DisplayDxe.inf
   EmbeddedPkg/Drivers/ConsolePrefDxe/ConsolePrefDxe.inf
 
@@ -570,9 +627,7 @@
 
   ArmPkg/Drivers/ArmGic/ArmGicDxe.inf
   Platform/RaspberryPi/Drivers/RpiFirmwareDxe/RpiFirmwareDxe.inf
-!if $(ACPI_BASIC_MODE_ENABLE) == FALSE
   Platform/RaspberryPi/Drivers/FdtDxe/FdtDxe.inf
-!endif
   Platform/RaspberryPi/Drivers/ConfigDxe/ConfigDxe.inf
   ArmPkg/Drivers/TimerDxe/TimerDxe.inf
   MdeModulePkg/Universal/WatchdogTimerDxe/WatchdogTimer.inf
@@ -590,9 +645,8 @@
   # ACPI Support
   #
   MdeModulePkg/Universal/Acpi/AcpiTableDxe/AcpiTableDxe.inf
-  MdeModulePkg/Universal/Acpi/AcpiPlatformDxe/AcpiPlatformDxe.inf
   MdeModulePkg/Universal/Acpi/BootGraphicsResourceTableDxe/BootGraphicsResourceTableDxe.inf
-  Platform/RaspberryPi/$(PLATFORM_NAME)/AcpiTables/AcpiTables.inf
+  Platform/RaspberryPi/AcpiTables/AcpiTables.inf
 
   #
   # SMBIOS Support
@@ -636,7 +690,6 @@
   MdeModulePkg/Bus/Usb/UsbBusDxe/UsbBusDxe.inf
   MdeModulePkg/Bus/Usb/UsbKbDxe/UsbKbDxe.inf
   MdeModulePkg/Bus/Usb/UsbMassStorageDxe/UsbMassStorageDxe.inf
-  Drivers/OptionRomPkg/Bus/Usb/UsbNetworking/Ax88772b/Ax88772b.inf
 
   #
   # SD/MMC support
@@ -650,8 +703,9 @@
   #
 !include NetworkPkg/Network.dsc.inc
   Silicon/Broadcom/Drivers/Net/BcmGenetDxe/BcmGenetDxe.inf {
-    <LibraryClasses>
-      NULL|Platform/RaspberryPi/Library/PlatformPcdLib/PlatformPcdLib.inf
+    <PcdsFixedAtBuild>
+      gEmbeddedTokenSpaceGuid.PcdDmaDeviceOffset|0x00000000
+      gEmbeddedTokenSpaceGuid.PcdDmaDeviceLimit|0xffffffff
   }
 
   #
@@ -696,5 +750,8 @@
       gEfiShellPkgTokenSpaceGuid.PcdShellFileOperationSize|0x200000
   }
 !if $(INCLUDE_TFTP_COMMAND) == TRUE
-  ShellPkg/DynamicCommand/TftpDynamicCommand/TftpDynamicCommand.inf
+  ShellPkg/DynamicCommand/TftpDynamicCommand/TftpDynamicCommand.inf  {
+    <PcdsFixedAtBuild>
+      gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
+  }
 !endif

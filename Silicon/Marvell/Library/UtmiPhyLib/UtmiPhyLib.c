@@ -8,6 +8,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include "UtmiPhyLib.h"
 
 typedef struct {
+  EFI_PHYSICAL_ADDRESS UtmiPllAddr;
   EFI_PHYSICAL_ADDRESS UtmiBaseAddr;
   EFI_PHYSICAL_ADDRESS UsbCfgAddr;
   EFI_PHYSICAL_ADDRESS UtmiCfgAddr;
@@ -78,6 +79,7 @@ UtmiPhyPowerDown (
   } else {
     Data = 0x0 << UTMI_USB_CFG_DEVICE_EN_OFFSET;
   }
+  RegSet (UsbCfgAddr, Data, Mask);
 
   /* Set Test suspendm mode */
   Mask = UTMI_CTRL_STATUS0_SUSPENDM_MASK;
@@ -95,6 +97,7 @@ STATIC
 VOID
 UtmiPhyConfig (
   IN UINT32 UtmiIndex,
+  IN EFI_PHYSICAL_ADDRESS UtmiPllAddr,
   IN EFI_PHYSICAL_ADDRESS UtmiBaseAddr,
   IN EFI_PHYSICAL_ADDRESS UsbCfgAddr,
   IN EFI_PHYSICAL_ADDRESS UtmiCfgAddr,
@@ -114,27 +117,37 @@ UtmiPhyConfig (
   /* Select LPFR - 0x0 for 25Mhz/5=5Mhz */
   Mask |= UTMI_PLL_CTRL_SEL_LPFR_MASK;
   Data |= 0x0 << UTMI_PLL_CTRL_SEL_LPFR_OFFSET;
-  RegSet (UtmiBaseAddr + UTMI_PLL_CTRL_REG, Data, Mask);
+  RegSet (UtmiPllAddr + UTMI_PLL_CTRL_REG, Data, Mask);
 
   /* Impedance Calibration Threshold Setting */
-  RegSet (UtmiBaseAddr + UTMI_CALIB_CTRL_REG,
-    0x6 << UTMI_CALIB_CTRL_IMPCAL_VTH_OFFSET,
+  RegSet (UtmiPllAddr + UTMI_CALIB_CTRL_REG,
+    0x7 << UTMI_CALIB_CTRL_IMPCAL_VTH_OFFSET,
     UTMI_CALIB_CTRL_IMPCAL_VTH_MASK);
+
+  /* Start Impedance and PLL Calibration */
+  Mask = UTMI_CALIB_CTRL_PLLCAL_START_MASK;
+  Data = (0x1 << UTMI_CALIB_CTRL_PLLCAL_START_OFFSET);
+  Mask |= UTMI_CALIB_CTRL_IMPCAL_START_MASK;
+  Data |= (0x1 << UTMI_CALIB_CTRL_IMPCAL_START_OFFSET);
+  RegSet (UtmiPllAddr + UTMI_CALIB_CTRL_REG, Data, Mask);
 
   /* Set LS TX driver strength coarse control */
   Mask = UTMI_TX_CH_CTRL_DRV_EN_LS_MASK;
   Data = 0x3 << UTMI_TX_CH_CTRL_DRV_EN_LS_OFFSET;
-  /* Set LS TX driver fine adjustment */
+  Mask |= UTMI_TX_CH_CTRL_AMP_MASK;
+  Data |= 0x4 << UTMI_TX_CH_CTRL_AMP_OFFSET;
   Mask |= UTMI_TX_CH_CTRL_IMP_SEL_LS_MASK;
   Data |= 0x3 << UTMI_TX_CH_CTRL_IMP_SEL_LS_OFFSET;
   RegSet (UtmiBaseAddr + UTMI_TX_CH_CTRL_REG, Data, Mask);
 
   /* Enable SQ */
   Mask = UTMI_RX_CH_CTRL0_SQ_DET_MASK;
-  Data = 0x0 << UTMI_RX_CH_CTRL0_SQ_DET_OFFSET;
+  Data = 0x1 << UTMI_RX_CH_CTRL0_SQ_DET_OFFSET;
   /* Enable analog squelch detect */
   Mask |= UTMI_RX_CH_CTRL0_SQ_ANA_DTC_MASK;
-  Data |= 0x1 << UTMI_RX_CH_CTRL0_SQ_ANA_DTC_OFFSET;
+  Data |= 0x0 << UTMI_RX_CH_CTRL0_SQ_ANA_DTC_OFFSET;
+  Mask |= UTMI_RX_CH_CTRL0_DISCON_THRESH_MASK;
+  Data |= 0x0 << UTMI_RX_CH_CTRL0_DISCON_THRESH_OFFSET;
   RegSet (UtmiBaseAddr + UTMI_RX_CH_CTRL0_REG, Data, Mask);
 
   /* Set External squelch calibration number */
@@ -158,6 +171,7 @@ STATIC
 UINTN
 UtmiPhyPowerUp (
   IN UINT32 UtmiIndex,
+  IN EFI_PHYSICAL_ADDRESS UtmiPllAddr,
   IN EFI_PHYSICAL_ADDRESS UtmiBaseAddr,
   IN EFI_PHYSICAL_ADDRESS UsbCfgAddr,
   IN EFI_PHYSICAL_ADDRESS UtmiCfgAddr,
@@ -182,7 +196,7 @@ UtmiPhyPowerUp (
   /* Delay 10ms */
   MicroSecondDelay (10000);
 
-  Data = MmioRead32 (UtmiBaseAddr + UTMI_CALIB_CTRL_REG);
+  Data = MmioRead32 (UtmiPllAddr + UTMI_CALIB_CTRL_REG);
   if ((Data & UTMI_CALIB_CTRL_IMPCAL_DONE_MASK) == 0) {
     DEBUG((DEBUG_ERROR, "UtmiPhy: Impedance calibration is not done\n"));
     Status = EFI_D_ERROR;
@@ -191,7 +205,7 @@ UtmiPhyPowerUp (
     DEBUG((DEBUG_ERROR, "UtmiPhy: PLL calibration is not done\n"));
     Status = EFI_D_ERROR;
   }
-  Data = MmioRead32 (UtmiBaseAddr + UTMI_PLL_CTRL_REG);
+  Data = MmioRead32 (UtmiPllAddr + UTMI_PLL_CTRL_REG);
   if ((Data & UTMI_PLL_CTRL_PLL_RDY_MASK) == 0) {
     DEBUG((DEBUG_ERROR, "UtmiPhy: PLL is not ready\n"));
     Status = EFI_D_ERROR;
@@ -226,12 +240,14 @@ Cp110UtmiPhyInit (
   MmioAnd32 (UtmiData->UsbCfgAddr, ~UTMI_USB_CFG_PLL_MASK);
 
   UtmiPhyConfig (UtmiData->PhyId,
+    UtmiData->UtmiPllAddr,
     UtmiData->UtmiBaseAddr,
     UtmiData->UsbCfgAddr,
     UtmiData->UtmiCfgAddr,
     UtmiData->UtmiPhyPort);
 
   Status = UtmiPhyPowerUp (UtmiData->PhyId,
+             UtmiData->UtmiPllAddr,
              UtmiData->UtmiBaseAddr,
              UtmiData->UsbCfgAddr,
              UtmiData->UtmiCfgAddr,
@@ -281,6 +297,9 @@ UtmiPhyInit (
   for (Index = 0; Index < BoardDesc->UtmiDevCount; Index++) {
     /* Get base address of UTMI phy */
     UtmiData.UtmiBaseAddr = BoardDesc[Index].SoC->UtmiBaseAddress;
+
+    /* Get base address of PLL registers */
+    UtmiData.UtmiPllAddr = BoardDesc[Index].SoC->UtmiPllAddress;
 
     /* Get usb config address */
     UtmiData.UsbCfgAddr = BoardDesc[Index].SoC->UsbConfigAddress;

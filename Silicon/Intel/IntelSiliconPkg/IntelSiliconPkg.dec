@@ -3,7 +3,7 @@
 #
 # This package provides common open source Intel silicon modules.
 #
-# Copyright (c) 2016 - 2019, Intel Corporation. All rights reserved.<BR>
+# Copyright (c) 2016 - 2020, Intel Corporation. All rights reserved.<BR>
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
 ##
@@ -30,6 +30,18 @@
   #
   PeiGetVtdPmrAlignmentLib|Include/Library/PeiGetVtdPmrAlignmentLib.h
 
+  ## @libraryclass Provides services to access SMM information
+  #
+  SmmAccessLib|Include/Library/SmmAccessLib.h
+
+  ## @libraryclass Provides services to access config block
+  #
+  ConfigBlockLib|Include/Library/ConfigBlockLib.h
+
+  ## @libraryclass Provides services to update AML in DXE
+  #
+  AslUpdateLib|Include/Library/AslUpdateLib.h
+
 [Guids]
   ## GUID for Package token space
   # {A9F8D54E-1107-4F0A-ADD0-4587E7A4A735}
@@ -48,8 +60,15 @@
   ## HOB GUID to get memory information after MRC is done. The hob data will be used to set the PMR ranges
   gVtdPmrInfoDataHobGuid = {0x6fb61645, 0xf168, 0x46be, { 0x80, 0xec, 0xb5, 0x02, 0x38, 0x5e, 0xe7, 0xe7 } }
 
+  ## Include/Guid/MicrocodeShadowInfoHob.h
+  gEdkiiMicrocodeShadowInfoHobGuid = { 0x658903f9, 0xda66, 0x460d, { 0x8b, 0xb0, 0x9d, 0x2d, 0xdf, 0x65, 0x44, 0x59 } }
+
+  ## Include/Guid/MicrocodeShadowInfoHob.h
+  gEdkiiMicrocodeStorageTypeFlashGuid = { 0x2cba01b3, 0xd391, 0x4598, { 0x8d, 0x89, 0xb7, 0xfc, 0x39, 0x22, 0xfd, 0x71 } }
+
 [Ppis]
   gEdkiiVTdInfoPpiGuid = { 0x8a59fcb3, 0xf191, 0x400c, { 0x97, 0x67, 0x67, 0xaf, 0x2b, 0x25, 0x68, 0x4a } }
+  gEdkiiVTdNullRootEntryTableGuid = { 0x3de0593f, 0x6e3e, 0x4542, { 0xa1, 0xcb, 0xcb, 0xb2, 0xdb, 0xeb, 0xd8, 0xff } }
 
 [Protocols]
   gEdkiiPlatformVTdPolicyProtocolGuid = { 0x3d17e448, 0x466, 0x4e20, { 0x99, 0x9f, 0xb2, 0xe1, 0x34, 0x88, 0xee, 0x22 }}
@@ -57,6 +76,13 @@
   ## Protocol for device security policy.
   # Include/Protocol/PlatformDeviceSecurityPolicy.h
   gEdkiiDeviceSecurityPolicyProtocolGuid = {0x7ea41a99, 0x5e32, 0x4c97, {0x88, 0xc4, 0xd6, 0xe7, 0x46, 0x84, 0x9, 0xd4}}
+
+[PcdsFeatureFlag]
+  ## Indicates if all microcode update patches shall be shadowed to memory.
+  #   TRUE  - All microcode patches will be shadowed.<BR>
+  #   FALSE - Only the microcode for current present processors will be shadowed.<BR>
+  # @Prompt Shadow all microcode update patches.
+  gIntelSiliconPkgTokenSpaceGuid.PcdShadowAllMicrocode|FALSE|BOOLEAN|0x00000006
 
 [PcdsFixedAtBuild, PcdsPatchableInModule]
   ## Error code for VTd error.<BR><BR>

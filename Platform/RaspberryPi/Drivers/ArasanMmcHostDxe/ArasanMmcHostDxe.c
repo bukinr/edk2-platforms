@@ -11,10 +11,62 @@
 
 #define DEBUG_MMCHOST_SD DEBUG_VERBOSE
 
-BOOLEAN PreviousIsCardPresent = FALSE;
+STATIC BOOLEAN mCardIsPresent = FALSE;
+STATIC CARD_DETECT_STATE mCardDetectState = CardDetectRequired;
 UINT32 LastExecutedCommand = (UINT32) -1;
 
 STATIC RASPBERRY_PI_FIRMWARE_PROTOCOL *mFwProtocol;
+STATIC UINTN mMmcHsBase;
+
+STATIC
+UINT32
+EFIAPI
+SdMmioWrite32 (
+  IN      UINTN                     Address,
+  IN      UINT32                    Value
+  )
+{
+  UINT32 ret;
+  ret = (UINT32)MmioWrite32 (Address, Value);
+  // There is a bug about clock domain crossing on writes, delay to avoid it
+  gBS->Stall (STALL_AFTER_REG_WRITE_US);
+  return ret;
+}
+
+STATIC
+UINT32
+EFIAPI
+SdMmioOr32 (
+  IN      UINTN                     Address,
+  IN      UINT32                    OrData
+  )
+{
+  return SdMmioWrite32 (Address, MmioRead32 (Address) | OrData);
+}
+
+STATIC
+UINT32
+EFIAPI
+SdMmioAnd32 (
+  IN      UINTN                     Address,
+  IN      UINT32                    AndData
+  )
+{
+  return SdMmioWrite32 (Address, MmioRead32 (Address) & AndData);
+}
+
+STATIC
+UINT32
+EFIAPI
+SdMmioAndThenOr32 (
+  IN      UINTN                     Address,
+  IN      UINT32                    AndData,
+  IN      UINT32                    OrData
+  )
+{
+  return SdMmioWrite32 (Address, (MmioRead32 (Address) & AndData) | OrData);
+}
+
 
 /**
    These SD commands are optional, according to the SD Spec
@@ -173,7 +225,9 @@ SoftReset (
   IN UINT32 Mask
   )
 {
-  MmioOr32 (MMCHS_SYSCTL, Mask);
+  DEBUG ((DEBUG_MMCHOST_SD, "SoftReset with mask 0x%x\n", Mask));
+
+  SdMmioOr32 (MMCHS_SYSCTL, Mask);
   if (PollRegisterWithMask (MMCHS_SYSCTL, Mask, 0) == EFI_TIMEOUT) {
     DEBUG ((DEBUG_ERROR, "Failed to SoftReset with mask 0x%x\n", Mask));
     return EFI_TIMEOUT;
@@ -196,7 +250,11 @@ CalculateClockFrequencyDivisor (
   UINT32 Divisor;
   UINT32 BaseFrequency = 0;
 
-  Status = mFwProtocol->GetClockRate (RPI_MBOX_CLOCK_RATE_EMMC, &BaseFrequency);
+  if (PcdGet32 (PcdSdIsArasan)) {
+    Status = mFwProtocol->GetClockRate (RPI_MBOX_CLOCK_RATE_EMMC, &BaseFrequency);
+  } else {
+    Status = mFwProtocol->GetClockRate (RPI_MBOX_CLOCK_RATE_EMMC2, &BaseFrequency);
+  }
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "Couldn't get RPI_MBOX_CLOCK_RATE_EMMC\n"));
     return Status;
@@ -237,14 +295,6 @@ CalculateClockFrequencyDivisor (
   DEBUG ((DEBUG_MMCHOST_SD, "ArasanMMCHost: *DivisorValue 0x%x\n", *DivisorValue));
 
   return EFI_SUCCESS;
-}
-
-BOOLEAN
-MMCIsCardPresent (
-  IN EFI_MMC_HOST_PROTOCOL *This
-)
-{
-  return TRUE;
 }
 
 BOOLEAN
@@ -332,29 +382,29 @@ MMCSendCommand (
   }
 
   if (IsAppCmd && MmcCmd == ACMD22) {
-    MmioWrite32 (MMCHS_BLK, 4);
+    SdMmioWrite32 (MMCHS_BLK, 4);
   } else if (IsAppCmd && MmcCmd == ACMD51) {
-    MmioWrite32 (MMCHS_BLK, 8);
+    SdMmioWrite32 (MMCHS_BLK, 8);
   } else if (!IsAppCmd && MmcCmd == CMD6) {
-    MmioWrite32 (MMCHS_BLK, 64);
+    SdMmioWrite32 (MMCHS_BLK, 64);
   } else if (IsADTCCmd) {
-    MmioWrite32 (MMCHS_BLK, BLEN_512BYTES);
+    SdMmioWrite32 (MMCHS_BLK, BLEN_512BYTES);
   }
 
   // Set Data timeout counter value to max value.
-  MmioAndThenOr32 (MMCHS_SYSCTL, (UINT32) ~DTO_MASK, DTO_VAL);
+  SdMmioAndThenOr32 (MMCHS_SYSCTL, (UINT32) ~DTO_MASK, DTO_VAL);
 
   //
   // Clear Interrupt Status Register, but not the Card Inserted bit
   // to avoid messing with card detection logic.
   //
-  MmioWrite32 (MMCHS_INT_STAT, ALL_EN & ~(CARD_INS));
+  SdMmioWrite32 (MMCHS_INT_STAT, ALL_EN & ~(CARD_INS));
 
   // Set command argument register
-  MmioWrite32 (MMCHS_ARG, Argument);
+  SdMmioWrite32 (MMCHS_ARG, Argument);
 
   // Send the command
-  MmioWrite32 (MMCHS_CMD, MmcCmd);
+  SdMmioWrite32 (MMCHS_CMD, MmcCmd);
 
   // Check for the command status.
   while (RetryCount < MAX_RETRY_COUNT) {
@@ -379,7 +429,7 @@ MMCSendCommand (
 
     // Check if command is completed.
     if ((MmcStatus & CC) == CC) {
-      MmioWrite32 (MMCHS_INT_STAT, CC);
+      SdMmioWrite32 (MMCHS_INT_STAT, CC);
       break;
     }
 
@@ -418,16 +468,36 @@ MMCNotifyState (
 
   DEBUG ((DEBUG_MMCHOST_SD, "ArasanMMCHost: MMCNotifyState(State: %d)\n", State));
 
+  // Stall all operations except init until card detection has occurred.
+  if (State != MmcHwInitializationState && mCardDetectState != CardDetectCompleted) {
+    return EFI_NOT_READY;
+  }
+
   switch (State) {
   case MmcHwInitializationState:
     {
-      EFI_STATUS Status;
-      UINT32 Divisor;
+
+      DEBUG ((DEBUG_MMCHOST_SD, "ArasanMMCHost: current divisor %x\n", MmioRead32(MMCHS_SYSCTL)));
 
       Status = SoftReset (SRA);
       if (EFI_ERROR (Status)) {
         return Status;
       }
+
+      DEBUG ((DEBUG_MMCHOST_SD, "ArasanMMCHost: CAP %X CAPH %X\n", MmioRead32(MMCHS_CAPA),MmioRead32(MMCHS_CUR_CAPA)));
+
+      // Lets switch to card detect test mode.
+      SdMmioOr32 (MMCHS_HCTL, BIT7|BIT6);
+
+      // set card voltage
+      SdMmioAnd32 (MMCHS_HCTL, ~SDBP_ON);
+      SdMmioAndThenOr32 (MMCHS_HCTL, (UINT32) ~SDBP_MASK, SDVS_3_3_V);
+      SdMmioOr32 (MMCHS_HCTL, SDBP_ON);
+
+      DEBUG ((DEBUG_MMCHOST_SD, "ArasanMMCHost: AC12 %X HCTL %X\n", MmioRead32(MMCHS_AC12),MmioRead32(MMCHS_HCTL)));
+
+      // First turn off the clock
+      SdMmioAnd32 (MMCHS_SYSCTL, ~CEN);
 
       // Attempt to set the clock to 400Khz which is the expected initialization speed
       Status = CalculateClockFrequencyDivisor (400000, &Divisor, NULL);
@@ -437,10 +507,15 @@ MMCNotifyState (
       }
 
       // Set Data Timeout Counter value, set clock frequency, enable internal clock
-      MmioOr32 (MMCHS_SYSCTL, DTO_VAL | Divisor | CEN | ICS | ICE);
+      SdMmioOr32 (MMCHS_SYSCTL, DTO_VAL | Divisor | CEN | ICS | ICE);
+      SdMmioOr32 (MMCHS_HCTL, SDBP_ON);
+      // wait for ICS
+      while ((MmioRead32 (MMCHS_SYSCTL) & ICS_MASK) != ICS);
+
+      DEBUG ((DEBUG_MMCHOST_SD, "ArasanMMCHost: AC12 %X HCTL %X\n", MmioRead32(MMCHS_AC12),MmioRead32(MMCHS_HCTL)));
 
       // Enable interrupts
-      MmioWrite32 (MMCHS_IE, ALL_EN);
+      SdMmioWrite32 (MMCHS_IE, ALL_EN);
     }
     break;
   case MmcIdleState:
@@ -453,7 +528,7 @@ MMCNotifyState (
     ClockFrequency = 25000000;
 
     // First turn off the clock
-    MmioAnd32 (MMCHS_SYSCTL, ~CEN);
+    SdMmioAnd32 (MMCHS_SYSCTL, ~CEN);
 
     Status = CalculateClockFrequencyDivisor (ClockFrequency, &Divisor, NULL);
     if (EFI_ERROR (Status)) {
@@ -463,13 +538,13 @@ MMCNotifyState (
     }
 
     // Setup new divisor
-    MmioAndThenOr32 (MMCHS_SYSCTL, (UINT32) ~CLKD_MASK, Divisor);
+    SdMmioAndThenOr32 (MMCHS_SYSCTL, (UINT32) ~CLKD_MASK, Divisor);
 
     // Wait for the clock to stabilise
     while ((MmioRead32 (MMCHS_SYSCTL) & ICS_MASK) != ICS);
 
     // Set Data Timeout Counter value, set clock frequency, enable internal clock
-    MmioOr32 (MMCHS_SYSCTL, CEN);
+    SdMmioOr32 (MMCHS_SYSCTL, CEN);
     break;
   case MmcTransferState:
     break;
@@ -487,6 +562,78 @@ MMCNotifyState (
   }
 
   return EFI_SUCCESS;
+}
+
+BOOLEAN
+MMCIsCardPresent (
+  IN EFI_MMC_HOST_PROTOCOL *This
+)
+{
+  EFI_STATUS Status;
+
+  //
+  // If we are already in progress (we may get concurrent calls)
+  // or completed the detection, just return the current value.
+  //
+  if (mCardDetectState != CardDetectRequired) {
+    return mCardIsPresent;
+  }
+
+  mCardDetectState = CardDetectInProgress;
+  mCardIsPresent = FALSE;
+
+  //
+  // The two following commands should succeed even if no card is present.
+  //
+  Status = MMCNotifyState (This, MmcHwInitializationState);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "MMCIsCardPresent: Error MmcHwInitializationState, Status=%r.\n", Status));
+    // If we failed init, go back to requiring card detection
+    mCardDetectState = CardDetectRequired;
+    return FALSE;
+  }
+
+  Status = MMCSendCommand (This, MMC_CMD0, 0);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "MMCIsCardPresent: CMD0 Error, Status=%r.\n", Status));
+    goto out;
+  }
+
+  //
+  // CMD8 should tell us if an SD card is present.
+  //
+  Status = MMCSendCommand (This, MMC_CMD8, CMD8_SD_ARG);
+  if (!EFI_ERROR (Status)) {
+     DEBUG ((DEBUG_INFO, "MMCIsCardPresent: Maybe SD card detected.\n"));
+     mCardIsPresent = TRUE;
+     goto out;
+  }
+
+  //
+  // MMC/eMMC won't accept CMD8, but we can try CMD1.
+  //
+  Status = MMCSendCommand (This, MMC_CMD1, EMMC_CMD1_CAPACITY_GREATER_THAN_2GB);
+  if (!EFI_ERROR (Status)) {
+     DEBUG ((DEBUG_INFO, "MMCIsCardPresent: Maybe MMC card detected.\n"));
+     mCardIsPresent = TRUE;
+     goto out;
+  }
+
+  //
+  // SDIO?
+  //
+  Status = MMCSendCommand (This, MMC_CMD5, 0);
+  if (!EFI_ERROR (Status)) {
+     DEBUG ((DEBUG_INFO, "MMCIsCardPresent: Maybe SDIO card detected.\n"));
+     mCardIsPresent = TRUE;
+     goto out;
+  }
+
+  DEBUG ((DEBUG_INFO, "MMCIsCardPresent: Not detected, Status=%r.\n", Status));
+
+out:
+  mCardDetectState = CardDetectCompleted;
+  return mCardIsPresent;
 }
 
 EFI_STATUS
@@ -564,7 +711,7 @@ MMCReadBlockData (
     while (RetryCount < MAX_RETRY_COUNT) {
       MmcStatus = MmioRead32 (MMCHS_INT_STAT);
       if ((MmcStatus & BRR) != 0) {
-        MmioWrite32 (MMCHS_INT_STAT, BRR);
+        SdMmioWrite32 (MMCHS_INT_STAT, BRR);
         /*
          * Data is ready.
          */
@@ -591,7 +738,7 @@ MMCReadBlockData (
     gBS->Stall (STALL_AFTER_READ_US);
   }
 
-  MmioWrite32 (MMCHS_INT_STAT, BRR);
+  SdMmioWrite32 (MMCHS_INT_STAT, BRR);
   return EFI_SUCCESS;
 }
 
@@ -628,13 +775,13 @@ MMCWriteBlockData (
     while (RetryCount < MAX_RETRY_COUNT) {
       MmcStatus = MmioRead32 (MMCHS_INT_STAT);
       if ((MmcStatus & BWR) != 0) {
-        MmioWrite32 (MMCHS_INT_STAT, BWR);
+        SdMmioWrite32 (MMCHS_INT_STAT, BWR);
         /*
          * Can write data.
          */
         mFwProtocol->SetLed (TRUE);
         for (Count = 0; Count < BlockLen; Count += 4, Buffer++) {
-          MmioWrite32 (MMCHS_DATA, *Buffer);
+          SdMmioWrite32 (MMCHS_DATA, *Buffer);
         }
 
         mFwProtocol->SetLed (FALSE);
@@ -655,7 +802,7 @@ MMCWriteBlockData (
     gBS->Stall (STALL_AFTER_WRITE_US);
   }
 
-  MmioWrite32 (MMCHS_INT_STAT, BWR);
+  SdMmioWrite32 (MMCHS_INT_STAT, BWR);
   return EFI_SUCCESS;
 }
 
@@ -693,7 +840,13 @@ MMCInitialize (
 
   DEBUG ((DEBUG_MMCHOST_SD, "ArasanMMCHost: MMCInitialize()\n"));
 
-  if (!PcdGet32 (PcdSdIsArasan)) {
+  if (PcdGet32 (PcdSdIsArasan)) {
+    DEBUG ((DEBUG_INFO, "SD is routed to Arasan\n"));
+    mMmcHsBase = MMCHS1_BASE;
+  } else if (RPI_MODEL == 4) {
+    DEBUG ((DEBUG_INFO, "SD is routed to emmc2\n"));
+    mMmcHsBase = MMCHS2_BASE;
+  } else {
     DEBUG ((DEBUG_INFO, "SD is not routed to Arasan\n"));
     return EFI_REQUEST_UNLOAD_IMAGE;
   }

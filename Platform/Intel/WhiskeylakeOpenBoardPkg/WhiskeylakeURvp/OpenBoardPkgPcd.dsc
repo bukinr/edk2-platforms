@@ -1,7 +1,7 @@
 ## @file
 #  PCD configuration build description file for the WhiskeylakeURvp board.
 #
-# Copyright (c) 2019, Intel Corporation. All rights reserved.<BR>
+# Copyright (c) 2019 - 2020, Intel Corporation. All rights reserved.<BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -71,12 +71,6 @@
   # Edk2 Configuration
   ######################################
   gEfiMdeModulePkgTokenSpaceGuid.PcdPeiCoreImageLoaderSearchTeSectionFirst|FALSE
-  gEfiMdeModulePkgTokenSpaceGuid.PcdStatusCodeUseMemory|FALSE
-!if $(TARGET) == RELEASE
-  gEfiMdeModulePkgTokenSpaceGuid.PcdStatusCodeUseSerial|FALSE
-!else
-  gEfiMdeModulePkgTokenSpaceGuid.PcdStatusCodeUseSerial|TRUE
-!endif
   gUefiCpuPkgTokenSpaceGuid.PcdCpuSmmEnableBspElection|FALSE
   gUefiCpuPkgTokenSpaceGuid.PcdCpuSmmProfileEnable|FALSE
   gEfiMdeModulePkgTokenSpaceGuid.PcdInstallAcpiSdtProtocol|TRUE
@@ -133,6 +127,7 @@
   gMinPlatformPkgTokenSpaceGuid.PcdPerformanceEnable|FALSE
   gMinPlatformPkgTokenSpaceGuid.PcdTpm2Enable|FALSE
   gMinPlatformPkgTokenSpaceGuid.PcdUefiSecureBootEnable|FALSE
+  gMinPlatformPkgTokenSpaceGuid.PcdSerialTerminalEnable|FALSE
 
 !if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 1
   gMinPlatformPkgTokenSpaceGuid.PcdStopAfterDebugInit|TRUE
@@ -202,6 +197,12 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdSrIovSupport|FALSE
 !if $(TARGET) == DEBUG
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialUseHardwareFlowControl|FALSE
+!endif
+  gEfiMdeModulePkgTokenSpaceGuid.PcdStatusCodeUseMemory|FALSE
+!if $(TARGET) == RELEASE
+  gEfiMdeModulePkgTokenSpaceGuid.PcdStatusCodeUseSerial|FALSE
+!else
+  gEfiMdeModulePkgTokenSpaceGuid.PcdStatusCodeUseSerial|TRUE
 !endif
 
   gPcAtChipsetPkgTokenSpaceGuid.PcdAcpiIoBarEnableMask|0x80
@@ -387,6 +388,8 @@
   gWhiskeylakeOpenBoardPkgTokenSpaceGuid.PcdDTbtWakeupSupport|0x0
   gWhiskeylakeOpenBoardPkgTokenSpaceGuid.PcdRtd3Tbt|0x1
   gWhiskeylakeOpenBoardPkgTokenSpaceGuid.PcdRtd3TbtClkReq|0x1
+
+  gWhiskeylakeOpenBoardPkgTokenSpaceGuid.PcdDciEnable|FALSE
 
 [PcdsDynamicHii.X64.DEFAULT]
   ######################################
