@@ -44,6 +44,8 @@
 [FixedPcd]
   gArmTokenSpaceGuid.PcdFdBaseAddress
   gArmTokenSpaceGuid.PcdFvBaseAddress
+  gRaspberryPiTokenSpaceGuid.PcdFdtBaseAddress
+  gRaspberryPiTokenSpaceGuid.PcdFdtSize
   gArmPlatformTokenSpaceGuid.PcdCoreCount
   gArmTokenSpaceGuid.PcdArmPrimaryCoreMask
   gArmTokenSpaceGuid.PcdArmPrimaryCore
@@ -53,14 +55,13 @@
   gEmbeddedTokenSpaceGuid.PcdDmaDeviceOffset
   gArmTokenSpaceGuid.PcdSystemMemoryBase
   gArmTokenSpaceGuid.PcdSystemMemorySize
-  gRaspberryPiTokenSpaceGuid.PcdExtendedMemoryBase
   gRaspberryPiTokenSpaceGuid.PcdNvStorageEventLogSize
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableSize
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingSize
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareSize
 
-[FeaturePcd]
-  gRaspberryPiTokenSpaceGuid.PcdAcpiBasicMode
+[Pcd]
+  gEfiMdeModulePkgTokenSpaceGuid.PcdSerialClockRate     # RPi3 only
 
 [Ppis]
   gArmMpCoreInfoPpiGuid

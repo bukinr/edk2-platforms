@@ -30,9 +30,7 @@
 
 [Guids]
   gArmSgiPlatformIdDescriptorGuid
-  gSgi575AcpiTablesFileGuid
-  gRdN1EdgeAcpiTablesFileGuid
-  gRdE1EdgeAcpiTablesFileGuid
+  gArmSgiAcpiTablesGuid
 
 [FeaturePcd]
   gArmSgiTokenSpaceGuid.PcdVirtioBlkSupported

@@ -10,6 +10,10 @@ The majority of the content in the EDK II open source project uses a
 [BSD-2-Clause Plus Patent License](License.txt).  Additional details on EDK II
 open source project code contributions can be found in the edk2 repository
 [Readme.md](https://github.com/tianocore/edk2/blob/master/Readme.md).
+The EDK II Platforms open source project contains the following components that
+are covered by additional licenses:
+
+- [`Silicon/RISC-V/ProcessorPkg/Library/RiscVOpensbiLib/opensbi`](https://github.com/riscv/opensbi/blob/master/COPYING.BSD)
 
 # INDEX
 * [Overview](#overview)
@@ -52,6 +56,7 @@ ARM                 | arm-linux-gnueabihf-
 IA32                | i?86-linux-gnu-* _or_ x86_64-linux-gnu-
 IPF                 | ia64-linux-gnu
 X64                 | x86_64-linux-gnu-
+RISCV64             | riscv64-unknown-elf-
 
 \* i386, i486, i586 or i686
 
@@ -61,6 +66,11 @@ Linaro provides GCC toolchains for
 and [arm-linux-gnueabihf](https://releases.linaro.org/components/toolchain/binaries/latest/arm-linux-gnueabihf/)
 compiled to run on x86_64/i686 Linux and i686 Windows. Some Linux distributions
 provide their own packaged cross-toolchains.
+
+### GCC for RISC-V
+RISC-V open source community provides GCC toolchains for
+[riscv64-unknown-elf](https://github.com/riscv/riscv-gnu-toolchain)
+compiled to run on x86 Linux.
 
 ### clang
 Clang does not require separate cross compilers, but it does need a
@@ -87,6 +97,7 @@ target-specific binutils. These are included with any prepackaged GCC toolchain
    $ git submodule update --init
    ...
    $ git clone https://github.com/tianocore/edk2-platforms.git
+   $ git submodule update --init
    ...
    $ git clone https://github.com/tianocore/edk2-non-osi.git
    ```
@@ -212,22 +223,29 @@ they will be documented with the platform.
 * [Overdrive](Platform/AMD/OverdriveBoard)
 * [Overdrive 1000](Platform/SoftIron/Overdrive1000Board)
 
+## [Ampere](Platform/Ampere/Readme.md)
+* [Mt. Jade](Platform/Ampere/JadePkg)
+
 ## [ARM](Platform/ARM/Readme.md)
+* [Juno](Platform/ARM/JunoPkg)
+* [SGI family](Platform/ARM/SgiPkg)
 
 ## BeagleBoard
 * [BeagleBoard](Platform/BeagleBoard/BeagleBoardPkg)
 
 ## Hisilicon
-* [D02](Platform/Hisilicon/D02)
 * [D03](Platform/Hisilicon/D03)
 * [D05](Platform/Hisilicon/D05)
+* [D06](Platform/Hisilicon/D06)
 * [HiKey](Platform/Hisilicon/HiKey)
+* [HiKey960](Platform/Hisilicon/HiKey960)
 
 ## Intel
 ### [Minimum Platforms](Platform/Intel/Readme.md)
 * [Kaby Lake](Platform/Intel/KabylakeOpenBoardPkg)
 * [Simics](Platform/Intel/SimicsOpenBoardPkg)
 * [Whiskey Lake](Platform/Intel/WhiskeylakeOpenBoardPkg)
+* [Comet Lake](Platform/Intel/CometlakeOpenBoardPkg)
 
 For more information, see the
 [EDK II Minimum Platform Specification](https://edk2-docs.gitbooks.io/edk-ii-minimum-platform-specification).
@@ -238,10 +256,20 @@ For more information, see the
 * [Minnowboard Max](Platform/Intel/Vlv2TbltDevicePkg)
 
 ## Marvell
-* [Armada 70x0](Platform/Marvell/Armada)
+* [Armada 70x0](Platform/Marvell/Armada70x0Db)
+* [Armada 80x0](Platform/Marvell/Armada80x0Db)
+* [CN913x](Platform/Marvell/Cn913xDb)
+* [SolidRun Armada MacchiatoBin](Platform/SolidRun/Armada80x0McBin)
 
 ## Raspberry Pi
 * [Pi 3](Platform/RaspberryPi/RPi3)
+* [Pi 4](Platform/RaspberryPi/RPi4)
+
+## RISC-V
+### SiFive
+* [Sifive U5 Series](Platform/SiFive/U5SeriesPkg) Refer to Platform/SiFive/U5Series/Readme.md on edk2-platform repository.
+* [Freedom U500 VC707 FPGA](Platform/SiFive/U5SeriesPkg/FreedomU500VC707Board)
+* [Freedom U540 HiFive Unleashed](Platform/SiFive/U5SeriesPkg/FreedomU540HiFiveUnleashedBoard)
 
 ## Socionext
 * [SynQuacer](Platform/Socionext/DeveloperBox)
@@ -249,6 +277,41 @@ For more information, see the
 ## NXP
 * [LS1043aRdb](Platform/NXP/LS1043aRdbPkg)
 
+## Qemu
+* [SBSA](Platform/Qemu/SbsaQemu)
+
 # Maintainers
 
 See [Maintainers.txt](Maintainers.txt).
+
+# Submodules
+
+Submodule in EDK II Platforms is allowed but submodule chain should be avoided
+as possible as we can. Currently EDK II Platforms contains the following
+submodules
+
+- Silicon/RISC-V/ProcessorPkg/Library/RiscVOpensbiLib/opensbi
+
+To get a full, buildable EDK II repository, use following steps of git command
+
+```bash
+  git clone https://github.com/tianocore/edk2-platforms.git
+  cd edk2-platforms
+  git submodule update --init
+  cd ..
+```
+
+If there's update for submodules, use following git commands to get the latest
+submodules code.
+
+```bash
+  cd edk2-platforms
+  git pull
+  git submodule update
+```
+
+Note: When cloning submodule repos, '--recursive' option is not recommended.
+EDK II Platforms itself will not use any code/feature from submodules in above
+submodules. So using '--recursive' adds a dependency on being able to reach
+servers we do not actually want any code from, as well as needlessly
+downloading code we will not use.

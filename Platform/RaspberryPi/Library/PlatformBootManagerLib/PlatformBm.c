@@ -4,7 +4,7 @@
  *  Copyright (c) 2017-2018, Andrei Warkentin <andrey.warkentin@gmail.com>
  *  Copyright (c) 2016, Linaro Ltd. All rights reserved.
  *  Copyright (c) 2015-2016, Red Hat, Inc.
- *  Copyright (c) 2014, ARM Ltd. All rights reserved.
+ *  Copyright (c) 2014-2020, ARM Ltd. All rights reserved.
  *  Copyright (c) 2004-2016, Intel Corporation. All rights reserved.
  *
  *  SPDX-License-Identifier: BSD-2-Clause-Patent
@@ -25,7 +25,6 @@
 #include <Protocol/LoadedImage.h>
 #include <Guid/EventGroup.h>
 #include <Guid/TtyTerm.h>
-#include <Protocol/BootLogo.h>
 
 #include "PlatformBm.h"
 
@@ -315,6 +314,30 @@ AddOutput (
     ReportText));
 }
 
+/**
+  This CALLBACK_FUNCTION attempts to connect a handle non-recursively, asking
+  the matching driver to produce all first-level child handles.
+**/
+STATIC
+VOID
+EFIAPI
+Connect (
+  IN EFI_HANDLE   Handle,
+  IN CONST CHAR16 *ReportText
+  )
+{
+  EFI_STATUS Status;
+
+  Status = gBS->ConnectController (
+                  Handle, // ControllerHandle
+                  NULL,   // DriverImageHandle
+                  NULL,   // RemainingDevicePath -- produce all children
+                  FALSE   // Recursive
+                  );
+  DEBUG ((EFI_ERROR (Status) ? EFI_D_ERROR : EFI_D_VERBOSE, "%a: %s: %r\n",
+    __FUNCTION__, ReportText, Status));
+}
+
 STATIC
 INTN
 PlatformRegisterBootOption (
@@ -408,7 +431,7 @@ RemoveStaleBootOptions (
     EFI_DEVICE_PATH_PROTOCOL *DevicePath = BootOptions[Index].FilePath;
 
     if (CompareMem (&mArasan, DevicePath, GetDevicePathSize (DevicePath)) == 0) {
-      if (PcdGet32 (PcdSdIsArasan)) {
+      if (PcdGet32 (PcdSdIsArasan) || RPI_MODEL == 4) {
         continue;
       }
     } else if (CompareMem (&mSDHost, DevicePath, GetDevicePathSize (DevicePath)) == 0) {
@@ -461,7 +484,7 @@ PlatformRegisterOptionsAndKeys (
   RemoveStaleBootOptions ();
 
   ShellOption = PlatformRegisterFvBootOption (&gUefiShellFileGuid,
-                  L"UEFI Shell", LOAD_OPTION_CATEGORY_APP);
+                  L"UEFI Shell", 0);
   if (ShellOption != -1) {
     //
     // F1 boots Shell.
@@ -501,46 +524,6 @@ SerialConPrint (
   }
 }
 
-STATIC
-VOID
-EFIAPI
-ExitBootServicesHandler (
-  IN EFI_EVENT  Event,
-  IN VOID       *Context
-  )
-{
-  EFI_STATUS Status;
-  //
-  // Long enough to occlude the string printed
-  // in PlatformBootManagerWaitCallback.
-  //
-  STATIC CHAR16 *OsBootStr = L"Exiting UEFI and booting EL2 OS kernel!\r\n";
-  EFI_GRAPHICS_OUTPUT_BLT_PIXEL_UNION Green;
-  EFI_GRAPHICS_OUTPUT_BLT_PIXEL_UNION Black;
-  EFI_GRAPHICS_OUTPUT_BLT_PIXEL_UNION Yellow;
-
-  if (!PcdGet32 (PcdDebugShowUEFIExit)) {
-    return;
-  }
-
-  Green.Raw = 0x00007F00;
-  Black.Raw = 0x00000000;
-  Yellow.Raw = 0x00FFFF00;
-
-  Status = BootLogoUpdateProgress (Yellow.Pixel,
-             Black.Pixel,
-             OsBootStr,
-             Green.Pixel,
-             100, 0);
-  if (Status == EFI_SUCCESS) {
-    SerialConPrint (OsBootStr);
-  } else {
-    Print (L"\n");
-    Print (OsBootStr);
-    Print (L"\n");
-  }
-}
-
 //
 // BDS Platform Functions
 //
@@ -562,20 +545,7 @@ PlatformBootManagerBeforeConsole (
   )
 {
   EFI_STATUS Status;
-  EFI_EVENT ExitBSEvent;
   ESRT_MANAGEMENT_PROTOCOL *EsrtManagement;
-
-  Status = gBS->CreateEventEx (
-                  EVT_NOTIFY_SIGNAL,
-                  TPL_NOTIFY,
-                  ExitBootServicesHandler,
-                  NULL,
-                  &gEfiEventExitBootServicesGuid,
-                  &ExitBSEvent
-                );
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a: failed to register ExitBootServices handler\n", __FUNCTION__));
-  }
 
   if (GetBootModeHob () == BOOT_ON_FLASH_UPDATE) {
     DEBUG ((DEBUG_INFO, "ProcessCapsules Before EndOfDxe ......\n"));
@@ -618,6 +588,13 @@ PlatformBootManagerBeforeConsole (
   // Dispatch deferred images after EndOfDxe event and ReadyToLock installation.
   //
   EfiBootManagerDispatchDeferredImages ();
+
+  //
+  // Ensure that USB is initialized by connecting the PCI root bridge so
+  // that the xHCI PCI controller gets enumerated (Pi 4) or by connecting
+  // to the DesignWare USB OTG controller directly.
+  FilterAndProcess (&gEfiPciRootBridgeIoProtocolGuid, NULL, Connect);
+  FilterAndProcess (&gEfiUsb2HcProtocolGuid, NULL, Connect);
 }
 
 /**
@@ -656,11 +633,6 @@ PlatformBootManagerAfterConsole (
     Print (BOOT_PROMPT);
   }
 
-  //
-  // Connect the rest of the devices.
-  //
-  EfiBootManagerConnectAll ();
-
   Status = gBS->LocateProtocol (&gEsrtManagementProtocolGuid, NULL, (VOID**)&EsrtManagement);
   if (!EFI_ERROR (Status)) {
     EsrtManagement->SyncEsrtFmp ();
@@ -691,7 +663,6 @@ PlatformBootManagerWaitCallback (
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL_UNION White;
   UINT16                              Timeout;
   EFI_STATUS                          Status;
-  EFI_BOOT_LOGO_PROTOCOL *BootLogo;
 
   Timeout = PcdGet16 (PcdPlatformBootTimeOut);
 
@@ -711,22 +682,6 @@ PlatformBootManagerWaitCallback (
   } else {
     Print (L".");
   }
-
-  if (TimeoutRemain == 0) {
-    BootLogo = NULL;
-
-    //
-    // Clear out the boot logo so that Windows displays its own logo
-    // instead of ours.
-    //
-    Status = gBS->LocateProtocol (&gEfiBootLogoProtocolGuid, NULL, (VOID**)&BootLogo);
-    if (!EFI_ERROR (Status) && (BootLogo != NULL)) {
-      Status = BootLogo->SetBootLogo (BootLogo, NULL, 0, 0, 0, 0);
-      ASSERT_EFI_ERROR (Status);
-    };
-
-    gST->ConOut->ClearScreen (gST->ConOut);
-  }
 }
 
 /**
@@ -745,6 +700,40 @@ PlatformBootManagerUnableToBoot (
   EFI_INPUT_KEY                Key;
   EFI_BOOT_MANAGER_LOAD_OPTION BootManagerMenu;
   UINTN                        Index;
+  EFI_BOOT_MANAGER_LOAD_OPTION *BootOptions;
+  UINTN                        OldBootOptionCount;
+  UINTN                        NewBootOptionCount;
+
+  //
+  // Record the total number of boot configured boot options
+  //
+  BootOptions = EfiBootManagerGetLoadOptions (&OldBootOptionCount,
+                  LoadOptionTypeBoot);
+  EfiBootManagerFreeLoadOptions (BootOptions, OldBootOptionCount);
+
+  //
+  // Connect all devices, and regenerate all boot options
+  //
+  EfiBootManagerConnectAll ();
+  EfiBootManagerRefreshAllBootOption ();
+
+  //
+  // Record the updated number of boot configured boot options
+  //
+  BootOptions = EfiBootManagerGetLoadOptions (&NewBootOptionCount,
+                  LoadOptionTypeBoot);
+  EfiBootManagerFreeLoadOptions (BootOptions, NewBootOptionCount);
+
+  //
+  // If the number of configured boot options has changed, reboot
+  // the system so the new boot options will be taken into account
+  // while executing the ordinary BDS bootflow sequence.
+  //
+  if (NewBootOptionCount != OldBootOptionCount) {
+    DEBUG ((DEBUG_WARN, "%a: rebooting after refreshing all boot options\n",
+      __FUNCTION__));
+    gRT->ResetSystem (EfiResetCold, EFI_SUCCESS, 0, NULL);
+  }
 
   //
   // BootManagerMenu doesn't contain the correct information when return status

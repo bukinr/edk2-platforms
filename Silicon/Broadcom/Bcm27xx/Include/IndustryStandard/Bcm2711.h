@@ -83,4 +83,9 @@
 #define BURST_SIZE_256                                      1
 #define BURST_SIZE_512                                      2
 
+#define GENET_BASE_ADDRESS         FixedPcdGet64 (PcdBcmGenetRegistersAddress)
+#define GENET_LENGTH               0x00010000
+
+#define THERM_SENSOR               0xfd5d2200
+
 #endif /* BCM2711_H__ */

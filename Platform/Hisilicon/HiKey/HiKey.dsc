@@ -131,8 +131,9 @@
   #
   # DW MMC/SD card controller
   #
-  gEmbeddedTokenSpaceGuid.PcdDwEmmcDxeBaseAddress|0xF723D000
-  gEmbeddedTokenSpaceGuid.PcdDwEmmcDxeClockFrequencyInHz|100000000
+  gDesignWareTokenSpaceGuid.PcdDwEmmcDxeBaseAddress|0xF723D000
+  gDesignWareTokenSpaceGuid.PcdDwEmmcDxeClockFrequencyInHz|100000000
+  gDesignWareTokenSpaceGuid.PcdDwPermitObsoleteDrivers|TRUE
 
   #
   #
@@ -216,7 +217,7 @@
   # MMC/SD
   #
   EmbeddedPkg/Universal/MmcDxe/MmcDxe.inf
-  EmbeddedPkg/Drivers/DwEmmcDxe/DwEmmcDxe.inf
+  Silicon/Synopsys/DesignWare/Drivers/DwEmmcDxe/DwEmmcDxe.inf
 
   #
   # USB Host Support
@@ -246,7 +247,7 @@
   #
   # AX88772 Ethernet Driver
   #
-  Drivers/OptionRomPkg/Bus/Usb/UsbNetworking/Ax88772b/Ax88772b.inf
+  Drivers/ASIX/Bus/Usb/UsbNetworking/Ax88772c/Ax88772c.inf
 
   #
   # FAT filesystem + GPT/MBR partitioning
@@ -285,6 +286,7 @@
       NULL|ShellPkg/Library/UefiShellInstall1CommandsLib/UefiShellInstall1CommandsLib.inf
       NULL|ShellPkg/Library/UefiShellNetwork1CommandsLib/UefiShellNetwork1CommandsLib.inf
       HandleParsingLib|ShellPkg/Library/UefiHandleParsingLib/UefiHandleParsingLib.inf
+      OrderedCollectionLib|MdePkg/Library/BaseOrderedCollectionRedBlackTreeLib/BaseOrderedCollectionRedBlackTreeLib.inf
       PrintLib|MdePkg/Library/BasePrintLib/BasePrintLib.inf
       BcfgCommandLib|ShellPkg/Library/UefiShellBcfgCommandLib/UefiShellBcfgCommandLib.inf
     <PcdsFixedAtBuild>

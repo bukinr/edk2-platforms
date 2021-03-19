@@ -1,7 +1,7 @@
 /** @file
   Source code file for Platform Init Pre-Memory PEI module
 
-Copyright (c) 2017 - 2019, Intel Corporation. All rights reserved.<BR>
+Copyright (c) 2017 - 2020, Intel Corporation. All rights reserved.<BR>
 SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
@@ -15,7 +15,6 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Library/TimerLib.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/PeiServicesLib.h>
-#include <Library/ReportFvLib.h>
 #include <Ppi/ReadOnlyVariable2.h>
 #include <Ppi/MemoryDiscovered.h>
 #include <Ppi/FirmwareVolumeInfo.h>
@@ -26,6 +25,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Library/BoardInitLib.h>
 #include <Library/TestPointCheckLib.h>
 #include <Library/SetCacheMtrrLib.h>
+#include <Library/ReportCpuHobLib.h>
 #include <Guid/MemoryTypeInformation.h>
 #include <Ppi/PlatformMemorySize.h>
 #include <Ppi/BaseMemoryTest.h>
@@ -353,28 +353,6 @@ BaseMemoryTest (
 Done:
 
   return EFI_SUCCESS;
-}
-
-VOID
-ReportCpuHob (
-  VOID
-  )
-{
-  UINT8                         PhysicalAddressBits;
-  UINT32                        RegEax;
-
-  AsmCpuid (0x80000000, &RegEax, NULL, NULL, NULL);
-  if (RegEax >= 0x80000008) {
-    AsmCpuid (0x80000008, &RegEax, NULL, NULL, NULL);
-    PhysicalAddressBits = (UINT8) RegEax;
-  } else {
-    PhysicalAddressBits = 36;
-  }
-
-  ///
-  /// Create a CPU hand-off information
-  ///
-  BuildCpuHob (PhysicalAddressBits, 16);
 }
 
 /**

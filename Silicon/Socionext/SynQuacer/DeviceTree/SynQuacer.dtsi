@@ -21,7 +21,6 @@
     #address-cells = <2>;
     #size-cells = <2>;
     interrupt-parent = <&gic>;
-    dma-ranges = <0x0 0x0 0x0 0x0 0x100 0x0>;
 
     aliases {
         serial0 = &soc_uart0;
@@ -419,14 +418,13 @@
         #clock-cells = <0>;
     };
 
-    ethernet@522d0000 {
+    netsec: ethernet@522d0000 {
         compatible = "socionext,synquacer-netsec";
         reg = <0 0x522d0000 0x0 0x10000>,
               <0 FixedPcdGet32 (PcdNetsecEepromBase) 0x0 0x10000>;
         interrupts = <GIC_SPI 176 IRQ_TYPE_LEVEL_HIGH>;
         clocks = <&clk_netsec>;
         clock-names = "phy_ref_clk";
-        phy-mode = "rgmii";
         max-speed = <1000>;
         max-frame-size = <9000>;
         phy-handle = <&phy_netsec>;
@@ -554,6 +552,7 @@
         socionext,set-aces;
         #address-cells = <1>;
         #size-cells = <0>;
+        status = "disabled";
     };
 
     clk_i2c: i2c_pclk {
@@ -572,6 +571,12 @@
         clock-frequency = <400000>;
         #address-cells = <1>;
         #size-cells = <0>;
+    };
+
+    tpm: tpm_tis@10000000 {
+        compatible = "socionext,synquacer-tpm-mmio";
+        reg = <0x0 0x10000000 0x0 0x5000>;
+        status = "disabled";
     };
 
     firmware {

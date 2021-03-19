@@ -27,6 +27,12 @@
     };
 };
 
+#ifdef TPM2_ENABLE
+&tpm {
+    status = "okay";
+};
+#endif
+
 &gpio {
     gpio-line-names = "DSW3-PIN1",  "DSW3-PIN2",  "DSW3-PIN3",    "DSW3-PIN4",
                       "DSW3-PIN5",  "DSW3-PIN6",  "DSW3-PIN7",    "DSW3-PIN8",
@@ -36,6 +42,10 @@
                       "GPIO-G",     "GPIO-H",     "GPIO-I",       "GPIO-J",
                       "GPIO-K",     "GPIO-L",     "PEC-PD26",     "PEC-PD27",
                       "PEC-PD28",   "PEC-PD29",   "PEC-PD30",     "PEC-PD31";
+};
+
+&netsec {
+    phy-mode = "rgmii-id";
 };
 
 &mdio_netsec {

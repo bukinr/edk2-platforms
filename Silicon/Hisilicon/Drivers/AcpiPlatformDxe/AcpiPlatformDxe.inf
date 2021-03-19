@@ -1,7 +1,7 @@
 ## @file
 #
 #  Copyright (c) 2014, Applied Micro Curcuit Corp. All rights reserved.<BR>
-#  Copyright (c) 2015, Hisilicon Limited. All rights reserved.<BR>
+#  Copyright (c) 2015 - 2020, Hisilicon Limited. All rights reserved.<BR>
 #  Copyright (c) 2015, Linaro Limited. All rights reserved.<BR>
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -18,7 +18,7 @@
 
 [Sources]
   AcpiPlatform.c
-  EthMac.c
+  UpdateDsdt.c
 
 [Packages]
   MdePkg/MdePkg.dec
@@ -46,6 +46,7 @@
   gEfiAcpiTableProtocolGuid                     # PROTOCOL ALWAYS_CONSUMED
   gEfiAcpiSdtProtocolGuid                       # PROTOCOL ALWAYS_CONSUMED
   gHisiBoardNicProtocolGuid                           # PROTOCOL ALWAYS_CONSUMED
+  gHisiSasConfigProtocolGuid
 
 [FeaturePcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdInstallAcpiSdtProtocol
@@ -62,5 +63,5 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiDefaultCreatorRevision
 
 [Depex]
-  gEfiAcpiTableProtocolGuid AND gEfiAcpiSdtProtocolGuid AND gHisiBoardNicProtocolGuid AND gHisiInstalledAcpiProtocolGuid
+  TRUE
 

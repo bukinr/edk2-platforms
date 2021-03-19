@@ -2,6 +2,7 @@
 
   Copyright (c) 2016 Socionext Inc. All rights reserved.<BR>
   Copyright (c) 2017, Linaro, Ltd. All rights reserved.<BR>
+  Copyright (c) 2020, Arm Limited. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -279,8 +280,6 @@ SnpInitialize (
 
   ogma_err_t              ogma_err;
 
-  UINT32                  Index;
-
   // Check Snp Instance
   if (Snp == NULL) {
     return EFI_INVALID_PARAMETER;
@@ -362,20 +361,6 @@ SnpInitialize (
 
   ogma_disable_desc_ring_irq (LanDriver->Handle, OGMA_DESC_RING_ID_NRM_TX,
                               OGMA_CH_IRQ_REG_EMPTY);
-
-  // Wait for media linking up
-  for (Index = 0; Index < (UINT32)FixedPcdGet8 (PcdMediaDetectTimeoutOnBoot) * 10; Index++) {
-    Status = NetsecUpdateLink (Snp);
-    if (Status != EFI_SUCCESS) {
-      ReturnUnlock (EFI_DEVICE_ERROR);
-    }
-
-    if (Snp->Mode->MediaPresent) {
-      break;
-    }
-
-    MicroSecondDelay(100000);
-  }
 
   // Declare the driver as initialized
   Snp->Mode->State = EfiSimpleNetworkInitialized;
@@ -790,11 +775,18 @@ SnpTransmit (
     // Copy destination address
     CopyMem (BufAddr, (VOID *)DstAddr, NET_ETHER_ADDR_LEN);
     // Copy source address
-    CopyMem (BufAddr + NET_ETHER_ADDR_LEN, (VOID *)SrcAddr, NET_ETHER_ADDR_LEN);
+    CopyMem (
+      (VOID*)((UINTN)BufAddr + NET_ETHER_ADDR_LEN),
+      (VOID*)SrcAddr,
+      NET_ETHER_ADDR_LEN
+      );
     // Copy protocol
     Proto = HTONS (*Protocol);
-    CopyMem (BufAddr + (NET_ETHER_ADDR_LEN * 2), (VOID *)&Proto,
-      sizeof (UINT16));
+    CopyMem (
+      (VOID*)((UINTN)BufAddr + (NET_ETHER_ADDR_LEN * 2)),
+      (VOID*)&Proto,
+      sizeof (UINT16)
+      );
   }
 
   Status = DmaMap (MapOperationBusMasterRead, BufAddr, &BufSize,
@@ -948,6 +940,96 @@ ExitUnlock:
   return Status;
 }
 
+STATIC
+EFI_STATUS
+EFIAPI
+NetsecAipGetInformation (
+  IN  EFI_ADAPTER_INFORMATION_PROTOCOL  *This,
+  IN  EFI_GUID                          *InformationType,
+  OUT VOID                              **InformationBlock,
+  OUT UINTN                             *InformationBlockSize
+  )
+{
+  EFI_ADAPTER_INFO_MEDIA_STATE  *AdapterInfo;
+  NETSEC_DRIVER                 *LanDriver;
+
+  if (This == NULL || InformationBlock == NULL ||
+      InformationBlockSize == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  if (!CompareGuid (InformationType, &gEfiAdapterInfoMediaStateGuid)) {
+    return EFI_UNSUPPORTED;
+  }
+
+  AdapterInfo = AllocateZeroPool (sizeof (EFI_ADAPTER_INFO_MEDIA_STATE));
+  if (AdapterInfo == NULL) {
+    return EFI_OUT_OF_RESOURCES;
+  }
+
+  *InformationBlock = AdapterInfo;
+  *InformationBlockSize = sizeof (EFI_ADAPTER_INFO_MEDIA_STATE);
+
+  LanDriver = INSTANCE_FROM_AIP_THIS (This);
+  if (LanDriver->Snp.Mode->MediaPresent) {
+    AdapterInfo->MediaState = EFI_SUCCESS;
+  } else {
+    AdapterInfo->MediaState = EFI_NOT_READY;
+  }
+
+  return EFI_SUCCESS;
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+NetsecAipSetInformation (
+  IN  EFI_ADAPTER_INFORMATION_PROTOCOL  *This,
+  IN  EFI_GUID                          *InformationType,
+  IN  VOID                              *InformationBlock,
+  IN  UINTN                             InformationBlockSize
+  )
+{
+  if (This == NULL || InformationBlock == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  if (CompareGuid (InformationType, &gEfiAdapterInfoMediaStateGuid)) {
+    return EFI_WRITE_PROTECTED;
+  }
+
+  return EFI_UNSUPPORTED;
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+NetsecAipGetSupportedTypes (
+  IN  EFI_ADAPTER_INFORMATION_PROTOCOL  *This,
+  OUT EFI_GUID                          **InfoTypesBuffer,
+  OUT UINTN                             *InfoTypesBufferCount
+  )
+{
+  EFI_GUID    *Guid;
+
+  if (This == NULL || InfoTypesBuffer == NULL ||
+      InfoTypesBufferCount == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  Guid = AllocatePool (sizeof *Guid);
+  if (Guid == NULL) {
+    return EFI_OUT_OF_RESOURCES;
+  }
+
+  CopyGuid (Guid, &gEfiAdapterInfoMediaStateGuid);
+
+  *InfoTypesBuffer      = Guid;
+  *InfoTypesBufferCount = 1;
+
+  return EFI_SUCCESS;
+}
+
 EFI_STATUS
 NetsecInit (
   IN      EFI_HANDLE        DriverBindingHandle,
@@ -1046,26 +1128,20 @@ NetsecInit (
   SnpMode->MediaPresentSupported = TRUE;
   SnpMode->MediaPresent = FALSE;
 
+  LanDriver->Aip.GetInformation     = NetsecAipGetInformation;
+  LanDriver->Aip.SetInformation     = NetsecAipSetInformation;
+  LanDriver->Aip.GetSupportedTypes  = NetsecAipGetSupportedTypes;
+
   //  Set broadcast address
   SetMem (&SnpMode->BroadcastAddress, sizeof (EFI_MAC_ADDRESS), 0xFF);
 
   InitializeListHead (&LanDriver->TxBufferList);
 
-  LanDriver->DevicePath.Netsec.Header.Type = MESSAGING_DEVICE_PATH;
-  LanDriver->DevicePath.Netsec.Header.SubType = MSG_MAC_ADDR_DP;
-
-  SetDevicePathNodeLength (&LanDriver->DevicePath.Netsec.Header,
-    sizeof (LanDriver->DevicePath.Netsec));
-  CopyMem (&LanDriver->DevicePath.Netsec.MacAddress,
-    &SnpMode->PermanentAddress, PXE_HWADDR_LEN_ETHER);
-  LanDriver->DevicePath.Netsec.IfType = SnpMode->IfType;
-  SetDevicePathEndNode (&LanDriver->DevicePath.End);
-
   // Initialise the protocol
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &ControllerHandle,
                   &gEfiSimpleNetworkProtocolGuid, Snp,
-                  &gEfiDevicePathProtocolGuid, &LanDriver->DevicePath,
+                  &gEfiAdapterInformationProtocolGuid, &LanDriver->Aip,
                   NULL);
 
   LanDriver->ControllerHandle = ControllerHandle;
@@ -1111,7 +1187,7 @@ NetsecRelease (
 
   Status = gBS->UninstallMultipleProtocolInterfaces (ControllerHandle,
                   &gEfiSimpleNetworkProtocolGuid, Snp,
-                  &gEfiDevicePathProtocolGuid, &LanDriver->DevicePath,
+                  &gEfiAdapterInformationProtocolGuid, &LanDriver->Aip,
                   NULL);
   if (EFI_ERROR (Status)) {
     return Status;

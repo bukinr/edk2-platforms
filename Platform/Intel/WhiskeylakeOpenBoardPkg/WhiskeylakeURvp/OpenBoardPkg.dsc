@@ -1,7 +1,7 @@
 ## @file
 #  The main build description file for the WhiskeylakeURvp board.
 #
-#  Copyright (c) 2019, Intel Corporation. All rights reserved.<BR>
+#  Copyright (c) 2019 - 2020, Intel Corporation. All rights reserved.<BR>
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -39,7 +39,7 @@
   #
   # Include PCD configuration for this board.
   #
-  !include AdvancedFeaturePkg/TemporaryBuildWorkaround/TemporaryBuildWorkaround.dsc
+  !include AdvancedFeaturePkg/Include/AdvancedFeaturesPcd.dsc
   !include OpenBoardPkgPcd.dsc
   !include AdvancedFeaturePkg/Include/AdvancedFeatures.dsc
 
@@ -172,6 +172,7 @@
   TestPointCheckLib|$(PLATFORM_PACKAGE)/Test/Library/TestPointCheckLib/PeiTestPointCheckLib.inf
 !endif
   SetCacheMtrrLib|$(PLATFORM_PACKAGE)/Library/SetCacheMtrrLib/SetCacheMtrrLibNull.inf
+  ReportCpuHobLib|$(PLATFORM_PACKAGE)/PlatformInit/Library/ReportCpuHobLib/ReportCpuHobLib.inf
 
   #######################################
   # Board Package
@@ -224,6 +225,8 @@
   #######################################
   DxePolicyUpdateLib|$(PLATFORM_BOARD_PACKAGE)/Policy/Library/DxePolicyUpdateLib/DxePolicyUpdateLib.inf
   DxeTbtPolicyLib|$(PLATFORM_BOARD_PACKAGE)/Features/Tbt/Library/DxeTbtPolicyLib/DxeTbtPolicyLib.inf
+  BoardBdsHookLib|BoardModulePkg/Library/BoardBdsHookLib/BoardBdsHookLib.inf
+  BoardBootManagerLib|BoardModulePkg/Library/BoardBootManagerLib/BoardBootManagerLib.inf
 
   #######################################
   # Board-specific
@@ -452,3 +455,5 @@
   $(PLATFORM_BOARD_PACKAGE)/Acpi/BoardAcpiDxe/BoardAcpiDxe.inf
 !endif
   BoardModulePkg/LegacySioDxe/LegacySioDxe.inf
+  BoardModulePkg/BoardBdsHookDxe/BoardBdsHookDxe.inf
+

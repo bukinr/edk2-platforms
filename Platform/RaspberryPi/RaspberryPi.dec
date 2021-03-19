@@ -26,23 +26,30 @@
   gRaspberryPiTokenSpaceGuid = {0xCD7CC258, 0x31DB, 0x11E6, {0x9F, 0xD3, 0x63, 0xB0, 0xB8, 0xEE, 0xD6, 0xB5}}
   gRaspberryPiEventResetGuid = {0xCD7CC258, 0x31DB, 0x11E6, {0x9F, 0xD3, 0x63, 0xB4, 0xB4, 0xE4, 0xD4, 0xB4}}
   gConfigDxeFormSetGuid = {0xCD7CC258, 0x31DB, 0x22E6, {0x9F, 0x22, 0x63, 0xB0, 0xB8, 0xEE, 0xD6, 0xB5}}
-  # GUIDs used by FdtDxe to serve a Device Tree at runtime. Not all of these need to apply
-  # to the current platform or match an actual FDF binary, but they need to be defined.
-  gRaspberryPi3ModelBFdtGuid = { 0xDF5DA223, 0x1D27, 0x47C3, { 0x8D, 0x1B, 0x9A, 0x41, 0xB5, 0x5A, 0x18, 0xBC } }
-  gRaspberryPi3ModelBPlusFdtGuid = { 0x3D523012, 0x73FE, 0x40E5, { 0x89, 0x2E, 0x1A, 0x4D, 0xF6, 0x0F, 0x3C, 0x0C } }
-  gRaspberryPi4ModelBFdtGuid = { 0x80AB6833, 0xCAE4, 0x4CEE, { 0xB5, 0x9D, 0xEB, 0x20, 0x39, 0xB0, 0x55, 0x51 } }
-  # Default Fdt to serve if the hardware model can't be detected. Should match one of the above.
-  gRaspberryPiDefaultFdtGuid = {0xDF5DA223, 0x1D27, 0x47C3, { 0x8D, 0x1B, 0x9A, 0x41, 0xB5, 0x5A, 0x18, 0xBC}}
 
 [PcdsFixedAtBuild.common]
-  gRaspberryPiTokenSpaceGuid.PcdFdtBaseAddress|0x10000|UINT32|0x00000001
+  #
+  # Space reserved for config.txt-specced DTB follows right after the FD image
+  # in both RPi3 and RP4 implementations.
+  #
+  gRaspberryPiTokenSpaceGuid.PcdFdtBaseAddress|0x001f0000|UINT32|0x00000001
   gRaspberryPiTokenSpaceGuid.PcdFirmwareBlockSize|0x0|UINT32|0x00000002
   gRaspberryPiTokenSpaceGuid.PcdNvStorageEventLogBase|0x0|UINT32|0x00000003
   gRaspberryPiTokenSpaceGuid.PcdNvStorageEventLogSize|0x0|UINT32|0x00000004
   gRaspberryPiTokenSpaceGuid.PcdNvStorageVariableBase|0x0|UINT32|0x00000005
   gRaspberryPiTokenSpaceGuid.PcdNvStorageFtwSpareBase|0x0|UINT32|0x00000006
   gRaspberryPiTokenSpaceGuid.PcdNvStorageFtwWorkingBase|0x0|UINT32|0x00000007
-  gRaspberryPiTokenSpaceGuid.PcdExtendedMemoryBase|0x0|UINT32|0x00000008
+  gRaspberryPiTokenSpaceGuid.PcdFdtSize|0x10000|UINT32|0x00000009
+  gRaspberryPiTokenSpaceGuid.PcdCpuLowSpeedMHz|600|UINT32|0x0000000a
+  gRaspberryPiTokenSpaceGuid.PcdCpuDefSpeedMHz|800|UINT32|0x0000000b
+  gRaspberryPiTokenSpaceGuid.PcdCpuMaxSpeedMHz|1000|UINT32|0x0000000c
+  gRaspberryPiTokenSpaceGuid.PcdGicInterruptInterfaceHBase|0x0|UINT64|0x00000030
+  gRaspberryPiTokenSpaceGuid.PcdGicInterruptInterfaceVBase|0x0|UINT64|0x00000031
+  gRaspberryPiTokenSpaceGuid.PcdGicGsivId|0x0|UINT32|0x00000032
+  gRaspberryPiTokenSpaceGuid.PcdGicPmuIrq0|0x0|UINT32|0x00000033
+  gRaspberryPiTokenSpaceGuid.PcdGicPmuIrq1|0x0|UINT32|0x00000034
+  gRaspberryPiTokenSpaceGuid.PcdGicPmuIrq2|0x0|UINT32|0x00000035
+  gRaspberryPiTokenSpaceGuid.PcdGicPmuIrq3|0x0|UINT32|0x00000036
 
 [PcdsFixedAtBuild, PcdsPatchableInModule, PcdsDynamic, PcdsDynamicEx]
   gRaspberryPiTokenSpaceGuid.PcdCpuClock|0|UINT32|0x0000000d
@@ -53,10 +60,13 @@
   gRaspberryPiTokenSpaceGuid.PcdMmcSdHighSpeedMHz|0|UINT32|0x00000012
   gRaspberryPiTokenSpaceGuid.PcdMmcDisableMulti|0|UINT32|0x00000013
   gRaspberryPiTokenSpaceGuid.PcdDebugEnableJTAG|0|UINT32|0x00000014
-  gRaspberryPiTokenSpaceGuid.PcdDebugShowUEFIExit|0|UINT32|0x00000015
   gRaspberryPiTokenSpaceGuid.PcdCustomCpuClock|0|UINT32|0x00000016
-  gRaspberryPiTokenSpaceGuid.PcdDisplayEnableScaledVModes|0|UINT8|0x00000017
+  gRaspberryPiTokenSpaceGuid.PcdDisplayEnableScaledVModes|0x3F|UINT8|0x00000017
   gRaspberryPiTokenSpaceGuid.PcdDisplayEnableSShot|0|UINT32|0x00000018
-
-[PcdsFeatureFlag.common]
-  gRaspberryPiTokenSpaceGuid.PcdAcpiBasicMode|FALSE|BOOLEAN|0x00000019
+  gRaspberryPiTokenSpaceGuid.PcdSystemTableMode|1|UINT32|0x0000001B
+  gRaspberryPiTokenSpaceGuid.PcdRamMoreThan3GB|0|UINT32|0x00000019
+  gRaspberryPiTokenSpaceGuid.PcdRamLimitTo3GB|0|UINT32|0x0000001A
+  gRaspberryPiTokenSpaceGuid.PcdFanOnGpio|0|UINT32|0x0000001C
+  gRaspberryPiTokenSpaceGuid.PcdFanTemp|0|UINT32|0x0000001D
+  gRaspberryPiTokenSpaceGuid.PcdPlatformResetDelay|0|UINT32|0x0000001E
+  gRaspberryPiTokenSpaceGuid.PcdMmcEnableDma|0|UINT32|0x0000001F

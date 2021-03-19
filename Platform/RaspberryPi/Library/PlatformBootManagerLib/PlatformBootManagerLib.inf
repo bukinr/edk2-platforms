@@ -62,7 +62,6 @@
 
 [Pcd]
   gEfiMdePkgTokenSpaceGuid.PcdPlatformBootTimeOut
-  gRaspberryPiTokenSpaceGuid.PcdDebugShowUEFIExit
   gRaspberryPiTokenSpaceGuid.PcdSdIsArasan
 
 [Guids]
@@ -78,7 +77,7 @@
   gEfiDevicePathProtocolGuid
   gEfiGraphicsOutputProtocolGuid
   gEfiLoadedImageProtocolGuid
+  gEfiPciRootBridgeIoProtocolGuid
   gEfiSimpleFileSystemProtocolGuid
   gEsrtManagementProtocolGuid
   gEfiUsb2HcProtocolGuid
-  gEfiBootLogoProtocolGuid

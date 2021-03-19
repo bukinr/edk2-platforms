@@ -1,5 +1,6 @@
 /** @file
  *
+ *  Copyright (c) 2020, ARM Limited. All rights reserved.
  *  Copyright (c) 2017-2018, Andrei Warkentin <andrey.warkentin@gmail.com>
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *
@@ -86,7 +87,7 @@ DisplayBlt (
   IN  UINTN                                   Delta         OPTIONAL
   );
 
-STATIC EFI_DRIVER_BINDING_PROTOCOL mDriverBinding = {
+EFI_DRIVER_BINDING_PROTOCOL mDriverBinding = {
   DriverSupported,
   DriverStart,
   DriverStop,
@@ -170,7 +171,7 @@ DisplayQueryMode (
   EFI_STATUS Status;
   GOP_MODE_DATA *Mode;
 
-  if (ModeNumber > mLastMode) {
+  if (Info == NULL || SizeOfInfo == NULL || ModeNumber >= This->Mode->MaxMode) {
     return EFI_INVALID_PARAMETER;
   }
 
@@ -190,6 +191,10 @@ DisplayQueryMode (
   (*Info)->HorizontalResolution = Mode->Width;
   (*Info)->VerticalResolution = Mode->Height;
   (*Info)->PixelFormat = This->Mode->Info->PixelFormat;
+  (*Info)->PixelInformation.RedMask = This->Mode->Info->PixelInformation.RedMask;
+  (*Info)->PixelInformation.GreenMask = This->Mode->Info->PixelInformation.GreenMask;
+  (*Info)->PixelInformation.BlueMask = This->Mode->Info->PixelInformation.BlueMask;
+  (*Info)->PixelInformation.ReservedMask = This->Mode->Info->PixelInformation.ReservedMask;
   (*Info)->PixelsPerScanLine = Mode->Width;
 
   return EFI_SUCCESS;
@@ -227,7 +232,7 @@ DisplaySetMode (
   EFI_PHYSICAL_ADDRESS FbBase;
   GOP_MODE_DATA *Mode = &mGopModeData[ModeNumber];
 
-  if (ModeNumber > mLastMode) {
+ if (ModeNumber >= This->Mode->MaxMode) {
     return EFI_UNSUPPORTED;
   }
 
@@ -274,7 +279,8 @@ DisplaySetMode (
   This->Mode->Info->PixelsPerScanLine = Mode->Width;
   This->Mode->SizeOfInfo = sizeof (*This->Mode->Info);
   This->Mode->FrameBufferBase = FbBase;
-  This->Mode->FrameBufferSize = FbSize;
+  This->Mode->FrameBufferSize = Mode->Width * Mode->Height * PI3_BYTES_PER_PIXEL;
+  DEBUG((DEBUG_INFO, "Reported Mode->FrameBufferSize is %u\n", This->Mode->FrameBufferSize));
 
   ClearScreen (This);
   return EFI_SUCCESS;
@@ -298,6 +304,14 @@ DisplayBlt (
 {
   UINT8 *VidBuf, *BltBuf, *VidBuf1;
   UINTN i;
+
+  if ((UINTN)BltOperation >= EfiGraphicsOutputBltOperationMax) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  if (Width == 0 || Height == 0) {
+    return EFI_INVALID_PARAMETER;
+  }
 
   switch (BltOperation) {
   case EfiBltVideoFill:
@@ -349,7 +363,7 @@ DisplayBlt (
     break;
 
   default:
-    ASSERT_EFI_ERROR (EFI_SUCCESS);
+    return EFI_INVALID_PARAMETER;
     break;
   }
 
@@ -485,11 +499,13 @@ DriverStart (
     goto Done;
   }
 
-  PcdSet8 (PcdDisplayEnableScaledVModes,
-    PcdGet8 (PcdDisplayEnableScaledVModes) & ALL_MODES);
+  Status = PcdSet8S (PcdDisplayEnableScaledVModes,
+             PcdGet8 (PcdDisplayEnableScaledVModes) & ALL_MODES);
+  ASSERT_EFI_ERROR (Status);
 
   if (PcdGet8 (PcdDisplayEnableScaledVModes) == 0) {
-    PcdSet8 (PcdDisplayEnableScaledVModes, JUST_NATIVE_ENABLED);
+    Status = PcdSet8S (PcdDisplayEnableScaledVModes, JUST_NATIVE_ENABLED);
+    ASSERT_EFI_ERROR (Status);
   }
 
   mLastMode = 0;

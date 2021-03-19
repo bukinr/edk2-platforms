@@ -24,6 +24,7 @@
 
   DEFINE DEBUG_ON_UART1          = FALSE
   DEFINE SECURE_BOOT_ENABLE      = FALSE
+  DEFINE TPM2_ENABLE             = FALSE
   DEFINE X64EMU_ENABLE           = FALSE
 
 !include Platform/Socionext/DeveloperBox/DeveloperBox.dsc.inc
@@ -36,6 +37,16 @@
   PlatformHookLib|MdeModulePkg/Library/BasePlatformHookLibNull/BasePlatformHookLibNull.inf
   PciLib|MdePkg/Library/BasePciLibPciExpress/BasePciLibPciExpress.inf
   PciExpressLib|MdePkg/Library/BasePciExpressLib/BasePciExpressLib.inf
+!endif
+
+!if $(TPM2_ENABLE) == TRUE
+  Tpm2CommandLib|SecurityPkg/Library/Tpm2CommandLib/Tpm2CommandLib.inf
+  Tcg2PhysicalPresenceLib|SecurityPkg/Library/DxeTcg2PhysicalPresenceLib/DxeTcg2PhysicalPresenceLib.inf
+  Tcg2PpVendorLib|SecurityPkg/Library/Tcg2PpVendorLibNull/Tcg2PpVendorLibNull.inf
+  TpmMeasurementLib|SecurityPkg/Library/DxeTpmMeasurementLib/DxeTpmMeasurementLib.inf
+!else
+  Tcg2PhysicalPresenceLib|OvmfPkg/Library/Tcg2PhysicalPresenceLibNull/DxeTcg2PhysicalPresenceLib.inf
+  TpmMeasurementLib|MdeModulePkg/Library/TpmMeasurementLibNull/TpmMeasurementLibNull.inf
 !endif
 
 [LibraryClasses.common.SEC]
@@ -60,6 +71,19 @@
   PeimEntryPoint|MdePkg/Library/PeimEntryPoint/PeimEntryPoint.inf
   MemoryInitPeiLib|Silicon/Socionext/SynQuacer/Library/SynQuacerMemoryInitPeiLib/SynQuacerMemoryInitPeiLib.inf
   PlatformPeiLib|Silicon/Socionext/SynQuacer/Library/SynQuacerPlatformPeiLib/SynQuacerPlatformPeiLib.inf
+  ResetSystemLib|MdeModulePkg/Library/PeiResetSystemLib/PeiResetSystemLib.inf
+
+!if $(TPM2_ENABLE) == TRUE
+  Tpm12DeviceLib|SecurityPkg/Library/Tpm12DeviceLibDTpm/Tpm12DeviceLibDTpm.inf
+  Tpm12CommandLib|SecurityPkg/Library/Tpm12CommandLib/Tpm12CommandLib.inf
+
+  Tpm2CommandLib|SecurityPkg/Library/Tpm2CommandLib/Tpm2CommandLib.inf
+  Tpm2DeviceLib|SecurityPkg/Library/Tpm2DeviceLibDTpm/Tpm2DeviceLibDTpm.inf
+  Tcg2PhysicalPresenceLib|SecurityPkg/Library/DxeTcg2PhysicalPresenceLib/DxeTcg2PhysicalPresenceLib.inf
+  Tcg2PpVendorLib|SecurityPkg/Library/Tcg2PpVendorLibNull/Tcg2PpVendorLibNull.inf
+
+  BaseCryptLib|CryptoPkg/Library/BaseCryptLib/PeiCryptLib.inf
+!endif
 
 [LibraryClasses.common.DXE_CORE]
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
@@ -92,6 +116,10 @@
   PciHostBridgeLib|Silicon/Socionext/SynQuacer/Library/SynQuacerPciHostBridgeLib/SynQuacerPciHostBridgeLib.inf
   NonDiscoverableDeviceRegistrationLib|MdeModulePkg/Library/NonDiscoverableDeviceRegistrationLib/NonDiscoverableDeviceRegistrationLib.inf
 
+!if $(TPM2_ENABLE) == TRUE
+  Tpm2DeviceLib|SecurityPkg/Library/Tpm2DeviceLibTcg2/Tpm2DeviceLibTcg2.inf
+!endif
+
 [LibraryClasses.common.UEFI_APPLICATION]
   PerformanceLib|MdeModulePkg/Library/DxePerformanceLib/DxePerformanceLib.inf
   HiiLib|MdeModulePkg/Library/UefiHiiLib/UefiHiiLib.inf
@@ -105,12 +133,14 @@
   ShellCEntryLib|ShellPkg/Library/UefiShellCEntryLib/UefiShellCEntryLib.inf
   UefiApplicationEntryPoint|MdePkg/Library/UefiApplicationEntryPoint/UefiApplicationEntryPoint.inf
   HandleParsingLib|ShellPkg/Library/UefiHandleParsingLib/UefiHandleParsingLib.inf
+  OrderedCollectionLib|MdePkg/Library/BaseOrderedCollectionRedBlackTreeLib/BaseOrderedCollectionRedBlackTreeLib.inf
   PeCoffGetEntryPointLib|MdePkg/Library/BasePeCoffGetEntryPointLib/BasePeCoffGetEntryPointLib.inf
 
 [LibraryClasses.common.DXE_RUNTIME_DRIVER]
   HobLib|MdePkg/Library/DxeHobLib/DxeHobLib.inf
   CapsuleLib|MdeModulePkg/Library/DxeCapsuleLibFmp/DxeRuntimeCapsuleLib.inf
   ResetSystemLib|ArmPkg/Library/ArmSmcPsciResetSystemLib/ArmSmcPsciResetSystemLib.inf
+  TimeBaseLib|EmbeddedPkg/Library/TimeBaseLib/TimeBaseLib.inf
   BaseMemoryLib|MdePkg/Library/BaseMemoryLib/BaseMemoryLib.inf
 !if $(TARGET) != RELEASE
   DebugLib|MdePkg/Library/DxeRuntimeDebugLibSerialPort/DxeRuntimeDebugLibSerialPort.inf
@@ -137,7 +167,6 @@
   gNetsecDxeTokenSpaceGuid.PcdFlowCtrl|0
   gNetsecDxeTokenSpaceGuid.PcdFlowCtrlStartThreshold|36
   gNetsecDxeTokenSpaceGuid.PcdFlowCtrlStopThreshold|48
-  gNetsecDxeTokenSpaceGuid.PcdMediaDetectTimeoutOnBoot|5
   gNetsecDxeTokenSpaceGuid.PcdPauseTime|256
 
   gSynQuacerTokenSpaceGuid.PcdNetsecEepromBase|0x08080000
@@ -183,12 +212,32 @@
   gEfiSecurityPkgTokenSpaceGuid.PcdFixedMediaImageVerificationPolicy|0x04
   gEfiSecurityPkgTokenSpaceGuid.PcdRemovableMediaImageVerificationPolicy|0x04
 
+!if $(TPM2_ENABLE) == TRUE
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpmBaseAddress|0x10000000
+!endif
+
 [PcdsDynamicExDefault.common.DEFAULT]
   gEfiSignedCapsulePkgTokenSpaceGuid.PcdEdkiiSystemFirmwareImageDescriptor|{0x0}|VOID*|0x100
   gEfiSignedCapsulePkgTokenSpaceGuid.PcdEdkiiSystemFirmwareFileGuid|{0xf7, 0x89, 0x9b, 0xe9, 0x20, 0xc1, 0x25, 0x4b, 0x4d, 0xb1, 0x83, 0x94, 0xed, 0xb0, 0xb4, 0xf5}
 
+!if $(TPM2_ENABLE) == TRUE
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpmInstanceGuid|{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpm2InitializationPolicy|1
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpm2SelfTestPolicy|1
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpm2ScrtmPolicy|1
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpmInitializationPolicy|1
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpmScrtmPolicy|1
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpm2HashMask|3
+  gEfiSecurityPkgTokenSpaceGuid.PcdTcg2HashAlgorithmBitmap|3
+!endif
+
 [PcdsDynamicHii]
   gSynQuacerTokenSpaceGuid.PcdPlatformSettings|L"SynQuacerPlatformSettings"|gSynQuacerPlatformFormSetGuid|0x0|0x0|NV,BS
+
+!if $(TPM2_ENABLE) == TRUE
+  gEfiSecurityPkgTokenSpaceGuid.PcdTcgPhysicalPresenceInterfaceVer|L"TCG2_VERSION"|gTcg2ConfigFormSetGuid|0x0|"1.3"|NV,BS
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpm2AcpiTableRev|L"TCG2_VERSION"|gTcg2ConfigFormSetGuid|0x8|3|NV,BS
+!endif
 
 ################################################################################
 #
@@ -216,6 +265,30 @@
     <LibraryClasses>
       NULL|MdeModulePkg/Library/LzmaCustomDecompressLib/LzmaCustomDecompressLib.inf
   }
+
+!if $(TPM2_ENABLE) == TRUE
+  MdeModulePkg/Universal/ResetSystemPei/ResetSystemPei.inf {
+    <LibraryClasses>
+      ResetSystemLib|ArmPkg/Library/ArmSmcPsciResetSystemLib/ArmSmcPsciResetSystemLib.inf
+  }
+  SecurityPkg/Tcg/Tcg2Config/Tcg2ConfigPei.inf
+  SecurityPkg/Tcg/Tcg2Pei/Tcg2Pei.inf {
+    <LibraryClasses>
+      HashLib|SecurityPkg/Library/HashLibBaseCryptoRouter/HashLibBaseCryptoRouterPei.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha1/HashInstanceLibSha1.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha256/HashInstanceLibSha256.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha384/HashInstanceLibSha384.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha512/HashInstanceLibSha512.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSm3/HashInstanceLibSm3.inf
+    <PcdsFixedAtBuild>
+      gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x8048004F
+  }
+
+  SecurityPkg/Tcg/Tcg2Config/Tcg2ConfigDxe.inf {
+    <PcdsFixedAtBuild>
+      gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x8048004F
+  }
+!endif
 
   #
   # DXE
@@ -245,6 +318,9 @@
     <LibraryClasses>
 !if $(SECURE_BOOT_ENABLE) == TRUE
       NULL|SecurityPkg/Library/DxeImageVerificationLib/DxeImageVerificationLib.inf
+!endif
+!if $(TPM2_ENABLE) == TRUE
+      NULL|SecurityPkg/Library/DxeTpm2MeasureBootLib/DxeTpm2MeasureBootLib.inf
 !endif
   }
   ArmPkg/Drivers/TimerDxe/TimerDxe.inf
@@ -300,6 +376,22 @@
   }
   MdeModulePkg/Universal/Variable/RuntimeDxe/VariableSmmRuntimeDxe.inf
   SecurityPkg/VariableAuthenticated/SecureBootConfigDxe/SecureBootConfigDxe.inf
+!endif
+
+!if $(TPM2_ENABLE) == TRUE
+  SecurityPkg/Tcg/Tcg2Dxe/Tcg2Dxe.inf {
+    <LibraryClasses>
+      Tpm2DeviceLib|SecurityPkg/Library/Tpm2DeviceLibRouter/Tpm2DeviceLibRouterDxe.inf
+      NULL|SecurityPkg/Library/Tpm2DeviceLibDTpm/Tpm2InstanceLibDTpm.inf
+      HashLib|SecurityPkg/Library/HashLibBaseCryptoRouter/HashLibBaseCryptoRouterDxe.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha1/HashInstanceLibSha1.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha256/HashInstanceLibSha256.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha384/HashInstanceLibSha384.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha512/HashInstanceLibSha512.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSm3/HashInstanceLibSm3.inf
+    <PcdsFixedAtBuild>
+      gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x8048004F
+  }
 !endif
 
   #
@@ -420,7 +512,12 @@
   #
   # DT support
   #
-  Silicon/Socionext/SynQuacer/DeviceTree/DeveloperBox.inf
+  Silicon/Socionext/SynQuacer/DeviceTree/DeveloperBox.inf {
+    <BuildOptions>
+!if $(TPM2_ENABLE) == TRUE
+      *_*_*_DTCPP_FLAGS = -D TPM2_ENABLE
+!endif
+  }
 
   #
   # Firmware update
