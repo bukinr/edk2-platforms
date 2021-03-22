@@ -22,6 +22,7 @@
 
 [Sources]
   AslTables/DsdtFvp.asl
+  AslTables/SsdtPciFvp.asl
   ConfigurationManagerFvp.c
   ConfigurationManager.c
 
@@ -69,6 +70,25 @@
   gArmMorelloTokenSpaceGuid.PcdVirtioBlkBaseAddress
   gArmMorelloTokenSpaceGuid.PcdVirtioBlkSize
   gArmMorelloTokenSpaceGuid.PcdVirtioBlkInterrupt
+
+  # PCI
+  gArmMorelloTokenSpaceGuid.PcdPciBusMin
+  gArmMorelloTokenSpaceGuid.PcdPciBusMax
+  gArmMorelloTokenSpaceGuid.PcdPciBusCount
+  gArmMorelloTokenSpaceGuid.PcdPciIoBase
+  gArmMorelloTokenSpaceGuid.PcdPciIoSize
+  gArmMorelloTokenSpaceGuid.PcdPciIoMaxBase
+  gArmMorelloTokenSpaceGuid.PcdPciIoTranslation
+  gArmMorelloTokenSpaceGuid.PcdPciMmio32Base
+  gArmMorelloTokenSpaceGuid.PcdPciMmio32Size
+  gArmMorelloTokenSpaceGuid.PcdPciMmio32MaxBase
+  gArmMorelloTokenSpaceGuid.PcdPciMmio32Translation
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64Base
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64Size
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64MaxBase
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64Translation
+
+  gArmMorelloTokenSpaceGuid.PcdPciExpressBaseAddress
 [Pcd]
 
 [Depex]

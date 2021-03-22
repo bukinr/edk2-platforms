@@ -1,6 +1,6 @@
 /** @file
 *
-*  Copyright (c) 2020, ARM Limited. All rights reserved.
+*  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
 *
 *  SPDX-License-Identifier: BSD-2-Clause-Patent
 *
@@ -42,8 +42,7 @@
 #define MORELLO_EXP_PERIPH_BASE_SZ             0x1300000
 
 // Platform information structure base address
-#define MORELLO_PLAT_INFO_STRUCT_BASE          (MORELLO_NON_SECURE_SRAM_BASE + \
-                                                0x00008000)
+#define MORELLO_PLAT_INFO_STRUCT_BASE          MORELLO_NON_SECURE_SRAM_BASE
 
 /*
  * Platform information structure stored in Non-secure SRAM. Platform
@@ -51,15 +50,19 @@
  * format. The elements of MORELLO_PLAT_INFO should be always in sync with
  * the lower level firmware.
  */
+#pragma pack(1)
+
 typedef struct {
-  /*! 0 - Single Chip, 1 - Chip to Chip (C2C) */
-  UINT8   Mode;
+  /*! Local DDR memory size in Bytes */
+  UINT64   LocalDdrSize;
+  /*! Remote DDR memory size in Bytes */
+  UINT64   RemoteDdrSize;
   /*! Slave count in C2C mode */
   UINT8   SlaveCount;
-  /*! Local DDR memory size in GigaBytes */
-  UINT8   LocalDdrSize;
-  /*! Remote DDR memory size in GigaBytes */
-  UINT8   RemoteDdrSize;
+  /*! 0 - Single Chip, 1 - Chip to Chip (C2C) */
+  UINT8   Mode;
 } MORELLO_PLAT_INFO;
+
+#pragma pack()
 
 #endif

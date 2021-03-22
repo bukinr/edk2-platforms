@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2020, ARM Limited. All rights reserved.
+#  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -47,6 +47,10 @@
 
 [LibraryClasses.common.DXE_DRIVER]
   FdtLib|EmbeddedPkg/Library/FdtLib/FdtLib.inf
+  PciSegmentLib|MdePkg/Library/BasePciSegmentLibPci/BasePciSegmentLibPci.inf
+  PciLib|MdePkg/Library/BasePciLibPciExpress/BasePciLibPciExpress.inf
+  PciExpressLib|MdePkg/Library/BasePciExpressLib/BasePciExpressLib.inf
+
 
 [LibraryClasses.common.DXE_RUNTIME_DRIVER]
   BaseMemoryLib|MdePkg/Library/BaseMemoryLib/BaseMemoryLib.inf
@@ -78,7 +82,7 @@
 
   # System Memory (2GB)
   gArmTokenSpaceGuid.PcdSystemMemoryBase|0x80000000
-  gArmTokenSpaceGuid.PcdSystemMemorySize|0x80000000
+  gArmTokenSpaceGuid.PcdSystemMemorySize|0x7F000000
 
   # Secondary DDR memory
   gArmMorelloTokenSpaceGuid.PcdDramBlock2Base|0x8080000000
@@ -127,6 +131,11 @@
   # RAM Disk
   gArmMorelloTokenSpaceGuid.PcdRamDiskBase|0x88000000
   gArmMorelloTokenSpaceGuid.PcdRamDiskSize|0x18000000
+
+  # PCIe
+  gEmbeddedTokenSpaceGuid.PcdPrePiCpuIoSize|24
+  gEfiMdeModulePkgTokenSpaceGuid.PcdSrIovSupport|FALSE
+  gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress|0x20000000
 
 [PcdsDynamicHii.common.DEFAULT]
   gEfiMdePkgTokenSpaceGuid.PcdPlatformBootTimeOut|L"Timeout"|gEfiGlobalVariableGuid|0x0|0
@@ -209,3 +218,20 @@
 
   # RAM Disk
   MdeModulePkg/Universal/Disk/RamDiskDxe/RamDiskDxe.inf
+
+  # Required by PCI
+  ArmPkg/Drivers/ArmPciCpuIo2Dxe/ArmPciCpuIo2Dxe.inf
+
+  # PCI Support
+  MdeModulePkg/Bus/Pci/PciBusDxe/PciBusDxe.inf
+  MdeModulePkg/Bus/Pci/PciHostBridgeDxe/PciHostBridgeDxe.inf {
+    <PcdsFixedAtBuild>
+      gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x8010004F
+  }
+
+  # AHCI Support
+  MdeModulePkg/Bus/Ata/AtaAtapiPassThru/AtaAtapiPassThru.inf
+  MdeModulePkg/Bus/Ata/AtaBusDxe/AtaBusDxe.inf
+
+  # SATA Controller
+  MdeModulePkg/Bus/Pci/SataControllerDxe/SataControllerDxe.inf

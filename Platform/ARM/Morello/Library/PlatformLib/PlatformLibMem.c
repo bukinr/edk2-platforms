@@ -1,6 +1,6 @@
 /** @file
 *
-*  Copyright (c) 2020, ARM Limited. All rights reserved.
+*  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
 *
 *  SPDX-License-Identifier: BSD-2-Clause-Patent
 *
@@ -13,7 +13,7 @@
 #include <MorelloPlatform.h>
 
 // The total number of descriptors, including the final "end-of-table" descriptor.
-#define MAX_VIRTUAL_MEMORY_MAP_DESCRIPTORS  9
+#define MAX_VIRTUAL_MEMORY_MAP_DESCRIPTORS  12
 
 /**
   Returns the Virtual Memory Map of the platform.
@@ -34,26 +34,28 @@ ArmPlatformGetVirtualMemoryMap (
   ARM_MEMORY_REGION_DESCRIPTOR  * VirtualMemoryTable;
   EFI_RESOURCE_ATTRIBUTE_TYPE     ResourceAttributes;
   MORELLO_PLAT_INFO             * PlatInfo;
-  UINT64                          DramBlock2Size;
+  UINT64                          DramBlock2Size = 0;
 
   PlatInfo = (MORELLO_PLAT_INFO *)MORELLO_PLAT_INFO_STRUCT_BASE;
-  DramBlock2Size = ((UINT64)(PlatInfo->LocalDdrSize -
-                             MORELLO_DRAM_BLOCK1_SIZE / SIZE_1GB) *
-                            (UINT64)SIZE_1GB);
+  if (PlatInfo->LocalDdrSize > MORELLO_DRAM_BLOCK1_SIZE) {
+    DramBlock2Size = PlatInfo->LocalDdrSize - MORELLO_DRAM_BLOCK1_SIZE;
+  }
 
-  ResourceAttributes =
-    EFI_RESOURCE_ATTRIBUTE_PRESENT |
-    EFI_RESOURCE_ATTRIBUTE_INITIALIZED |
-    EFI_RESOURCE_ATTRIBUTE_WRITE_COMBINEABLE |
-    EFI_RESOURCE_ATTRIBUTE_WRITE_THROUGH_CACHEABLE |
-    EFI_RESOURCE_ATTRIBUTE_WRITE_BACK_CACHEABLE |
-    EFI_RESOURCE_ATTRIBUTE_TESTED;
+  if (DramBlock2Size != 0) {
+    ResourceAttributes =
+      EFI_RESOURCE_ATTRIBUTE_PRESENT |
+      EFI_RESOURCE_ATTRIBUTE_INITIALIZED |
+      EFI_RESOURCE_ATTRIBUTE_WRITE_COMBINEABLE |
+      EFI_RESOURCE_ATTRIBUTE_WRITE_THROUGH_CACHEABLE |
+      EFI_RESOURCE_ATTRIBUTE_WRITE_BACK_CACHEABLE |
+      EFI_RESOURCE_ATTRIBUTE_TESTED;
 
-  BuildResourceDescriptorHob (
-    EFI_RESOURCE_SYSTEM_MEMORY,
-    ResourceAttributes,
-    FixedPcdGet64 (PcdDramBlock2Base),
-    DramBlock2Size);
+    BuildResourceDescriptorHob (
+      EFI_RESOURCE_SYSTEM_MEMORY,
+      ResourceAttributes,
+      FixedPcdGet64 (PcdDramBlock2Base),
+      DramBlock2Size);
+  }
 
   ASSERT (VirtualMemoryMap != NULL);
   Index = 0;
@@ -94,22 +96,45 @@ ArmPlatformGetVirtualMemoryMap (
   VirtualMemoryTable[Index].Length          = MORELLO_UART0_SZ;
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
 
-  // DDR Primary (2GB)
+  // DDR Primary
   VirtualMemoryTable[++Index].PhysicalBase  = PcdGet64 (PcdSystemMemoryBase);
   VirtualMemoryTable[Index].VirtualBase     = PcdGet64 (PcdSystemMemoryBase);
   VirtualMemoryTable[Index].Length          = PcdGet64 (PcdSystemMemorySize);
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK;
 
   // DDR Secondary
-  VirtualMemoryTable[++Index].PhysicalBase  = PcdGet64 (PcdDramBlock2Base);
-  VirtualMemoryTable[Index].VirtualBase     = PcdGet64 (PcdDramBlock2Base);
-  VirtualMemoryTable[Index].Length          = DramBlock2Size;
-  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK;
+  if (DramBlock2Size != 0) {
+    VirtualMemoryTable[++Index].PhysicalBase  = PcdGet64 (PcdDramBlock2Base);
+    VirtualMemoryTable[Index].VirtualBase     = PcdGet64 (PcdDramBlock2Base);
+    VirtualMemoryTable[Index].Length          = DramBlock2Size;
+    VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK;
+  }
 
   // Expansion Peripherals
   VirtualMemoryTable[++Index].PhysicalBase  = MORELLO_EXP_PERIPH_BASE;
   VirtualMemoryTable[Index].VirtualBase     = MORELLO_EXP_PERIPH_BASE;
   VirtualMemoryTable[Index].Length          = MORELLO_EXP_PERIPH_BASE_SZ;
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
+
+  // PCI Configuration Space
+  VirtualMemoryTable[++Index].PhysicalBase  = PcdGet64 (PcdPciExpressBaseAddress);
+  VirtualMemoryTable[Index].VirtualBase     = PcdGet64 (PcdPciExpressBaseAddress);
+  VirtualMemoryTable[Index].Length          = (FixedPcdGet32 (PcdPciBusMax) -
+                                               FixedPcdGet32 (PcdPciBusMin) + 1) *
+                                               SIZE_1MB;
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
+
+  // PCI MMIO32/IO Space
+  VirtualMemoryTable[++Index].PhysicalBase  = PcdGet32 (PcdPciMmio32Base);
+  VirtualMemoryTable[Index].VirtualBase     = PcdGet32 (PcdPciMmio32Base);
+  VirtualMemoryTable[Index].Length          = PcdGet32 (PcdPciMmio32Size) +
+                                              PcdGet32 (PcdPciIoSize);
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
+
+  // PCI MMIO64 Space
+  VirtualMemoryTable[++Index].PhysicalBase  = PcdGet64 (PcdPciMmio64Base);
+  VirtualMemoryTable[Index].VirtualBase     = PcdGet64 (PcdPciMmio64Base);
+  VirtualMemoryTable[Index].Length          = PcdGet64 (PcdPciMmio64Size);
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
 
   // End of Table

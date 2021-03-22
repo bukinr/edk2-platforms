@@ -72,6 +72,17 @@ DefinitionBlock("Dsdt.aml", "DSDT", 1, "ARMLTD", "MORELLO", 0x20181101) {
       })
     }
 
+    // VIRTIO P9 Device
+    Device(VR03) {
+      Name(_HID, "LNRO0005")
+      Name(_UID, 3)
+
+      Name(_CRS, ResourceTemplate() {
+        Memory32Fixed(ReadWrite, 0x1C1A0000, 0x00000200)
+        Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) { 135 }
+      })
+   }
+
     // SMC91X
     Device(NET0) {
       Name(_HID, "LNRO0003")

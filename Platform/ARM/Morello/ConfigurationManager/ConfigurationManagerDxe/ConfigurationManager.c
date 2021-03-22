@@ -1,7 +1,7 @@
 /** @file
   Configuration Manager Dxe
 
-  Copyright (c) 2020, ARM Limited. All rights reserved.
+  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -683,127 +683,130 @@ GetArmNameSpaceObject (
   GicCpuCount = PLAT_CPU_COUNT;
   ProcHierarchyInfoCount = PLAT_PROC_HIERARCHY_NODE_COUNT;
 
-  switch (GET_CM_OBJECT_ID (CmObjectId)) {
-    HANDLE_CM_OBJECT (
-      EArmObjBootArchInfo,
-      CmObjectId,
-      PlatformRepo->CommonPlatRepoInfo->BootArchInfo,
-      1
-      );
-#ifdef HEADLESS_PLATFORM
-    HANDLE_CM_OBJECT (
-      EArmObjFixedFeatureFlags,
-      CmObjectId,
-      PlatformRepo->CommonPlatRepoInfo->FixedFeatureFlags,
-      1
-      );
-#endif
-    HANDLE_CM_OBJECT (
-      EArmObjPowerManagementProfileInfo,
-      CmObjectId,
-      PlatformRepo->CommonPlatRepoInfo->PmProfileInfo,
-      1
-      );
-    HANDLE_CM_OBJECT (
-      EArmObjGenericTimerInfo,
-      CmObjectId,
-      PlatformRepo->CommonPlatRepoInfo->GenericTimerInfo,
-      1
-      );
-    HANDLE_CM_OBJECT (
-      EArmObjPlatformGenericWatchdogInfo,
-      CmObjectId,
-      PlatformRepo->CommonPlatRepoInfo->Watchdog,
-      1
-      );
-    HANDLE_CM_OBJECT (
-      EArmObjPlatformGTBlockInfo,
-      CmObjectId,
-      PlatformRepo->CommonPlatRepoInfo->GTBlockInfo,
-      (sizeof (PlatformRepo->CommonPlatRepoInfo->GTBlockInfo) /
-         sizeof (PlatformRepo->CommonPlatRepoInfo->GTBlockInfo[0]))
-      );
-    HANDLE_CM_OBJECT_REF_BY_TOKEN (
-      EArmObjGTBlockTimerFrameInfo,
-      CmObjectId,
-      PlatformRepo->CommonPlatRepoInfo->GTBlock0TimerInfo,
-      (sizeof (PlatformRepo->CommonPlatRepoInfo->GTBlock0TimerInfo) /
-         sizeof (PlatformRepo->CommonPlatRepoInfo->GTBlock0TimerInfo[0])),
-      Token,
-      GetGTBlockTimerFrameInfo
-      );
-    HANDLE_CM_OBJECT_REF_BY_TOKEN (
-      EArmObjGicCInfo,
-      CmObjectId,
-      PlatformRepo->CommonPlatRepoInfo->GicCInfo,
-      GicCpuCount,
-      Token,
-      GetGicCInfo
-      );
-    HANDLE_CM_OBJECT (
-      EArmObjGicDInfo,
-      CmObjectId,
-      PlatformRepo->CommonPlatRepoInfo->GicDInfo,
-      1
-      );
-    HANDLE_CM_OBJECT (
-      EArmObjGicRedistributorInfo,
-      CmObjectId,
-      PlatformRepo->CommonPlatRepoInfo->GicRedistInfo,
-      GicRedistCount
-      );
-    HANDLE_CM_OBJECT (
-      EArmObjSerialConsolePortInfo,
-      CmObjectId,
-      PlatformRepo->CommonPlatRepoInfo->SpcrSerialPort,
-      1
-      );
-    HANDLE_CM_OBJECT (
-      EArmObjSerialDebugPortInfo,
-      CmObjectId,
-      PlatformRepo->CommonPlatRepoInfo->DbgSerialPort,
-      1
-      );
+  Status = GetArmNameSpaceObjectPlat (This, CmObjectId, Token, CmObject);
 
-    HANDLE_CM_OBJECT (
-      EArmObjProcHierarchyInfo,
-      CmObjectId,
-      PlatformRepo->CommonPlatRepoInfo->ProcHierarchyInfo,
-      ProcHierarchyInfoCount
-      );
+  if (Status == EFI_NOT_FOUND) {
 
-    HANDLE_CM_OBJECT (
-      EArmObjProcNodeIdInfo,
-      CmObjectId,
-      PlatformRepo->CommonPlatRepoInfo->ProcNodeIdInfo,
-      1
-      );
+    Status = EFI_SUCCESS;
 
-    HANDLE_CM_OBJECT (
-      EArmObjCacheInfo,
-      CmObjectId,
-      PlatformRepo->CommonPlatRepoInfo->CacheInfo,
-      ARRAY_SIZE (PlatformRepo->CommonPlatRepoInfo->CacheInfo)
-      );
-    HANDLE_CM_OBJECT_SEARCH_PLAT_REPO (
-      EArmObjCmRef,
-      CmObjectId,
-      Token,
-      GetCmObjRefs
-      );
-
-    default: {
-      Status = EFI_NOT_FOUND;
-      DEBUG ((
-        DEBUG_INFO,
-        "INFO: Object 0x%x. Status = %r\n",
+    switch (GET_CM_OBJECT_ID (CmObjectId)) {
+      HANDLE_CM_OBJECT (
+        EArmObjBootArchInfo,
         CmObjectId,
-        Status
-        ));
-      break;
-    }
-  }//switch
+        PlatformRepo->CommonPlatRepoInfo->BootArchInfo,
+        1
+        );
 
+#ifdef HEADLESS_PLATFORM
+      HANDLE_CM_OBJECT (
+        EArmObjFixedFeatureFlags,
+        CmObjectId,
+        PlatformRepo->CommonPlatRepoInfo->FixedFeatureFlags,
+        1
+        );
+#endif
+      HANDLE_CM_OBJECT (
+        EArmObjPowerManagementProfileInfo,
+        CmObjectId,
+        PlatformRepo->CommonPlatRepoInfo->PmProfileInfo,
+        1
+        );
+      HANDLE_CM_OBJECT (
+        EArmObjGenericTimerInfo,
+        CmObjectId,
+        PlatformRepo->CommonPlatRepoInfo->GenericTimerInfo,
+        1
+        );
+      HANDLE_CM_OBJECT (
+        EArmObjPlatformGenericWatchdogInfo,
+        CmObjectId,
+        PlatformRepo->CommonPlatRepoInfo->Watchdog,
+        1
+        );
+      HANDLE_CM_OBJECT (
+        EArmObjPlatformGTBlockInfo,
+        CmObjectId,
+        PlatformRepo->CommonPlatRepoInfo->GTBlockInfo,
+        (sizeof (PlatformRepo->CommonPlatRepoInfo->GTBlockInfo) /
+           sizeof (PlatformRepo->CommonPlatRepoInfo->GTBlockInfo[0]))
+        );
+      HANDLE_CM_OBJECT_REF_BY_TOKEN (
+        EArmObjGTBlockTimerFrameInfo,
+        CmObjectId,
+        PlatformRepo->CommonPlatRepoInfo->GTBlock0TimerInfo,
+        (sizeof (PlatformRepo->CommonPlatRepoInfo->GTBlock0TimerInfo) /
+           sizeof (PlatformRepo->CommonPlatRepoInfo->GTBlock0TimerInfo[0])),
+        Token,
+        GetGTBlockTimerFrameInfo
+        );
+      HANDLE_CM_OBJECT_REF_BY_TOKEN (
+        EArmObjGicCInfo,
+        CmObjectId,
+        PlatformRepo->CommonPlatRepoInfo->GicCInfo,
+        GicCpuCount,
+        Token,
+        GetGicCInfo
+        );
+      HANDLE_CM_OBJECT (
+        EArmObjGicDInfo,
+        CmObjectId,
+        PlatformRepo->CommonPlatRepoInfo->GicDInfo,
+        1
+        );
+      HANDLE_CM_OBJECT (
+        EArmObjGicRedistributorInfo,
+        CmObjectId,
+        PlatformRepo->CommonPlatRepoInfo->GicRedistInfo,
+        GicRedistCount
+        );
+      HANDLE_CM_OBJECT (
+        EArmObjSerialConsolePortInfo,
+        CmObjectId,
+        PlatformRepo->CommonPlatRepoInfo->SpcrSerialPort,
+        1
+        );
+      HANDLE_CM_OBJECT (
+        EArmObjSerialDebugPortInfo,
+        CmObjectId,
+        PlatformRepo->CommonPlatRepoInfo->DbgSerialPort,
+        1
+        );
+      HANDLE_CM_OBJECT (
+        EArmObjProcHierarchyInfo,
+        CmObjectId,
+        PlatformRepo->CommonPlatRepoInfo->ProcHierarchyInfo,
+        ProcHierarchyInfoCount
+        );
+      HANDLE_CM_OBJECT (
+        EArmObjProcNodeIdInfo,
+        CmObjectId,
+        PlatformRepo->CommonPlatRepoInfo->ProcNodeIdInfo,
+        1
+        );
+      HANDLE_CM_OBJECT (
+        EArmObjCacheInfo,
+        CmObjectId,
+        PlatformRepo->CommonPlatRepoInfo->CacheInfo,
+        ARRAY_SIZE (PlatformRepo->CommonPlatRepoInfo->CacheInfo)
+        );
+      HANDLE_CM_OBJECT_SEARCH_PLAT_REPO (
+        EArmObjCmRef,
+        CmObjectId,
+        Token,
+        GetCmObjRefs
+        );
+      default: {
+        Status = EFI_NOT_FOUND;
+        DEBUG ((
+          DEBUG_INFO,
+          "INFO: Object 0x%x. Status = %r\n",
+          CmObjectId,
+          Status
+          ));
+        break;
+      }
+    }//switch
+  }
   return Status;
 }
 
