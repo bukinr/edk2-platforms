@@ -154,16 +154,14 @@ PciHostBridgeResourceConflict (
     DEBUG ((DEBUG_ERROR, "RootBridge[%d]:\n", RootBridgeIndex++));
     for (; Descriptor->Desc == ACPI_ADDRESS_SPACE_DESCRIPTOR; Descriptor++) {
       ASSERT (Descriptor->ResType <
-              (sizeof (mPciHostBridgeLibAcpiAddressSpaceTypeStr) /
-               sizeof (mPciHostBridgeLibAcpiAddressSpaceTypeStr[0])
-               )
+              (ARRAY_SIZE (mPciHostBridgeLibAcpiAddressSpaceTypeStr))
               );
-      DEBUG ((DEBUG_ERROR, " %s: Length/Alignment = 0x%lx / 0x%lx\n",
+      DEBUG ((DEBUG_ERROR, "%s: Length/Alignment = 0x%lx / 0x%lx\n",
               mPciHostBridgeLibAcpiAddressSpaceTypeStr[Descriptor->ResType],
               Descriptor->AddrLen, Descriptor->AddrRangeMax
               ));
       if (Descriptor->ResType == ACPI_ADDRESS_SPACE_TYPE_MEM) {
-        DEBUG ((DEBUG_ERROR, "     Granularity/SpecificFlag = %ld / %02x%s\n",
+        DEBUG ((DEBUG_ERROR, "Granularity/SpecificFlag = %ld / %02x%s\n",
                 Descriptor->AddrSpaceGranularity, Descriptor->SpecificFlag,
                 ((Descriptor->SpecificFlag &
                   EFI_ACPI_MEMORY_RESOURCE_SPECIFIC_FLAG_CACHEABLE_PREFETCHABLE

@@ -1,7 +1,7 @@
 ## @file
 #  Configuration Manager Dxe
 #
-#  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
+#  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 ##
@@ -23,8 +23,11 @@
 [Sources]
   AslTables/DsdtFvp.asl
   AslTables/SsdtPciFvp.asl
-  ConfigurationManagerFvp.c
   ConfigurationManager.c
+  ConfigurationManager.h
+  ConfigurationManagerFvp.c
+  ConfigurationManagerFvp.h
+  Platform.h
 
 [Packages]
   ArmPkg/ArmPkg.dec
@@ -36,12 +39,32 @@
 
 [LibraryClasses]
   UefiDriverEntryPoint
-  UefiRuntimeServicesTableLib
 
 [Protocols]
   gEdkiiConfigurationManagerProtocolGuid
 
 [FixedPcd]
+  gArmMorelloTokenSpaceGuid.PcdPciBusCount
+  gArmMorelloTokenSpaceGuid.PcdPciBusMax
+  gArmMorelloTokenSpaceGuid.PcdPciBusMin
+  gArmMorelloTokenSpaceGuid.PcdPciExpressBaseAddress
+  gArmMorelloTokenSpaceGuid.PcdPciIoBase
+  gArmMorelloTokenSpaceGuid.PcdPciIoMaxBase
+  gArmMorelloTokenSpaceGuid.PcdPciIoSize
+  gArmMorelloTokenSpaceGuid.PcdPciIoTranslation
+  gArmMorelloTokenSpaceGuid.PcdPciMmio32Base
+  gArmMorelloTokenSpaceGuid.PcdPciMmio32MaxBase
+  gArmMorelloTokenSpaceGuid.PcdPciMmio32Size
+  gArmMorelloTokenSpaceGuid.PcdPciMmio32Translation
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64Base
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64MaxBase
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64Size
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64Translation
+
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkBaseAddress
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkInterrupt
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkSize
+
   ## PL011 Serial Debug UART
   gArmPlatformTokenSpaceGuid.PcdSerialDbgRegisterBase
   gArmPlatformTokenSpaceGuid.PcdSerialDbgUartBaudRate
@@ -66,30 +89,6 @@
 
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialRegisterBase
   gEfiMdePkgTokenSpaceGuid.PcdUartDefaultBaudRate
-
-  gArmMorelloTokenSpaceGuid.PcdVirtioBlkBaseAddress
-  gArmMorelloTokenSpaceGuid.PcdVirtioBlkSize
-  gArmMorelloTokenSpaceGuid.PcdVirtioBlkInterrupt
-
-  # PCI
-  gArmMorelloTokenSpaceGuid.PcdPciBusMin
-  gArmMorelloTokenSpaceGuid.PcdPciBusMax
-  gArmMorelloTokenSpaceGuid.PcdPciBusCount
-  gArmMorelloTokenSpaceGuid.PcdPciIoBase
-  gArmMorelloTokenSpaceGuid.PcdPciIoSize
-  gArmMorelloTokenSpaceGuid.PcdPciIoMaxBase
-  gArmMorelloTokenSpaceGuid.PcdPciIoTranslation
-  gArmMorelloTokenSpaceGuid.PcdPciMmio32Base
-  gArmMorelloTokenSpaceGuid.PcdPciMmio32Size
-  gArmMorelloTokenSpaceGuid.PcdPciMmio32MaxBase
-  gArmMorelloTokenSpaceGuid.PcdPciMmio32Translation
-  gArmMorelloTokenSpaceGuid.PcdPciMmio64Base
-  gArmMorelloTokenSpaceGuid.PcdPciMmio64Size
-  gArmMorelloTokenSpaceGuid.PcdPciMmio64MaxBase
-  gArmMorelloTokenSpaceGuid.PcdPciMmio64Translation
-
-  gArmMorelloTokenSpaceGuid.PcdPciExpressBaseAddress
-[Pcd]
 
 [Depex]
   TRUE

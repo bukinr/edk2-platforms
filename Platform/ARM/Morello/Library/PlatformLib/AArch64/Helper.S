@@ -1,9 +1,8 @@
 /** @file
-*
-*  Copyright (c) 2020, ARM Limited. All rights reserved.
-*
-*  SPDX-License-Identifier: BSD-2-Clause-Patent
-*
+
+  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
+
+  SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
 #include <AsmMacroIoLibV8.h>
@@ -12,11 +11,6 @@
 .text
 .align 3
 
-GCC_ASM_EXPORT(ArmPlatformPeiBootAction)
-GCC_ASM_EXPORT(ArmPlatformGetCorePosition)
-GCC_ASM_EXPORT(ArmPlatformGetPrimaryCoreMpId)
-GCC_ASM_EXPORT(ArmPlatformIsPrimaryCore)
-
 //
 // First platform specific function to be called in the PEI phase
 //
@@ -24,7 +18,7 @@ GCC_ASM_EXPORT(ArmPlatformIsPrimaryCore)
 // or PrePeiCore modules. It allows to retrieve arguments passed to
 // the UEFI firmware through the CPU registers.
 //
-ASM_PFX(ArmPlatformPeiBootAction):
+ASM_FUNC(ArmPlatformPeiBootAction)
   ret
 
 //
@@ -40,7 +34,7 @@ ASM_PFX(ArmPlatformPeiBootAction):
 //  IN UINTN MpId
 //  );
 // With this function: CorePos = (ClusterId * 2) + CoreId
-ASM_PFX(ArmPlatformGetCorePosition):
+ASM_FUNC(ArmPlatformGetCorePosition)
   and   x1, x0, #ARM_CORE_MASK
   and   x0, x0, #ARM_CLUSTER_MASK
   add   x0, x1, x0, LSR #7
@@ -58,8 +52,8 @@ ASM_PFX(ArmPlatformGetCorePosition):
 //ArmPlatformGetPrimaryCoreMpId (
 //  VOID
 //  );
-ASM_PFX(ArmPlatformGetPrimaryCoreMpId):
-  MOV32 (w0, FixedPcdGet32(PcdArmPrimaryCore))
+ASM_FUNC(ArmPlatformGetPrimaryCoreMpId)
+  MOV32 (w0, FixedPcdGet32 (PcdArmPrimaryCore))
   ret
 
 //
@@ -75,10 +69,10 @@ ASM_PFX(ArmPlatformGetPrimaryCoreMpId):
 //ArmPlatformIsPrimaryCore (
 //  IN UINTN MpId
 //  );
-ASM_PFX(ArmPlatformIsPrimaryCore):
-  MOV32 (w1, FixedPcdGet32(PcdArmPrimaryCoreMask))
+ASM_FUNC(ArmPlatformIsPrimaryCore)
+  MOV32 (w1, FixedPcdGet32 (PcdArmPrimaryCoreMask))
   and   x0, x0, x1
-  MOV32 (w1, FixedPcdGet32(PcdArmPrimaryCore))
+  MOV32 (w1, FixedPcdGet32 (PcdArmPrimaryCore))
   cmp   w0, w1
   cset  x0, eq
   ret

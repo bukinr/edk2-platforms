@@ -1,8 +1,10 @@
+## @file
+#  Component description file for Morello Platform
 #
-#  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
+#  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
-#
+##
 
 !include Platform/ARM/Morello/MorelloCap.dsc.inc
 
@@ -51,7 +53,6 @@
   PciLib|MdePkg/Library/BasePciLibPciExpress/BasePciLibPciExpress.inf
   PciExpressLib|MdePkg/Library/BasePciExpressLib/BasePciExpressLib.inf
 
-
 [LibraryClasses.common.DXE_RUNTIME_DRIVER]
   BaseMemoryLib|MdePkg/Library/BaseMemoryLib/BaseMemoryLib.inf
   HobLib|MdePkg/Library/DxeHobLib/DxeHobLib.inf
@@ -80,7 +81,7 @@
   gArmPlatformTokenSpaceGuid.PcdCPUCorePrimaryStackSize|0x40000
   gArmPlatformTokenSpaceGuid.PcdCPUCoreSecondaryStackSize|0x0
 
-  # System Memory (2GB)
+  # System Memory (2GB - 16MB)
   gArmTokenSpaceGuid.PcdSystemMemoryBase|0x80000000
   gArmTokenSpaceGuid.PcdSystemMemorySize|0x7F000000
 
@@ -100,8 +101,8 @@
   gArmPlatformTokenSpaceGuid.PL011UartInterrupt|95
 
   # PL011 Serial Debug UART (DBG2)
-  gArmPlatformTokenSpaceGuid.PcdSerialDbgRegisterBase|gEfiMdeModulePkgTokenSpaceGuid.PcdSerialRegisterBase
-  gArmPlatformTokenSpaceGuid.PcdSerialDbgUartBaudRate|gEfiMdePkgTokenSpaceGuid.PcdUartDefaultBaudRate
+  gArmPlatformTokenSpaceGuid.PcdSerialDbgRegisterBase|0x1C0A0000
+  gArmPlatformTokenSpaceGuid.PcdSerialDbgUartBaudRate|115200
   gArmPlatformTokenSpaceGuid.PcdSerialDbgUartClkInHz|50000000
 
   # SBSA Watchdog

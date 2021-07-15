@@ -1,7 +1,7 @@
 /** @file
   Configuration Manager Dxe
 
-  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
+  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -177,8 +177,7 @@ EDKII_FVP_PLATFORM_REPOSITORY_INFO MorelloFvpRepositoryInfo = {
       0x10C,
       // Proximity domain flag, ignored in this case
       0,
-      // Index into the array of ID mapping, ignored as SMMU
-      // control interrupts are GSIV based
+      // Index into the array of ID mapping
       1
     },
   },
@@ -278,19 +277,18 @@ EDKII_PLATFORM_REPOSITORY_INFO MorelloRepositoryInfo = {
   &MorelloFvpRepositoryInfo
 };
 
-
 /** Return a device Id mapping array.
 
-  @param [in]  This        Pointer to the Configuration Manager Protocol.
-  @param [in]  CmObjectId  The Configuration Manager Object ID.
-  @param [in]  Token       A token for identifying the object
-  @param [out] CmObject    Pointer to the Configuration Manager Object
-                           descriptor describing the requested Object.
+  @param [in]      This        Pointer to the Configuration Manager Protocol.
+  @param [in]      CmObjectId  The Configuration Manager Object ID.
+  @param [in]      Token       A token for identifying the object
+  @param [in, out] CmObject    Pointer to the Configuration Manager Object
+                              descriptor describing the requested Object.
 
   @retval EFI_SUCCESS           Success.
   @retval EFI_INVALID_PARAMETER A parameter is invalid.
   @retval EFI_NOT_FOUND         The required object information is not found.
-*/
+**/
 EFI_STATUS
 EFIAPI
 GetDeviceIdMappingArray (
@@ -335,16 +333,16 @@ GetDeviceIdMappingArray (
 
 /** Return an ITS identifier array.
 
-  @param [in]  This        Pointer to the Configuration Manager Protocol.
-  @param [in]  CmObjectId  The Configuration Manager Object ID.
-  @param [in]  Token       A token for identifying the object
-  @param [out] CmObject    Pointer to the Configuration Manager Object
-                           descriptor describing the requested Object.
+  @param [in]      This        Pointer to the Configuration Manager Protocol.
+  @param [in]      CmObjectId  The Configuration Manager Object ID.
+  @param [in]      Token       A token for identifying the object
+  @param [in, out] CmObject    Pointer to the Configuration Manager Object
+                              descriptor describing the requested Object.
 
   @retval EFI_SUCCESS           Success.
   @retval EFI_INVALID_PARAMETER A parameter is invalid.
   @retval EFI_NOT_FOUND         The required object information is not found.
-*/
+**/
 EFI_STATUS
 EFIAPI
 GetItsIdentifierArray (
@@ -366,8 +364,7 @@ GetItsIdentifierArray (
 
   PlatformRepo = This->PlatRepoInfo->FvpPlatRepoInfo;
 
-  Count = sizeof (PlatformRepo->ItsIdentifierArray) /
-            sizeof (PlatformRepo->ItsIdentifierArray[0]);
+  Count = ARRAY_SIZE (PlatformRepo->ItsIdentifierArray);
 
   for (Index = 0; Index < Count; Index++) {
     if (Token == (CM_OBJECT_TOKEN)&PlatformRepo->ItsIdentifierArray[Index]) {
@@ -384,16 +381,16 @@ GetItsIdentifierArray (
 
 /** Return an ITS group info.
 
-  @param [in]  This        Pointer to the Configuration Manager Protocol.
-  @param [in]  CmObjectId  The Configuration Manager Object ID.
-  @param [in]  Token       A token for identifying the object
-  @param [out] CmObject    Pointer to the Configuration Manager Object
-                           descriptor describing the requested Object.
+  @param [in]      This        Pointer to the Configuration Manager Protocol.
+  @param [in]      CmObjectId  The Configuration Manager Object ID.
+  @param [in]      Token       A token for identifying the object
+  @param [in, out] CmObject    Pointer to the Configuration Manager Object
+                              descriptor describing the requested Object.
 
   @retval EFI_SUCCESS           Success.
   @retval EFI_INVALID_PARAMETER A parameter is invalid.
   @retval EFI_NOT_FOUND         The required object information is not found.
-*/
+**/
 EFI_STATUS
 EFIAPI
 GetItsGroupInfo (
@@ -415,8 +412,7 @@ GetItsGroupInfo (
 
   PlatformRepo = This->PlatRepoInfo->FvpPlatRepoInfo;
 
-  Count = sizeof (PlatformRepo->ItsGroupInfo) /
-            sizeof (PlatformRepo->ItsGroupInfo[0]);
+  Count = ARRAY_SIZE (PlatformRepo->ItsGroupInfo);
 
   for (Index = 0; Index < Count; Index++) {
     if (Token == (CM_OBJECT_TOKEN)&PlatformRepo->ItsGroupInfo[Index]) {
@@ -431,7 +427,7 @@ GetItsGroupInfo (
   return EFI_NOT_FOUND;
 }
 
-/** Return an ARM namespace object.
+/** Return platform specific ARM namespace object.
 
   @param [in]      This        Pointer to the Configuration Manager Protocol.
   @param [in]      CmObjectId  The Configuration Manager Object ID.
@@ -456,77 +452,150 @@ GetArmNameSpaceObjectPlat (
   EFI_STATUS                            Status;
   EDKII_FVP_PLATFORM_REPOSITORY_INFO  * PlatformRepo;
 
-  Status = EFI_SUCCESS;
   if ((This == NULL) || (CmObject == NULL)) {
     ASSERT (This != NULL);
     ASSERT (CmObject != NULL);
     return EFI_INVALID_PARAMETER;
   }
   PlatformRepo = This->PlatRepoInfo->FvpPlatRepoInfo;
+  Status = EFI_NOT_FOUND;
 
   switch (GET_CM_OBJECT_ID (CmObjectId)) {
-    HANDLE_CM_OBJECT (
-      EArmObjGicItsInfo,
-      CmObjectId,
-      PlatformRepo->GicItsInfo,
-      (sizeof (PlatformRepo->GicItsInfo) /
-         sizeof (PlatformRepo->GicItsInfo[0]))
-      );
+    case EArmObjGicItsInfo:
+      Status = HandleCmObject (
+                 CmObjectId,
+                 &PlatformRepo->GicItsInfo,
+                 sizeof (PlatformRepo->GicItsInfo),
+                 ARRAY_SIZE (PlatformRepo->GicItsInfo),
+                 CmObject
+                 );
+      break;
 
-    HANDLE_CM_OBJECT (
-      EArmObjSmmuV3,
-      CmObjectId,
-      PlatformRepo->SmmuV3Info[0],
-      1
-      );
+    case EArmObjSmmuV3:
+      Status = HandleCmObject (
+                 CmObjectId,
+                 PlatformRepo->SmmuV3Info,
+                 sizeof (PlatformRepo->SmmuV3Info),
+                 1,
+                 CmObject
+                 );
+      break;
 
-    HANDLE_CM_OBJECT_REF_BY_TOKEN (
-      EArmObjItsGroup,
-      CmObjectId,
-      PlatformRepo->ItsGroupInfo,
-      (sizeof (PlatformRepo->ItsGroupInfo) /
-         sizeof (PlatformRepo->ItsGroupInfo[0])),
-      Token,
-      GetItsGroupInfo
-      );
+    case EArmObjItsGroup:
+      Status = HandleCmObjectRefByToken (
+                 This,
+                 CmObjectId,
+                 PlatformRepo->ItsGroupInfo,
+                 sizeof (PlatformRepo->ItsGroupInfo),
+                 ARRAY_SIZE (PlatformRepo->ItsGroupInfo),
+                 Token,
+                 GetItsGroupInfo,
+                 CmObject
+                 );
+      break;
 
-    HANDLE_CM_OBJECT_REF_BY_TOKEN (
-      EArmObjGicItsIdentifierArray,
-      CmObjectId,
-      PlatformRepo->ItsIdentifierArray,
-      (sizeof (PlatformRepo->ItsIdentifierArray) /
-         sizeof (PlatformRepo->ItsIdentifierArray[0])),
-      Token,
-      GetItsIdentifierArray
-      );
+    case EArmObjGicItsIdentifierArray:
+      Status = HandleCmObjectRefByToken (
+                 This,
+                 CmObjectId,
+                 PlatformRepo->ItsIdentifierArray,
+                 sizeof (PlatformRepo->ItsIdentifierArray),
+                 ARRAY_SIZE (PlatformRepo->ItsIdentifierArray),
+                 Token,
+                 GetItsIdentifierArray,
+                 CmObject
+                 );
+      break;
 
-    HANDLE_CM_OBJECT (
-      EArmObjRootComplex,
-      CmObjectId,
-      PlatformRepo->RootComplexInfo[0],
-      1
-      );
+    case EArmObjRootComplex:
+      Status = HandleCmObject (
+                 CmObjectId,
+                 PlatformRepo->RootComplexInfo,
+                 sizeof (PlatformRepo->RootComplexInfo),
+                 1,
+                 CmObject
+                 );
+      break;
 
-    HANDLE_CM_OBJECT_REF_BY_TOKEN (
-      EArmObjIdMappingArray,
-      CmObjectId,
-      PlatformRepo->DeviceIdMapping,
-      (sizeof (PlatformRepo->DeviceIdMapping) /
-         sizeof (PlatformRepo->DeviceIdMapping[0][0])),
-      Token,
-      GetDeviceIdMappingArray
-      );
+    case EArmObjIdMappingArray:
+      Status = HandleCmObjectRefByToken (
+                 This,
+                 CmObjectId,
+                 PlatformRepo->DeviceIdMapping,
+                 sizeof (PlatformRepo->DeviceIdMapping),
+                 ARRAY_SIZE (PlatformRepo->DeviceIdMapping),
+                 Token,
+                 GetDeviceIdMappingArray,
+                 CmObject
+                 );
+      break;
 
-    HANDLE_CM_OBJECT (
-      EArmObjPciConfigSpaceInfo,
-      CmObjectId,
-      PlatformRepo->PciConfigInfo[0],
-      1
-      );
+    case EArmObjPciConfigSpaceInfo:
+      Status = HandleCmObject (
+                 CmObjectId,
+                 PlatformRepo->PciConfigInfo,
+                 sizeof (PlatformRepo->PciConfigInfo),
+                 1,
+                 CmObject
+                 );
+      break;
+
     default: {
-      Status = EFI_NOT_FOUND;
       break;
     }
   }//switch
+  return Status;
+}
+
+/** Return platform specific standard namespace object.
+
+  @param [in]      This        Pointer to the Configuration Manager Protocol.
+  @param [in]      CmObjectId  The Configuration Manager Object ID.
+  @param [in]      Token       An optional token identifying the object. If
+                               unused this must be CM_NULL_TOKEN.
+  @param [in, out] CmObject    Pointer to the Configuration Manager Object
+                               descriptor describing the requested Object.
+
+  @retval EFI_SUCCESS           Success.
+  @retval EFI_INVALID_PARAMETER A parameter is invalid.
+  @retval EFI_NOT_FOUND         The required object information is not found.
+**/
+EFI_STATUS
+EFIAPI
+GetStandardNameSpaceObjectPlat (
+  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  * CONST This,
+  IN  CONST CM_OBJECT_ID                                  CmObjectId,
+  IN  CONST CM_OBJECT_TOKEN                               Token OPTIONAL,
+  IN  OUT   CM_OBJ_DESCRIPTOR                     * CONST CmObject
+  )
+{
+  EFI_STATUS                            Status;
+  EDKII_FVP_PLATFORM_REPOSITORY_INFO  * PlatformRepo;
+
+  if ((This == NULL) || (CmObject == NULL)) {
+    ASSERT (This != NULL);
+    ASSERT (CmObject != NULL);
+    return EFI_INVALID_PARAMETER;
+  }
+
+  Status = EFI_NOT_FOUND;
+  PlatformRepo = This->PlatRepoInfo->FvpPlatRepoInfo;
+
+  switch (GET_CM_OBJECT_ID (CmObjectId)) {
+    case EStdObjAcpiTableList:
+      Status = HandleCmObject (
+                 CmObjectId,
+                 PlatformRepo->CmAcpiTableList,
+                 sizeof (PlatformRepo->CmAcpiTableList),
+                 ARRAY_SIZE (PlatformRepo->CmAcpiTableList),
+                 CmObject
+                 );
+      break;
+
+    default: {
+      break;
+    }
+  }
+
   return Status;
 }

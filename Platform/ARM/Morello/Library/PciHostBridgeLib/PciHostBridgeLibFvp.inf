@@ -8,7 +8,7 @@
 ##
 
 [Defines]
-  INF_VERSION                    = 0x0001001A
+  INF_VERSION                    = 0x0001001B
   BASE_NAME                      = PciHostBridgeLib
   FILE_GUID                      = 6879CEAD-DC94-42EB-895C-096D36B8083C
   MODULE_TYPE                    = DXE_DRIVER
@@ -27,13 +27,13 @@
 
 [Packages]
   ArmPkg/ArmPkg.dec
-  MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
+  MdePkg/MdePkg.dec
   Platform/ARM/Morello/MorelloPlatform.dec
 
 [FixedPcd]
-  gArmMorelloTokenSpaceGuid.PcdPciBusMin
   gArmMorelloTokenSpaceGuid.PcdPciBusMax
+  gArmMorelloTokenSpaceGuid.PcdPciBusMin
   gArmMorelloTokenSpaceGuid.PcdPciIoBase
   gArmMorelloTokenSpaceGuid.PcdPciIoSize
   gArmMorelloTokenSpaceGuid.PcdPciMmio32Base

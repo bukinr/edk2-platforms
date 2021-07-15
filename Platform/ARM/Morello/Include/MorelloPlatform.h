@@ -1,13 +1,12 @@
 /** @file
-*
-*  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
-*
-*  SPDX-License-Identifier: BSD-2-Clause-Patent
-*
+
+  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
+
+  SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
-#ifndef MORELLO_PLATFORM_H__
-#define MORELLO_PLATFORM_H__
+#ifndef MORELLO_PLATFORM_H_
+#define MORELLO_PLATFORM_H_
 
 #define MORELLO_DRAM_BLOCK1_SIZE               SIZE_2GB
 
@@ -53,16 +52,12 @@
 #pragma pack(1)
 
 typedef struct {
-  /*! Local DDR memory size in Bytes */
-  UINT64   LocalDdrSize;
-  /*! Remote DDR memory size in Bytes */
-  UINT64   RemoteDdrSize;
-  /*! Slave count in C2C mode */
-  UINT8   SlaveCount;
-  /*! 0 - Single Chip, 1 - Chip to Chip (C2C) */
-  UINT8   Mode;
+  UINT64  LocalDdrSize;  ///< Local DDR memory size in Bytes
+  UINT64  RemoteDdrSize; ///< Remote DDR memory size in Bytes
+  UINT8   SlaveCount;    ///< Slave count in C2C mode
+  UINT8   Mode;          ///< 0 - Single Chip, 1 - Chip to Chip (C2C)
 } MORELLO_PLAT_INFO;
 
 #pragma pack()
 
-#endif
+#endif //MORELLO_PLATFORM_H_

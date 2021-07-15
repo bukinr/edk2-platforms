@@ -1,8 +1,10 @@
+## @file
+#  FDF file of Morello FVP platform
 #
-#  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
+#  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
-#
+##
 
 ################################################################################
 #
@@ -118,6 +120,12 @@ READ_LOCK_STATUS   = TRUE
   # Virtio Block Device support
   INF OvmfPkg/VirtioBlkDxe/VirtioBlk.inf
 
+  # Networking stack
+  !include NetworkPkg/Network.fdf.inc
+
+  # Virtio Net support
+  INF OvmfPkg/VirtioNetDxe/VirtioNet.inf
+
   # FAT filesystem + GPT/MBR partitioning
   INF FatPkg/EnhancedFatDxe/Fat.inf
   INF MdeModulePkg/Universal/Disk/DiskIoDxe/DiskIoDxe.inf
@@ -129,7 +137,7 @@ READ_LOCK_STATUS   = TRUE
   INF MdeModulePkg/Universal/Disk/RamDiskDxe/RamDiskDxe.inf
 
   # UEFI applications
-  INF  ShellPkg/Application/Shell/Shell.inf
+  INF ShellPkg/Application/Shell/Shell.inf
 
   # Platform driver
   INF Platform/ARM/Morello/Drivers/PlatformDxe/PlatformDxeFvp.inf

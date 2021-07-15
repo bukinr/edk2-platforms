@@ -1,6 +1,6 @@
 /** @file
 
-  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
+  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -9,8 +9,8 @@
     - Obj or OBJ - Object
 **/
 
-#ifndef CONFIGURATION_MANAGER_H__
-#define CONFIGURATION_MANAGER_H__
+#ifndef CONFIGURATION_MANAGER_H_
+#define CONFIGURATION_MANAGER_H_
 
 /** The configuration manager version.
 */
@@ -97,94 +97,76 @@
     (WritePolicy << 4)                                                  \
   )
 
-/** A helper macro for returning configuration manager objects
-*/
-#define HANDLE_CM_OBJECT(ObjId, CmObjectId, Object, ObjectCount)      \
-  case ObjId: {                                                       \
-    CmObject->ObjectId = CmObjectId;                                  \
-    CmObject->Size = sizeof (Object);                                 \
-    CmObject->Data = (VOID*)&Object;                                  \
-    CmObject->Count = ObjectCount;                                    \
-    DEBUG ((                                                          \
-      DEBUG_INFO,                                                     \
-      #CmObjectId ": Ptr = 0x%p, Size = %d, Count = %d\n",            \
-      CmObject->Data,                                                 \
-      CmObject->Size,                                                 \
-      CmObject->Count                                                 \
-      ));                                                             \
-    break;                                                            \
-  }
+/** A function that prepares Configuration Manager Objects for returning.
 
-/** A helper macro for returning configuration manager objects
-    referenced by token
-*/
-#define HANDLE_CM_OBJECT_REF_BY_TOKEN(                                      \
-          ObjId,                                                            \
-          CmObjectId,                                                       \
-          Object,                                                           \
-          ObjectCount,                                                      \
-          Token,                                                            \
-          HandlerProc                                                       \
-          )                                                                 \
-  case ObjId: {                                                             \
-    CmObject->ObjectId = CmObjectId;                                        \
-    if (Token == CM_NULL_TOKEN) {                                           \
-      CmObject->Size = sizeof (Object);                                     \
-      CmObject->Data = (VOID*)&Object;                                      \
-      CmObject->Count = ObjectCount;                                        \
-      DEBUG ((                                                              \
-        DEBUG_INFO,                                                         \
-        #CmObjectId ": Ptr = 0x%p, Size = %d, Count = %d\n",                \
-        CmObject->Data,                                                     \
-        CmObject->Size,                                                     \
-        CmObject->Count                                                     \
-        ));                                                                 \
-    } else {                                                                \
-      Status = HandlerProc (This, CmObjectId, Token, CmObject);             \
-      DEBUG ((                                                              \
-        DEBUG_INFO,                                                         \
-        #CmObjectId ": Token = 0x%p, Ptr = 0x%p, Size = %d, Count = %d\n",  \
-        (VOID*)Token,                                                       \
-        CmObject->Data,                                                     \
-        CmObject->Size,                                                     \
-        CmObject->Count                                                     \
-        ));                                                                 \
-    }                                                                       \
-    break;                                                                  \
-  }
+  @param [in]  This        Pointer to the Configuration Manager Protocol.
+  @param [in]  CmObjectId  The Configuration Manager Object ID.
+  @param [in]  Token       A token for identifying the object.
+  @param [out] CmObject    Pointer to the Configuration Manager Object
+                           descriptor describing the requested Object.
 
-/** A helper macro for returning configuration manager objects referenced
-    by token when the entire platform repository is in scope and the
-    CM_NULL_TOKEN value is not allowed.
-*/
-#define HANDLE_CM_OBJECT_SEARCH_PLAT_REPO(                                  \
-          ObjId,                                                            \
-          CmObjectId,                                                       \
-          Token,                                                            \
-          HandlerProc                                                       \
-          )                                                                 \
-  case ObjId: {                                                             \
-    CmObject->ObjectId = CmObjectId;                                        \
-    if (Token == CM_NULL_TOKEN) {                                           \
-      Status = EFI_INVALID_PARAMETER;                                       \
-      DEBUG ((                                                              \
-        DEBUG_ERROR,                                                        \
-        #ObjId ": CM_NULL_TOKEN value is not allowed when searching"        \
-        " the entire platform repository.\n"                                \
-        ));                                                                 \
-    } else {                                                                \
-      Status = HandlerProc (This, CmObjectId, Token, CmObject);             \
-      DEBUG ((                                                              \
-        DEBUG_INFO,                                                         \
-        #ObjId ": Token = 0x%p, Ptr = 0x%p, Size = %d, Count = %d\n",       \
-        (VOID*)Token,                                                       \
-        CmObject->Data,                                                     \
-        CmObject->Size,                                                     \
-        CmObject->Count                                                     \
-        ));                                                                 \
-    }                                                                       \
-    break;                                                                  \
-  }
+  @retval EFI_SUCCESS           Success.
+  @retval EFI_INVALID_PARAMETER A parameter is invalid.
+  @retval EFI_NOT_FOUND         The required object information is not found.
+**/
+typedef EFI_STATUS (*CM_OBJECT_HANDLER_PROC) (
+  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  * CONST This,
+  IN  CONST CM_OBJECT_ID                                  CmObjectId,
+  IN  CONST CM_OBJECT_TOKEN                               Token,
+  IN  OUT   CM_OBJ_DESCRIPTOR                     * CONST CmObject
+  );
+
+/** A helper function for returning the Configuration Manager Objects.
+
+  @param [in]       CmObjectId     The Configuration Manager Object ID.
+  @param [in]       Object         Pointer to the Object(s).
+  @param [in]       ObjectSize     Total size of the Object(s).
+  @param [in]       ObjectCount    Number of Objects.
+  @param [in, out]  CmObjectDesc   Pointer to the Configuration Manager Object
+                                   descriptor describing the requested Object.
+
+  @retval EFI_SUCCESS           Success.
+**/
+EFI_STATUS
+EFIAPI
+HandleCmObject (
+  IN  CONST CM_OBJECT_ID                CmObjectId,
+  IN        VOID                *       Object,
+  IN  CONST UINTN                       ObjectSize,
+  IN  CONST UINTN                       ObjectCount,
+  IN  OUT   CM_OBJ_DESCRIPTOR   * CONST CmObjectDesc
+  );
+
+/** A helper function for returning the Configuration Manager Objects that
+    match the token.
+
+  @param [in]  This               Pointer to the Configuration Manager Protocol.
+  @param [in]  CmObjectId         The Configuration Manager Object ID.
+  @param [in]  Object             Pointer to the Object(s).
+  @param [in]  ObjectSize         Total size of the Object(s).
+  @param [in]  ObjectCount        Number of Objects.
+  @param [in]  Token              A token identifying the object.
+  @param [in]  HandlerProc        A handler function to search the object
+                                  referenced by the token.
+  @param [in, out]  CmObjectDesc  Pointer to the Configuration Manager Object
+                                  descriptor describing the requested Object.
+
+  @retval EFI_SUCCESS           Success.
+  @retval EFI_INVALID_PARAMETER A parameter is invalid.
+  @retval EFI_NOT_FOUND         The required object information is not found.
+**/
+EFI_STATUS
+EFIAPI
+HandleCmObjectRefByToken (
+  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  * CONST This,
+  IN  CONST CM_OBJECT_ID                                  CmObjectId,
+  IN        VOID                                  *       Object,
+  IN  CONST UINTN                                         ObjectSize,
+  IN  CONST UINTN                                         ObjectCount,
+  IN  CONST CM_OBJECT_TOKEN                               Token,
+  IN  CONST CM_OBJECT_HANDLER_PROC                        HandlerProc,
+  IN  OUT   CM_OBJ_DESCRIPTOR                     * CONST CmObjectDesc
+  );
 
 /** The number of CPUs
 */
@@ -223,15 +205,13 @@
 /** The number of resources private to 'core instance
     - L1 data cache
     - L1 instruction cache
-    - L2 cache
 */
-#define CORE_RESOURCE_COUNT  3
+#define CORE_RESOURCE_COUNT  2
 
 /** The number of resources private to SoC
     - slc cache
-    - Proc Node Id Info
 */
-#define SOC_RESOURCE_COUNT  2
+#define SOC_RESOURCE_COUNT  1
 
 /** A structure describing the platform configuration
     manager repository information
@@ -283,10 +263,6 @@ typedef struct CommonPlatformRepositoryInfo {
   // Processor topology information
   CM_ARM_PROC_HIERARCHY_INFO            ProcHierarchyInfo[PLAT_PROC_HIERARCHY_NODE_COUNT];
 
-  // Processor Node Id Info
-  CM_ARM_PROC_NODE_ID_INFO              ProcNodeIdInfo;
-
-
   // Cache information
   CM_ARM_CACHE_INFO                     CacheInfo[PLAT_CACHE_COUNT];
 
@@ -301,4 +277,4 @@ typedef struct CommonPlatformRepositoryInfo {
 
 } EDKII_COMMON_PLATFORM_REPOSITORY_INFO;
 
-#endif // CONFIGURATION_MANAGER_H__
+#endif // CONFIGURATION_MANAGER_H_

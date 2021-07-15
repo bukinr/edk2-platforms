@@ -1,8 +1,8 @@
 # @file
 #
-#  Copyright (c) 2011 - 2020, ARM Limited. All rights reserved.
+#  Copyright (c) 2011 - 2021, ARM Limited. All rights reserved.
 #  Copyright (c) 2014, Linaro Limited. All rights reserved.
-#  Copyright (c) 2015 - 2016, Intel Corporation. All rights reserved.
+#  Copyright (c) 2015 - 2021, Intel Corporation. All rights reserved.
 #  Copyright (c) 2017 - 2018, Andrei Warkentin <andrey.warkentin@gmail.com>
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
@@ -54,6 +54,9 @@
 # Library Class section - list of all Library Classes needed by this Platform.
 #
 ################################################################################
+
+!include MdePkg/MdeLibs.dsc.inc
+
 [LibraryClasses.common]
 !if $(TARGET) == RELEASE
   DebugLib|MdePkg/Library/BaseDebugLibNull/BaseDebugLibNull.inf
@@ -510,6 +513,13 @@
   gRaspberryPiTokenSpaceGuid.PcdFanTemp|L"FanTemp"|gConfigDxeFormSetGuid|0x0|0
 
   #
+  # Boot Policy
+  # 0  - Fast Boot
+  # 1  - Full Discovery (Connect All)
+  #
+  gRaspberryPiTokenSpaceGuid.PcdBootPolicy|L"BootPolicy"|gConfigDxeFormSetGuid|0x0|1
+
+  #
   # Reset-related.
   #
 
@@ -541,6 +551,14 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableBase64|0
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingBase|0
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareBase|0
+
+  #
+  # UART in use
+  # This value will be synchronized with the setting in config.txt
+  # 0  - PL011_UART_IN_USE
+  # 1  - MINI_UART_IN_USE
+  #
+  gRaspberryPiTokenSpaceGuid.PcdUartInUse|1
 
 ################################################################################
 #

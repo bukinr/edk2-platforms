@@ -28,6 +28,7 @@
   DEFINE X64EMU_ENABLE           = FALSE
 
 !include Platform/Socionext/DeveloperBox/DeveloperBox.dsc.inc
+!include MdePkg/MdeLibs.dsc.inc
 
 [LibraryClasses]
 !if $(DEBUG_ON_UART1) == FALSE
@@ -48,6 +49,8 @@
   Tcg2PhysicalPresenceLib|OvmfPkg/Library/Tcg2PhysicalPresenceLibNull/DxeTcg2PhysicalPresenceLib.inf
   TpmMeasurementLib|MdeModulePkg/Library/TpmMeasurementLibNull/TpmMeasurementLibNull.inf
 !endif
+
+  MmUnblockMemoryLib|MdePkg/Library/MmUnblockMemoryLib/MmUnblockMemoryLibNull.inf
 
 [LibraryClasses.common.SEC]
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf

@@ -1,13 +1,12 @@
 /** @file
 
-  Copyright (c) 2020, ARM Limited. All rights reserved.
+  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
-
 **/
 
-#ifndef PLATFORM_H__
-#define PLATFORM_H__
+#ifndef PLATFORM_H_
+#define PLATFORM_H_
 
 #define ENABLE_MEM_MAPPED_TIMER
 
@@ -89,4 +88,4 @@
                                             SBSA_WATCHDOG_ACTIVE_HIGH    | \
                                             SBSA_WATCHDOG_LEVEL_TRIGGERED)
 
-#endif // PLATFORM_H__
+#endif // PLATFORM_H_

@@ -1,13 +1,15 @@
+## @file
+#  Describes the entire platform configuration.
 #
-#  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
+#  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
-#
+##
 
 [Defines]
   DEC_SPECIFICATION              = 0x0001001A
   PACKAGE_NAME                   = Morello
-  PACKAGE_GUID                   = f09a2c11-7864-4b1d-869e-03ee2ad79288
+  PACKAGE_GUID                   = F09A2C11-7864-4B1D-869E-03EE2AD79288
   PACKAGE_VERSION                = 0.1
 
 ################################################################################
@@ -20,7 +22,7 @@
   Include                        # Root include for the package
 
 [Guids.common]
-  gArmMorelloTokenSpaceGuid =  { 0x0a8c3a78, 0xa56f, 0x4788, { 0x83, 0xb4, 0xcd, 0x29, 0x62, 0x96, 0x77, 0x51 } }
+  gArmMorelloTokenSpaceGuid =  { 0x0A8C3A78, 0xA56F, 0x4788, { 0x83, 0xB4, 0xCD, 0x29, 0x62, 0x96, 0x77, 0x51 } }
 
 [PcdsFixedAtBuild]
   # Ramdisk
@@ -53,6 +55,12 @@
   gArmMorelloTokenSpaceGuid.PcdPciMmio64Translation|0x0|UINT64|0x00000017
   gArmMorelloTokenSpaceGuid.PcdPciExpressBaseAddress|0x20000000|UINT64|0x00000018
 
+  # Virtio Net device
+  gArmMorelloTokenSpaceGuid.PcdVirtioNetBaseAddress|0x00000000|UINT32|0x00000019
+  gArmMorelloTokenSpaceGuid.PcdVirtioNetSize|0x00000000|UINT32|0x0000001A
+  gArmMorelloTokenSpaceGuid.PcdVirtioNetInterrupt|0x00000000|UINT32|0x0000001B
+
 [PcdsFeatureFlag.common]
   gArmMorelloTokenSpaceGuid.PcdRamDiskSupported|FALSE|BOOLEAN|0x00000007
   gArmMorelloTokenSpaceGuid.PcdVirtioBlkSupported|FALSE|BOOLEAN|0x00000008
+  gArmMorelloTokenSpaceGuid.PcdVirtioNetSupported|FALSE|BOOLEAN|0x0000001C
