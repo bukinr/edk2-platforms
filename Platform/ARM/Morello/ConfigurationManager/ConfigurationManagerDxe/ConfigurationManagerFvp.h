@@ -1,6 +1,6 @@
 /** @file
 
-  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
+  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -9,8 +9,8 @@
     - Obj or OBJ - Object
 **/
 
-#ifndef FVP_CONFIGURATION_MANAGER_H__
-#define FVP_CONFIGURATION_MANAGER_H__
+#ifndef FVP_CONFIGURATION_MANAGER_H_
+#define FVP_CONFIGURATION_MANAGER_H_
 
 #include "ConfigurationManager.h"
 
@@ -31,7 +31,8 @@
 extern CHAR8  dsdtfvp_aml_code[];
 extern CHAR8  ssdtpcifvp_aml_code[];
 
-//Add FVP Platform specific information
+/** A structure describing the FVP Platform specific information
+*/
 typedef struct FvpPlatformRepositoryInfo {
   /// List of ACPI tables
   CM_STD_OBJ_ACPI_TABLE_INFO            CmAcpiTableList[PLAT_ACPI_TABLE_COUNT];
@@ -59,16 +60,34 @@ typedef struct FvpPlatformRepositoryInfo {
 
 } EDKII_FVP_PLATFORM_REPOSITORY_INFO;
 
+/** A structure describing the platform configuration
+    manager repository information
+*/
 typedef struct PlatformRepositoryInfo {
 
+  /// Common information
   EDKII_COMMON_PLATFORM_REPOSITORY_INFO   * CommonPlatRepoInfo;
 
+  /// FVP Platform specific information
   EDKII_FVP_PLATFORM_REPOSITORY_INFO      * FvpPlatRepoInfo;
 
 } EDKII_PLATFORM_REPOSITORY_INFO;
 
 extern EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo;
 
+/** Return platform specific ARM namespace object.
+
+  @param [in]      This        Pointer to the Configuration Manager Protocol.
+  @param [in]      CmObjectId  The Configuration Manager Object ID.
+  @param [in]      Token       An optional token identifying the object. If
+                               unused this must be CM_NULL_TOKEN.
+  @param [in, out] CmObject    Pointer to the Configuration Manager Object
+                               descriptor describing the requested Object.
+
+  @retval EFI_SUCCESS           Success.
+  @retval EFI_INVALID_PARAMETER A parameter is invalid.
+  @retval EFI_NOT_FOUND         The required object information is not found.
+**/
 EFI_STATUS
 EFIAPI
 GetArmNameSpaceObjectPlat (
@@ -78,4 +97,26 @@ GetArmNameSpaceObjectPlat (
   IN  OUT   CM_OBJ_DESCRIPTOR                     * CONST CmObject
   );
 
-#endif // FVP_CONFIGURATION_MANAGER_H__
+/** Return platform specific standard namespace object.
+
+  @param [in]      This        Pointer to the Configuration Manager Protocol.
+  @param [in]      CmObjectId  The Configuration Manager Object ID.
+  @param [in]      Token       An optional token identifying the object. If
+                               unused this must be CM_NULL_TOKEN.
+  @param [in, out] CmObject    Pointer to the Configuration Manager Object
+                               descriptor describing the requested Object.
+
+  @retval EFI_SUCCESS           Success.
+  @retval EFI_INVALID_PARAMETER A parameter is invalid.
+  @retval EFI_NOT_FOUND         The required object information is not found.
+**/
+EFI_STATUS
+EFIAPI
+GetStandardNameSpaceObjectPlat (
+  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  * CONST This,
+  IN  CONST CM_OBJECT_ID                                  CmObjectId,
+  IN  CONST CM_OBJECT_TOKEN                               Token OPTIONAL,
+  IN  OUT   CM_OBJ_DESCRIPTOR                     * CONST CmObject
+  );
+
+#endif // FVP_CONFIGURATION_MANAGER_H_

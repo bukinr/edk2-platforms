@@ -1,7 +1,7 @@
 ## @file
 #  dsc include file for Configuration Manager
 #
-#  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
+#  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #

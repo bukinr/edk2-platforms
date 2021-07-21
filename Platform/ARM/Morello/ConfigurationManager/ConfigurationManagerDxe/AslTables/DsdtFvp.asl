@@ -1,13 +1,14 @@
 /** @file
-*  Differentiated System Description Table Fields (DSDT)
-*
-*  Copyright (c) 2020, ARM Ltd. All rights reserved.
-*
-*  SPDX-License-Identifier: BSD-2-Clause-Patent
-*
+  Differentiated System Description Table Fields (DSDT)
+
+  Copyright (c) 2021, ARM Ltd. All rights reserved.<BR>
+
+  SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
-DefinitionBlock("Dsdt.aml", "DSDT", 1, "ARMLTD", "MORELLO", 0x20181101) {
+#include "ConfigurationManager.h"
+
+DefinitionBlock("Dsdt.aml", "DSDT", 1, "ARMLTD", "MORELLO", CFG_MGR_OEM_REVISION) {
   Scope(_SB) {
     Device(CP00) { // Cluster 0, Cpu 0
       Name(_HID, "ACPI0007")
@@ -41,11 +42,11 @@ DefinitionBlock("Dsdt.aml", "DSDT", 1, "ARMLTD", "MORELLO", 0x20181101) {
       Name(_CRS, ResourceTemplate() {
         Memory32Fixed(
           ReadWrite,
-          FixedPcdGet32(PcdVirtioBlkBaseAddress),
-          FixedPcdGet32(PcdVirtioBlkSize)
+          FixedPcdGet32 (PcdVirtioBlkBaseAddress),
+          FixedPcdGet32 (PcdVirtioBlkSize)
         )
         Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) {
-          FixedPcdGet32(PcdVirtioBlkInterrupt)
+          FixedPcdGet32 (PcdVirtioBlkInterrupt)
         }
       })
     }
@@ -81,7 +82,7 @@ DefinitionBlock("Dsdt.aml", "DSDT", 1, "ARMLTD", "MORELLO", 0x20181101) {
         Memory32Fixed(ReadWrite, 0x1C1A0000, 0x00000200)
         Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) { 135 }
       })
-   }
+    }
 
     // SMC91X
     Device(NET0) {

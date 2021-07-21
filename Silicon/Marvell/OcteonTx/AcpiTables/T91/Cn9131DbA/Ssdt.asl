@@ -18,7 +18,7 @@ DefinitionBlock ("Cn9131DbASsdt.aml", "SSDT", 2, "MVEBU ", "CN9131", 3)
         Device (AHC1)
         {
             Name (_HID, "LNRO001E")     // _HID: Hardware ID
-            Name (_UID, 0x00)           // _UID: Unique ID
+            Name (_UID, 0x01)           // _UID: Unique ID
             Name (_CCA, 0x01)           // _CCA: Cache Coherency Attribute
             Name (_CLS, Package (0x03)  // _CLS: Class Code
             {
@@ -43,7 +43,7 @@ DefinitionBlock ("Cn9131DbASsdt.aml", "SSDT", 2, "MVEBU ", "CN9131", 3)
         Device (XHC2)
         {
             Name (_HID, "PNP0D10")      // _HID: Hardware ID
-            Name (_UID, 0x01)           // _UID: Unique ID
+            Name (_UID, 0x02)           // _UID: Unique ID
             Name (_CCA, 0x01)           // _CCA: Cache Coherency Attribute
 
             Name (_CRS, ResourceTemplate ()  // _CRS: Current Resource Settings
@@ -62,11 +62,12 @@ DefinitionBlock ("Cn9131DbASsdt.aml", "SSDT", 2, "MVEBU ", "CN9131", 3)
         {
             Name (_HID, "MRVL0110")                             // _HID: Hardware ID
             Name (_CCA, 0x01)                                   // Cache-coherent controller
-            Name (_UID, 0x00)                                   // _UID: Unique ID
+            Name (_UID, 0x01)                                   // _UID: Unique ID
             Name (_CRS, ResourceTemplate ()
             {
                 Memory32Fixed (ReadWrite, 0xf4000000 , 0x100000)
                 Memory32Fixed (ReadWrite, 0xf4129000 , 0xb000)
+                Memory32Fixed (ReadWrite, 0xf4220000 , 0x800)
             })
             Name (_DSD, Package () {
                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
