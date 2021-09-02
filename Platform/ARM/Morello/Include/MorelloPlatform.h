@@ -1,6 +1,6 @@
 /** @file
 
-  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
+  Copyright (c) 2021 - 2022, ARM Limited. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
@@ -39,6 +39,10 @@
 // AXI Expansion peripherals
 #define MORELLO_EXP_PERIPH_BASE                0x1C000000
 #define MORELLO_EXP_PERIPH_BASE_SZ             0x1300000
+
+// AP QSPI flash device
+#define MORELLO_AP_QSPI_AHB_BASE               0x1A000000
+#define MORELLO_AP_QSPI_AHB_SZ                 0x2000000
 
 // Platform information structure base address
 #define MORELLO_PLAT_INFO_STRUCT_BASE          MORELLO_NON_SECURE_SRAM_BASE
