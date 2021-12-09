@@ -1,7 +1,7 @@
 ### @file
 #  Component information file for AcpiPlatform module
 #
-# Copyright (c) 2017, Intel Corporation. All rights reserved.<BR>
+# Copyright (c) 2017 - 2021, Intel Corporation. All rights reserved.<BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -42,11 +42,13 @@
   HobLib
   PciSegmentInfoLib
   AslUpdateLib
-  BoardAcpiTableLib
+  SortLib
+  LocalApicLib
 
 [Pcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiDefaultOemId
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiDefaultOemTableId
+  gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiDefaultOemRevision
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiDefaultCreatorId
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiDefaultCreatorRevision
 

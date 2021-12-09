@@ -1,6 +1,6 @@
 # @file
 #
-#  Copyright (c) 2011 - 2021, ARM Limited. All rights reserved.
+#  Copyright (c) 2011 - 2020, ARM Limited. All rights reserved.
 #  Copyright (c) 2017 - 2018, Andrei Warkentin <andrey.warkentin@gmail.com>
 #  Copyright (c) 2015 - 2021, Intel Corporation. All rights reserved.
 #  Copyright (c) 2014, Linaro Limited. All rights reserved.
@@ -164,6 +164,8 @@
 !if $(SECURE_BOOT_ENABLE) == TRUE
   TpmMeasurementLib|SecurityPkg/Library/DxeTpmMeasurementLib/DxeTpmMeasurementLib.inf
   AuthVariableLib|SecurityPkg/Library/AuthVariableLib/AuthVariableLib.inf
+  SecureBootVariableLib|SecurityPkg/Library/SecureBootVariableLib/SecureBootVariableLib.inf
+  SecureBootVariableProvisionLib|SecurityPkg/Library/SecureBootVariableProvisionLib/SecureBootVariableProvisionLib.inf
 
   # re-use the UserPhysicalPresent() dummy implementation from the ovmf tree
   PlatformSecureLib|OvmfPkg/Library/PlatformSecureLib/PlatformSecureLib.inf
@@ -529,17 +531,18 @@
   gRaspberryPiTokenSpaceGuid.PcdFanTemp|L"FanTemp"|gConfigDxeFormSetGuid|0x0|60
 
   #
-  # Boot Policy
-  # 0  - Fast Boot
-  # 1  - Full Discovery (Connect All)
-  #
-  gRaspberryPiTokenSpaceGuid.PcdBootPolicy|L"BootPolicy"|gConfigDxeFormSetGuid|0x0|1
-
-  #
   # Reset-related.
   #
 
   gRaspberryPiTokenSpaceGuid.PcdPlatformResetDelay|L"ResetDelay"|gRaspberryPiTokenSpaceGuid|0x0|0
+
+  # Select XHCI/PCIe mode
+  #
+  # 0  - XHCI Enabled (default on !cm4)
+  # 1  - PCIe Enabled
+  # 2  - PCIe Enabled (default on cm4)
+  #
+  gRaspberryPiTokenSpaceGuid.PcdXhciPci|L"XhciPci"|gConfigDxeFormSetGuid|0x0|0
 
   #
   # Common UEFI ones.
@@ -555,6 +558,7 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdConOutColumn|L"Columns"|gRaspberryPiTokenSpaceGuid|0x0|80
   gEfiMdeModulePkgTokenSpaceGuid.PcdSetupConOutRow|L"Rows"|gRaspberryPiTokenSpaceGuid|0x0|25
   gEfiMdeModulePkgTokenSpaceGuid.PcdConOutRow|L"Rows"|gRaspberryPiTokenSpaceGuid|0x0|25
+  gEfiMdeModulePkgTokenSpaceGuid.PcdBootDiscoveryPolicy|L"BootDiscoveryPolicy"|gBootDiscoveryPolicyMgrFormsetGuid|0
 
 [PcdsDynamicDefault.common]
   #
@@ -620,6 +624,8 @@
       NULL|SecurityPkg/Library/DxeImageVerificationLib/DxeImageVerificationLib.inf
   }
   SecurityPkg/VariableAuthenticated/SecureBootConfigDxe/SecureBootConfigDxe.inf
+  SecurityPkg/EnrollFromDefaultKeysApp/EnrollFromDefaultKeysApp.inf
+  SecurityPkg/VariableAuthenticated/SecureBootDefaultKeysDxe/SecureBootDefaultKeysDxe.inf
 !else
   MdeModulePkg/Universal/SecurityStubDxe/SecurityStubDxe.inf
 !endif
@@ -682,6 +688,7 @@
   #
   # Bds
   #
+  MdeModulePkg/Universal/BootManagerPolicyDxe/BootManagerPolicyDxe.inf
   MdeModulePkg/Universal/DevicePathDxe/DevicePathDxe.inf
   MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
   MdeModulePkg/Universal/SetupBrowserDxe/SetupBrowserDxe.inf
@@ -690,6 +697,7 @@
   Platform/RaspberryPi/Drivers/LogoDxe/LogoDxe.inf
   MdeModulePkg/Application/UiApp/UiApp.inf {
     <LibraryClasses>
+      NULL|MdeModulePkg/Library/BootDiscoveryPolicyUiLib/BootDiscoveryPolicyUiLib.inf
       NULL|MdeModulePkg/Library/DeviceManagerUiLib/DeviceManagerUiLib.inf
       NULL|MdeModulePkg/Library/BootManagerUiLib/BootManagerUiLib.inf
       NULL|Platform/RaspberryPi/Library/PlatformUiAppLib/PlatformUiAppLib.inf
@@ -725,7 +733,7 @@
   Silicon/Broadcom/Drivers/Net/BcmGenetDxe/BcmGenetDxe.inf {
     <PcdsFixedAtBuild>
       gEmbeddedTokenSpaceGuid.PcdDmaDeviceOffset|0x00000000
-      gEmbeddedTokenSpaceGuid.PcdDmaDeviceLimit|0xffffffff
+      gEmbeddedTokenSpaceGuid.PcdDmaDeviceLimit|0xffffffffff
   }
 
   #
@@ -744,6 +752,11 @@
       gEmbeddedTokenSpaceGuid.PcdDmaDeviceOffset|0x00000000
       gEmbeddedTokenSpaceGuid.PcdDmaDeviceLimit|0xbfffffff
   }
+
+  #
+  # NVMe boot devices
+  #
+  MdeModulePkg/Bus/Pci/NvmExpressDxe/NvmExpressDxe.inf
 
   #
   # UEFI application (Shell Embedded Boot Loader)

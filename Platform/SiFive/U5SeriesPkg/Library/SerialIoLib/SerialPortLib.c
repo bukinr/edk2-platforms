@@ -8,6 +8,7 @@
 **/
 
 #include <Base.h>
+#include <Library/DebugLib.h>
 #include <Library/IoLib.h>
 #include <Library/SerialPortLib.h>
 #include <Include/SifiveU5Uart.h>
@@ -19,6 +20,21 @@
 #define UART_REG_IP     5
 #define UART_IP_RXWM    0x02
 
+
+#define UART_REG_TXFIFO     0
+#define UART_REG_RXFIFO     1
+#define UART_REG_TXCTRL     2
+#define UART_REG_RXCTRL     3
+#define UART_REG_IE         4
+#define UART_REG_IP         5
+#define UART_REG_DIV        6
+
+#define UART_TXFIFO_FULL    0x80000000
+#define UART_RXFIFO_EMPTY   0x80000000
+#define UART_RXFIFO_DATA    0x000000ff
+#define UART_TXCTRL_TXEN    0x1
+#define UART_RXCTRL_RXEN    0x1
+
 //---------------------------------------------
 // UART Settings
 //---------------------------------------------
@@ -26,8 +42,103 @@
 #define UART_BAUDRATE  115200
 #define SYS_CLK        FixedPcdGet32(PcdU5PlatformSystemClock)
 
-BOOLEAN Initiated = FALSE;
+BOOLEAN Initiated = TRUE;
 
+/**
+  Get value from serial port register.
+
+  @param  RegIndex   Register index
+
+  @retval Vale returned from from serial port.
+
+**/
+UINT32 GetReg (
+  IN UINT32 RegIndex
+  )
+{
+  STATIC volatile UINT32 * const uart = (UINT32 *)FixedPcdGet32(PcdU5UartBase);
+
+  return readl ((volatile void *)(uart + RegIndex));
+}
+
+/**
+  Set serial port register.
+
+  @param RegIndex   Register index
+  @param Value      Value write to Register
+
+**/
+VOID SetReg (
+  IN UINT32 RegIndex,
+  IN UINT32 Value
+  )
+{
+  STATIC volatile UINT32 * const uart = (UINT32 *)FixedPcdGet32(PcdU5UartBase);
+
+  writel (Value, (volatile void *)(uart + RegIndex));
+}
+
+/**
+  Character output to serial port.
+
+  @param Ch        The character to serial port.
+
+**/
+VOID SifiveUartPutChar (
+  IN UINT8 Ch
+  )
+{
+  while (GetReg (UART_REG_TXFIFO) & UART_TXFIFO_FULL);
+
+  SetReg (UART_REG_TXFIFO, Ch);
+}
+
+/**
+  Get character from serial port.
+
+  @retval character        The character from serial port.
+
+**/
+UINT32 SifiveUartGetChar (VOID)
+{
+  UINT32 Ret;
+
+  Ret = GetReg (UART_REG_RXFIFO);
+  if (!(Ret & UART_RXFIFO_EMPTY)) {
+    return Ret & UART_RXFIFO_DATA;
+  }
+  return -1;
+}
+/**
+  Find minimum divisor divides in_freq to max_target_hz;
+  Based on uart driver n SiFive FSBL.
+
+  f_baud = f_in / (div + 1) => div = (f_in / f_baud) - 1
+  The nearest integer solution requires rounding up as to not exceed max_target_hz.
+  div  = ceil(f_in / f_baud) - 1
+   = floor((f_in - 1 + f_baud) / f_baud) - 1
+  This should not overflow as long as (f_in - 1 + f_baud) does not exceed
+  2^32 - 1, which is unlikely since we represent frequencies in kHz.
+
+  @param Freq         The given clock to UART.
+  @param MaxTargetHZ  Target baudrate.
+
+**/
+UINT32
+UartMinClkDivisor (
+  IN UINT64 Freq,
+  IN UINT64 MaxTargetHZ
+  )
+{
+    UINT64 Quotient;
+
+    Quotient = (Freq + MaxTargetHZ - 1) / (MaxTargetHZ);
+    if (Quotient == 0) {
+        return 0;
+    } else {
+        return Quotient - 1;
+    }
+}
 /**
   Initialize the serial device hardware.
 
@@ -39,20 +150,24 @@ BOOLEAN Initiated = FALSE;
   @retval RETURN_DEVICE_ERROR   The serail device could not be initialized.
 
 **/
-RETURN_STATUS
+EFI_STATUS
 EFIAPI
 SerialPortInitialize (
   VOID
   )
 {
-  if (Initiated) {
-    return RETURN_SUCCESS;
+  UINT32 Divisor;
+  UINT32 CurrentDivisor;
+
+  Divisor = UartMinClkDivisor (SYS_CLK / 2, UART_BAUDRATE);
+  if (Divisor == 0) {
+    return EFI_INVALID_PARAMETER;
   }
-  if (sifive_uart_init (FixedPcdGet32(PcdU5UartBase), SYS_CLK / 2, UART_BAUDRATE) != 0) {
-      return EFI_DEVICE_ERROR;
+  CurrentDivisor = GetReg(UART_REG_DIV);
+  if (Divisor != CurrentDivisor) {
+    sifive_uart_init (FixedPcdGet32(PcdU5UartBase), SYS_CLK / 2, UART_BAUDRATE);
   }
-  Initiated = TRUE;
-  return RETURN_SUCCESS;
+  return EFI_SUCCESS;
 }
 
 /**
@@ -88,7 +203,7 @@ SerialPortWrite (
   }
 
   for(Index = 0; Index < NumberOfBytes; Index ++) {
-    sifive_uart_putc (Buffer [Index]);
+    SifiveUartPutChar (Buffer [Index]);
   }
 
   return Index;
@@ -119,7 +234,7 @@ SerialPortRead (
   }
 
   for (Index = 0; Index < NumberOfBytes; Index ++) {
-    Buffer [Index] = (UINT8)sifive_uart_getc ();
+    Buffer [Index] = (UINT8)SifiveUartGetChar ();
   }
 
   return Index;

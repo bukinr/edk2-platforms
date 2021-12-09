@@ -12,6 +12,15 @@
 #include <Library/MvGpioLib.h>
 
 //
+// General purpose routine for per-board initalization
+//
+EFI_STATUS
+EFIAPI
+ArmadaBoardInit (
+  VOID
+  );
+
+//
 // COMPHY controllers per-board description
 //
 typedef struct {
@@ -111,6 +120,7 @@ typedef struct {
 typedef struct {
   EFI_PHYSICAL_ADDRESS PcieDbiAddress;
   EFI_PHYSICAL_ADDRESS ConfigSpaceAddress;
+  UINT64 ConfigSpaceSize;
   BOOLEAN HaveResetGpio;
   MV_GPIO_PIN PcieResetGpio;
   UINT64 PcieBusMin;

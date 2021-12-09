@@ -41,45 +41,6 @@ PLATFORM_KTI_EPARAM_UPDATE_TABLE  TypeWilsonCityRPIcxKtiEparamUpdate = {
 };
 
 
-ALL_LANES_EPARAM_LINK_INFO  KtiWilsonCityRPCpxAllLanesEparamTable[] = {
-  //
-  // SocketID, Freq, Link, TXEQL, CTLEPEAK
-  //
-  //
-  // Socket 0
-  //
-  {0x0, (1 << SPEED_REC_96GT) | (1 << SPEED_REC_104GT) | (1 << SPEED_REC_112GT), (1 << KTI_LINK0), 0x2E39343F, ADAPTIVE_CTLE},
-  {0x0, (1 << SPEED_REC_96GT) | (1 << SPEED_REC_104GT) | (1 << SPEED_REC_112GT), (1 << KTI_LINK5), 0x2F39353F, ADAPTIVE_CTLE},
-  //
-  // Socket 1
-  //
-  {0x1, (1 << SPEED_REC_96GT) | (1 << SPEED_REC_104GT) | (1 << SPEED_REC_112GT), (1 << KTI_LINK0), 0x2D37353F, ADAPTIVE_CTLE},
-  {0x1, (1 << SPEED_REC_96GT) | (1 << SPEED_REC_104GT) | (1 << SPEED_REC_112GT), (1 << KTI_LINK5), 0x2F3A343F, ADAPTIVE_CTLE},
-
-  //
-  // Socket 2
-  //
-  {0x2, (1 << SPEED_REC_96GT) | (1 << SPEED_REC_104GT) | (1 << SPEED_REC_112GT), (1 << KTI_LINK0), 0x2E39343F, ADAPTIVE_CTLE},
-  {0x2, (1 << SPEED_REC_96GT) | (1 << SPEED_REC_104GT) | (1 << SPEED_REC_112GT), (1 << KTI_LINK5), 0x2F39353F, ADAPTIVE_CTLE},
-
-  //
-  // Socket 3
-  //
-  {0x3, (1 << SPEED_REC_96GT) | (1 << SPEED_REC_104GT) | (1 << SPEED_REC_112GT), (1 << KTI_LINK0), 0x2D37353F, ADAPTIVE_CTLE},
-  {0x3, (1 << SPEED_REC_96GT) | (1 << SPEED_REC_104GT) | (1 << SPEED_REC_112GT), (1 << KTI_LINK5), 0x2F3A343F, ADAPTIVE_CTLE}
-};
-
-PLATFORM_KTI_EPARAM_UPDATE_TABLE  TypeWilsonCityRPCpxKtiEparamUpdate =
-{
-  PLATFORM_KTIEP_UPDATE_SIGNATURE,
-  PLATFORM_KTIEP_UPDATE_VERSION,
-  KtiWilsonCityRPCpxAllLanesEparamTable,
-  sizeof (KtiWilsonCityRPCpxAllLanesEparamTable),
-  NULL,
-  0
-};
-
-
 EFI_STATUS
 TypeWilsonCityRPInstallKtiEparamData (
   IN UBA_CONFIG_DATABASE_PPI    *UbaConfigPpi

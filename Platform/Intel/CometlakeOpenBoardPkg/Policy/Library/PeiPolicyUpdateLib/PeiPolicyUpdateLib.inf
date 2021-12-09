@@ -52,7 +52,6 @@
   SecurityPkg/SecurityPkg.dec
   IntelSiliconPkg/IntelSiliconPkg.dec
   MinPlatformPkg/MinPlatformPkg.dec
-  IntelSiliconPkg/IntelSiliconPkg.dec
 
 [FixedPcd]
   gSiPkgTokenSpaceGuid.PcdTsegSize                             ## CONSUMES
@@ -263,7 +262,6 @@
 
 [Ppis]
   gWdtPpiGuid                                   ## CONSUMES
-  gPchSpiPpiGuid                                ## CONSUMES
   gSiPolicyPpiGuid                              ## CONSUMES
   gSiPreMemPolicyPpiGuid                        ## CONSUMES
   gPeiTbtPolicyPpiGuid                          ## CONSUMES
@@ -271,3 +269,4 @@
 [Guids]
   gTianoLogoGuid                                ## CONSUMES
   gSiConfigGuid                                 ## CONSUMES
+  gEfiMemoryTypeInformationGuid                 ## PRODUCES

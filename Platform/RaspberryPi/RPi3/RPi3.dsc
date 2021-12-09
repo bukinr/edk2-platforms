@@ -1,6 +1,6 @@
 # @file
 #
-#  Copyright (c) 2011 - 2021, ARM Limited. All rights reserved.
+#  Copyright (c) 2011 - 2020, ARM Limited. All rights reserved.
 #  Copyright (c) 2014, Linaro Limited. All rights reserved.
 #  Copyright (c) 2015 - 2021, Intel Corporation. All rights reserved.
 #  Copyright (c) 2017 - 2018, Andrei Warkentin <andrey.warkentin@gmail.com>
@@ -167,6 +167,8 @@
 
   # re-use the UserPhysicalPresent() dummy implementation from the ovmf tree
   PlatformSecureLib|OvmfPkg/Library/PlatformSecureLib/PlatformSecureLib.inf
+  SecureBootVariableLib|SecurityPkg/Library/SecureBootVariableLib/SecureBootVariableLib.inf
+  SecureBootVariableProvisionLib|SecurityPkg/Library/SecureBootVariableProvisionLib/SecureBootVariableProvisionLib.inf
 !else
   TpmMeasurementLib|MdeModulePkg/Library/TpmMeasurementLibNull/TpmMeasurementLibNull.inf
   AuthVariableLib|MdeModulePkg/Library/AuthVariableLibNull/AuthVariableLibNull.inf
@@ -513,17 +515,16 @@
   gRaspberryPiTokenSpaceGuid.PcdFanTemp|L"FanTemp"|gConfigDxeFormSetGuid|0x0|0
 
   #
-  # Boot Policy
-  # 0  - Fast Boot
-  # 1  - Full Discovery (Connect All)
-  #
-  gRaspberryPiTokenSpaceGuid.PcdBootPolicy|L"BootPolicy"|gConfigDxeFormSetGuid|0x0|1
-
-  #
   # Reset-related.
   #
 
   gRaspberryPiTokenSpaceGuid.PcdPlatformResetDelay|L"ResetDelay"|gRaspberryPiTokenSpaceGuid|0x0|0
+
+  # Select XHCI/PCIe mode (not valid on rpi3)
+  #
+  # 0  - DISABLED
+  #
+  gRaspberryPiTokenSpaceGuid.PcdXhciPci|L"XhciPci"|gConfigDxeFormSetGuid|0x0|0
 
   #
   # Common UEFI ones.

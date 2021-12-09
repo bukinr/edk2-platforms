@@ -141,6 +141,10 @@ M: Leif Lindholm <leif@nuviainc.com>
 R: Ard Biesheuvel <ardb+tianocore@kernel.org>
 R: Wenyi Xie <xiewenyi2@huawei.com>
 
+Features/Ext4Pkg
+F: Features/Ext4Pkg/
+M: Pedro Falcato <pedro.falcato@gmail.com>
+
 Features/Intel
 F: Features/Intel/
 M: Sai Chaganty <rangasai.v.chaganty@intel.com>
@@ -183,6 +187,10 @@ Platform/Intel/KabylakeOpenBoardPkg
 F: Platform/Intel/KabylakeOpenBoardPkg/
 M: Chasel Chiu <chasel.chiu@intel.com>
 M: Nate DeSimone <nathaniel.l.desimone@intel.com>
+
+Platform/Intel/KabylakeOpenBoardPkg/AspireVn7Dash572G
+F: Platform/Intel/KabylakeOpenBoardPkg/AspireVn7Dash572G/
+R: Benjamin Doron <benjamin.doron00@gmail.com>
 
 Platform/Intel/KabylakeOpenBoardPkg/GalagoPro3
 F: Platform/Intel/KabylakeOpenBoardPkg/GalagoPro3/
@@ -227,7 +235,7 @@ M: Chasel Chiu <chasel.chiu@intel.com>
 
 Platform/Intel/SimicsOpenBoardPkg
 F: Platform/Intel/SimicsOpenBoardPkg/
-M: Agyeman Prince <prince.agyeman@intel.com>
+M: Nate DeSimone <nathaniel.l.desimone@intel.com>
 
 Platform/Intel/Tools
 F: Platform/Intel/Tools/
@@ -293,11 +301,11 @@ M: Chasel Chiu <chasel.chiu@intel.com>
 
 Silicon/Intel/SimicsX58SktPkg
 F: Silicon/Intel/SimicsX58SktPkg/
-M: Agyeman Prince <prince.agyeman@intel.com>
+M: Nate DeSimone <nathaniel.l.desimone@intel.com>
 
 Silicon/Intel/SimicsIch10Pkg
 F: Silicon/Intel/SimicsIch10Pkg/
-M: Agyeman Prince <prince.agyeman@intel.com>
+M: Nate DeSimone <nathaniel.l.desimone@intel.com>
 
 Silicon/Intel/Tools
 F: Silicon/Intel/Tools/
@@ -351,6 +359,7 @@ F: Silicon/NXP/Library/Pcf8563RealTimeClockLib/
 F: Silicon/Socionext/
 M: Ard Biesheuvel <ardb+tianocore@kernel.org>
 M: Leif Lindholm <leif@nuviainc.com>
+R: Masami Hiramatsu <masami.hiramatsu@linaro.org>
 
 Silicon/RISC-V/ProcessorPkg
 F: Silicon/RISC-V/ProcessorPkg/
@@ -363,3 +372,11 @@ F: Silicon/SiFive/
 M: Abner Chang <abner.chang@hpe.com>
 M: Gilbert Chen <gilbert.chen@hpe.com>
 R: Daniel Schaefer <daniel.schaefer@hpe.com>
+
+Phytium platforms and silicon
+F: Platform/Phytium/
+F: Silicon/silicon/
+M: Leif Lindholm <leif@nuviainc.com>
+R: Peng Xie <xiepeng@phytium.com.cn>
+R: Ling Jia <jialing@phytium.com.cn>
+R: Yiqi Shu <shuyiqi@phytium.com.cn>

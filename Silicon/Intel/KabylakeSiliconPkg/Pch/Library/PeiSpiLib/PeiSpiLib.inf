@@ -32,6 +32,7 @@
 
 [Packages]
   MdePkg/MdePkg.dec
+  IntelSiliconPkg/IntelSiliconPkg.dec
   KabylakeSiliconPkg/SiPkg.dec
 
 [Sources]
@@ -41,4 +42,4 @@
   gSiPkgTokenSpaceGuid.PcdAcpiBaseAddress       ## CONSUMES
 
 [Ppis]
-  gPchSpiPpiGuid      ## PRODUCES
+  gPchSpi2PpiGuid      ## PRODUCES

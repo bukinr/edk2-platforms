@@ -1,7 +1,7 @@
 /** @file
   RISC-V package definitions.
 
-  Copyright (c) 2019, Hewlett Packard Enterprise Development LP. All rights reserved.<BR>
+  Copyright (c) 2021, Hewlett Packard Enterprise Development LP. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -96,6 +96,7 @@
   #define SSTATUS_SIE_BIT_POSITION      1
   #define SSTATUS_SPP_BIT_POSITION      8
 #define RISCV_CSR_SUPERVISOR_SIE        0x104
+#define RISCV_CSR_SUPERVISOR_STVEC      0x105
 #define RISCV_CSR_SUPERVISOR_SSCRATCH   0x140
 #define RISCV_CSR_SUPERVISOR_SEPC       0x141
 #define RISCV_CSR_SUPERVISOR_SCAUSE     0x142
@@ -153,4 +154,9 @@
 #define RISCV_CSR_MTOHOST               0x780
 #define RISCV_CSR_MFROMHOST             0x781
 
+//
+// User mode CSR
+//
+#define RISCV_CSR_CYCLE                 0xc00
+#define RISCV_CSR_TIME                  0xc01
 #endif

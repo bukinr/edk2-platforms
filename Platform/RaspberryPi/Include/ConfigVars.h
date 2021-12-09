@@ -1,7 +1,7 @@
 /** @file
  *
  *  Copyright (c) 2020, Andrei Warkentin <andrey.warkentin@gmail.com>
- *  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
+ *  Copyright (c) 2020, ARM Limited. All rights reserved.
  *
  *  SPDX-License-Identifier: BSD-2-Clause-Patent
  *
@@ -77,6 +77,10 @@ typedef struct {
 } ADVANCED_FANTEMP_VARSTORE_DATA;
 
 typedef struct {
+  UINT32 Value;
+} ADVANCED_XHCIPCI_VARSTORE_DATA;
+
+typedef struct {
 #define SYSTEM_TABLE_MODE_ACPI 0
 #define SYSTEM_TABLE_MODE_BOTH 1
 #define SYSTEM_TABLE_MODE_DT   2
@@ -142,15 +146,5 @@ typedef struct {
    */
   UINT32 EnableDma;
 } MMC_EMMC_DMA_VARSTORE_DATA;
-
-#define FAST_BOOT      0
-#define FULL_DISCOVERY 1
-typedef struct {
-  /*
-   * 0 - Fast Boot
-   * 1 - Full Discovery (Connect All)
-   */
-  UINT32 BootPolicy;
-} BOOT_POLICY_VARSTORE_DATA;
 
 #endif /* CONFIG_VARS_H */

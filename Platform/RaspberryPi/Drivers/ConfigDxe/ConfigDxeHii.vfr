@@ -1,7 +1,7 @@
 /** @file
  *
  *  Copyright (c) 2018 Andrei Warkentin <andrey.warkentin@gmail.com>
- *  Copyright (c) 2020 - 2021, ARM Limited. All rights reserved.
+ *  Copyright (c) 2020, ARM Limited. All rights reserved.
  *
  *  SPDX-License-Identifier: BSD-2-Clause-Patent
  *
@@ -54,6 +54,11 @@ formset
     efivarstore ADVANCED_FANTEMP_VARSTORE_DATA,
       attribute = EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
       name  = FanTemp,
+      guid  = CONFIGDXE_FORM_SET_GUID;
+
+    efivarstore ADVANCED_XHCIPCI_VARSTORE_DATA,
+      attribute = EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
+      name  = XhciPci,
       guid  = CONFIGDXE_FORM_SET_GUID;
 
     efivarstore SYSTEM_TABLE_MODE_VARSTORE_DATA,
@@ -114,11 +119,6 @@ formset
     efivarstore DISPLAY_ENABLE_SSHOT_VARSTORE_DATA,
       attribute = EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
       name  = DisplayEnableSShot,
-      guid  = CONFIGDXE_FORM_SET_GUID;
-
-    efivarstore BOOT_POLICY_VARSTORE_DATA,
-      attribute = EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
-      name  = BootPolicy,
       guid  = CONFIGDXE_FORM_SET_GUID;
 
     form formid = 1,
@@ -192,15 +192,7 @@ formset
             flags       = NUMERIC_SIZE_4 | INTERACTIVE | RESET_REQUIRED,
             option text = STRING_TOKEN(STR_ADVANCED_SYSTAB_ACPI), value = SYSTEM_TABLE_MODE_ACPI, flags = 0;
             option text = STRING_TOKEN(STR_ADVANCED_SYSTAB_BOTH), value = SYSTEM_TABLE_MODE_BOTH, flags = DEFAULT;
-            option text = STRING_TOKEN(STR_ADVANCED_SYSTAB_DT), value = SYSTEM_TABLE_MODE_DT, flags = DEFAULT;
-        endoneof;
-
-        oneof varid = BootPolicy.BootPolicy,
-            prompt      = STRING_TOKEN(STR_BOOT_POLICY_PROMPT),
-            help        = STRING_TOKEN(STR_BOOT_POLICY_HELP),
-            flags       = NUMERIC_SIZE_4 | INTERACTIVE | RESET_REQUIRED,
-            option text = STRING_TOKEN(STR_FAST_BOOT), value = FAST_BOOT , flags = 0;
-            option text = STRING_TOKEN(STR_FULL_DISCOVERY), value = FULL_DISCOVERY, flags = DEFAULT;
+            option text = STRING_TOKEN(STR_ADVANCED_SYSTAB_DT), value = SYSTEM_TABLE_MODE_DT, flags =0;
         endoneof;
 
 #if (RPI_MODEL == 4)
@@ -225,6 +217,18 @@ formset
               default = 60,
           endnumeric;
         endif;
+
+        suppressif ideqval XhciPci.Value == 2;
+          grayoutif NOT ideqval SystemTableMode.Mode == SYSTEM_TABLE_MODE_ACPI;
+            oneof varid = XhciPci.Value,
+              prompt      = STRING_TOKEN(STR_ADVANCED_XHCIPCI_PROMPT),
+              help        = STRING_TOKEN(STR_ADVANCED_XHCIPCI_HELP),
+              flags       = NUMERIC_SIZE_4 | INTERACTIVE | RESET_REQUIRED,
+              option text = STRING_TOKEN(STR_ADVANCED_XHCIPCI_XHCI), value = 0, flags = DEFAULT;
+              option text = STRING_TOKEN(STR_ADVANCED_XHCIPCI_PCIE), value = 1, flags = 0;
+            endoneof;
+          endif;
+        endif;
 #endif
         string varid = AssetTag.AssetTag,
             prompt  = STRING_TOKEN(STR_ADVANCED_ASSET_TAG_PROMPT),
@@ -233,7 +237,6 @@ formset
             minsize = 0,
             maxsize = ASSET_TAG_STR_MAX_LEN,
         endstring;
-
     endform;
 
     form formid = 0x1003,

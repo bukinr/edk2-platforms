@@ -29,6 +29,7 @@ SmmPchPrivateLib
 
 [Packages]
 MdePkg/MdePkg.dec
+IntelSiliconPkg/IntelSiliconPkg.dec
 CoffeelakeSiliconPkg/SiPkg.dec
 
 
@@ -37,7 +38,7 @@ PchSpi.c
 
 
 [Protocols]
-gPchSmmSpiProtocolGuid ## PRODUCES
+gPchSmmSpi2ProtocolGuid ## PRODUCES
 gEfiSmmCpuProtocolGuid ## CONSUMES
 
 [Depex]

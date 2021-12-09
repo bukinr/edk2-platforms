@@ -52,6 +52,11 @@
 
   MmUnblockMemoryLib|MdePkg/Library/MmUnblockMemoryLib/MmUnblockMemoryLibNull.inf
 
+!if $(SECURE_BOOT_ENABLE) == TRUE
+  SecureBootVariableLib|SecurityPkg/Library/SecureBootVariableLib/SecureBootVariableLib.inf
+  SecureBootVariableProvisionLib|SecurityPkg/Library/SecureBootVariableProvisionLib/SecureBootVariableProvisionLib.inf
+!endif
+
 [LibraryClasses.common.SEC]
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
   BaseMemoryLib|MdePkg/Library/BaseMemoryLib/BaseMemoryLib.inf
@@ -179,6 +184,9 @@
   gSynQuacerTokenSpaceGuid.PcdClearSettingsGpioPin|0
 
   gSynQuacerTokenSpaceGuid.PcdDramInfoBase|0x2E00FFC0
+
+  # SCP-firmware stored SPD DDR4 data in non-secure SRAM
+  gSynQuacerTokenSpaceGuid.PcdStoredSpdDDR4Address|0x2E00F000
 
   #
   # 96boards mezzanine support

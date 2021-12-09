@@ -169,9 +169,6 @@
 #  PeCoffLib|MdePkg/Library/BasePeCoffLib/BasePeCoffLib.inf
   PeCoffLib|Platform/BeagleBoard/BeagleBoardPkg/Library/DxeHobPeCoffLib/DxeHobPeCoffLib.inf
 
-  PerformanceLib|MdeModulePkg/Library/DxeCorePerformanceLib/DxeCorePerformanceLib.inf
-
-
 [LibraryClasses.common.DXE_DRIVER]
   DxeServicesLib|MdePkg/Library/DxeServicesLib/DxeServicesLib.inf
   SecurityManagementLib|MdeModulePkg/Library/DxeSecurityManagementLib/DxeSecurityManagementLib.inf
@@ -214,6 +211,10 @@
   RVCT:*_*_ARM_PLATFORM_FLAGS == --cpu Cortex-A8
 
   *_*_*_CC_FLAGS = -DDISABLE_NEW_DEPRECATED_INTERFACES
+
+[BuildOptions.common.EDKII.DXE_RUNTIME_DRIVER]
+  GCC:  *_*_*_DLINK_FLAGS = -z common-page-size=0x1000
+  MSFT: *_*_*_DLINK_FLAGS = /ALIGN:4096
 
 ################################################################################
 #

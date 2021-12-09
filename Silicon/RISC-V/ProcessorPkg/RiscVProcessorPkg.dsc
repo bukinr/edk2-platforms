@@ -1,7 +1,7 @@
 #/** @file
 # RISC-V processor package.
 #
-# Copyright (c) 2020, Hewlett Packard Enterprise Development LP. All rights reserved.<BR>
+# Copyright (c) 2021, Hewlett Packard Enterprise Development LP. All rights reserved.<BR>
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -44,6 +44,8 @@
   RiscVEdk2SbiLib|Silicon/RISC-V/ProcessorPkg/Library/RiscVEdk2SbiLib/RiscVEdk2SbiLib.inf
   RiscVOpensbiLib|Silicon/RISC-V/ProcessorPkg/Library/RiscVOpensbiLib/RiscVOpensbiLib.inf
   TimerLib|Silicon/RISC-V/ProcessorPkg/Library/RiscVTimerLib/BaseRiscVTimerLib.inf
+  MachineModeTimerLib|Silicon/RISC-V/ProcessorPkg/Library/RiscVReadMachineModeTimer/MachineModeTimerLib/MachineModeTimerLib.inf
+  #MachineModeTimerLib|Silicon/RISC-V/ProcessorPkg/Library/RiscVReadMachineModeTimer/EmulatedMachineModeTimerLib/EmulatedMachineModeTimerLib.inf
   BaseLib|MdePkg/Library/BaseLib/BaseLib.inf
   BaseMemoryLib|MdePkg/Library/BaseMemoryLib/BaseMemoryLib.inf
   DebugAgentLib|MdeModulePkg/Library/DebugAgentLibNull/DebugAgentLibNull.inf
@@ -65,13 +67,14 @@
   UefiLib|MdePkg/Library/UefiLib/UefiLib.inf
   DevicePathLib|MdePkg/Library/UefiDevicePathLibDevicePathProtocol/UefiDevicePathLibDevicePathProtocol.inf
   RiscVPlatformTimerLib|Silicon/RISC-V/ProcessorPkg/Library/RiscVPlatformTimerLibNull/RiscVPlatformTimerLib.inf
-  PeiServicesTablePointerLib|Silicon/RISC-V/ProcessorPkg/Library/PeiServicesTablePointerLibOpenSbi/PeiServicesTablePointerLibOpenSbi.inf
 
 [LibraryClasses.common.PEI_CORE]
   PeiServicesTablePointerLib|Silicon/RISC-V/ProcessorPkg/Library/PeiServicesTablePointerLibOpenSbi/PeiServicesTablePointerLibOpenSbi.inf
+  RiscVFirmwareContextLib|Silicon/RISC-V/ProcessorPkg/Library/RiscVFirmwareContextSbiLib/RiscVFirmwareContextSbiLib.inf
 
 [LibraryClasses.common.PEIM]
   PeiServicesTablePointerLib|Silicon/RISC-V/ProcessorPkg/Library/PeiServicesTablePointerLibOpenSbi/PeiServicesTablePointerLibOpenSbi.inf
+  RiscVFirmwareContextLib|Silicon/RISC-V/ProcessorPkg/Library/RiscVFirmwareContextSbiLib/RiscVFirmwareContextSbiLib.inf
   HobLib|MdePkg/Library/PeiHobLib/PeiHobLib.inf
   MemoryAllocationLib|MdePkg/Library/PeiMemoryAllocationLib/PeiMemoryAllocationLib.inf
   PeimEntryPoint|MdePkg/Library/PeimEntryPoint/PeimEntryPoint.inf
@@ -92,6 +95,7 @@
 [Components]
   Silicon/RISC-V/ProcessorPkg/Library/RiscVTimerLib/BaseRiscVTimerLib.inf
   Silicon/RISC-V/ProcessorPkg/Library/RiscVExceptionLib/CpuExceptionHandlerDxeLib.inf
+  Silicon/RISC-V/ProcessorPkg/Library/RiscVFirmwareContextSbiLib/RiscVFirmwareContextSbiLib.inf
   Silicon/RISC-V/ProcessorPkg/Library/PeiServicesTablePointerLibOpenSbi/PeiServicesTablePointerLibOpenSbi.inf
   Silicon/RISC-V/ProcessorPkg/Library/RiscVOpensbiLib/RiscVOpensbiLib.inf
   Silicon/RISC-V/ProcessorPkg/Library/RiscVPlatformTimerLibNull/RiscVPlatformTimerLib.inf
@@ -100,3 +104,5 @@
 
   Silicon/RISC-V/ProcessorPkg/Universal/CpuDxe/CpuDxe.inf
   Silicon/RISC-V/ProcessorPkg/Universal/SmbiosDxe/RiscVSmbiosDxe.inf
+  Silicon/RISC-V/ProcessorPkg/Universal/FdtDxe/FdtDxe.inf
+  Silicon/RISC-V/ProcessorPkg/Universal/PciCpuIo2Dxe/PciCpuIo2Dxe.inf

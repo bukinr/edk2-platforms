@@ -2,6 +2,7 @@
 #  Component description file for Hsti Silicon Driver
 #
 # Copyright (c) 2017, Intel Corporation. All rights reserved.<BR>
+# Copyright (c) Microsoft Corporation.<BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -46,6 +47,7 @@
 [Packages]
   MdePkg/MdePkg.dec
   UefiCpuPkg/UefiCpuPkg.dec
+  IntelSiliconPkg/IntelSiliconPkg.dec
   KabylakeSiliconPkg/SiPkg.dec
   SecurityPkg/SecurityPkg.dec
 
@@ -85,6 +87,14 @@
 [Guids]
   gEfiEndOfDxeEventGroupGuid
   gSiMemoryPlatformDataGuid          ## CONSUMES
+  gFlashRegionDescriptorGuid
+  gFlashRegionBiosGuid
+  gFlashRegionMeGuid
+  gFlashRegionGbeGuid
+  gFlashRegionPlatformDataGuid
+  gFlashRegionDerGuid
+  gFlashRegionAllGuid
+  gFlashRegionMaxGuid
 
 [Protocols]
   gEfiDxeSmmReadyToLockProtocolGuid  ## CONSUMES
@@ -92,7 +102,7 @@
   gEfiMpServiceProtocolGuid          ## CONSUMES
   gDxeSiPolicyProtocolGuid           ## CONSUMES
   gHstiPublishCompleteProtocolGuid   ## PRODUCES
-  
+
 [FixedPcd]
   gSiPkgTokenSpaceGuid.PcdHstiIhvFeature1
   gSiPkgTokenSpaceGuid.PcdHstiIhvFeature2
