@@ -38,11 +38,10 @@
   WhitleySiliconPkg/CpRcPkg.dec
 
 [Sources]
-  SmmSiliconAcpiEnableLib.c
   SmmBoardAcpiEnableLib.c
 
 [Protocols]
-  gDynamicSiLibraryProtocolGuid                 ## CONSUMES
+  gDynamicSiLibrarySmmProtocolGuid                 ## CONSUMES
 
 [Depex]
-  gDynamicSiLibraryProtocolGuid
+  gDynamicSiLibrarySmmProtocolGuid

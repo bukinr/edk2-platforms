@@ -48,6 +48,9 @@
   #
   !include $(SILICON_PKG)/MrcCommonConfig.dsc
 
+[Packages]
+  IntelFsp2WrapperPkg/IntelFsp2WrapperPkg.dec
+
   !include $(FSP_BIN_PKG)/DynamicExPcd.dsc
   !include $(FSP_BIN_PKG)/DynamicExPcdFvLateSilicon.dsc
   !include $(RP_PKG)/DynamicExPcd.dsc
@@ -148,7 +151,9 @@
 
   gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0x2F                    # Enable asserts, prints, code, clear memory, and deadloops on asserts.
   gEfiMdePkgTokenSpaceGuid.PcdFixedDebugPrintErrorLevel|0x80200047      # Built in messages:  Error, MTRR, info, load, warn, init
+!if $(TARGET) == "DEBUG"
   gEfiSourceLevelDebugPkgTokenSpaceGuid.PcdDebugLoadImageMethod|0x2     # This is set to INT3 (0x2) for Simics source level debugging
+!endif
 
   gEfiMdeModulePkgTokenSpaceGuid.PcdLoadModuleAtFixAddressEnable|0
   gEfiMdeModulePkgTokenSpaceGuid.PcdHwErrStorageSize|0x0
@@ -190,8 +195,17 @@
   gIntelFsp2PkgTokenSpaceGuid.PcdTemporaryRamBase|0x00FE800000
   gIntelFsp2PkgTokenSpaceGuid.PcdTemporaryRamSize|0x0000200000
 
+  #
+  # Mode              | FSP_MODE | PcdFspModeSelection
+  # ------------------|----------|--------------------
+  # FSP Dispatch Mode |    1     |         0
+  # FSP API Mode      |    0     |         1
+  #
 !if ($(FSP_MODE) == 0)
+  gIntelFsp2WrapperTokenSpaceGuid.PcdFspModeSelection|1
   gIntelFsp2PkgTokenSpaceGuid.PcdFspTemporaryRamSize|0x00070000
+!else
+  gIntelFsp2WrapperTokenSpaceGuid.PcdFspModeSelection|0
 !endif
   gUefiCpuPkgTokenSpaceGuid.PcdPeiTemporaryRamStackSize|0x20000
 
@@ -308,6 +322,12 @@
   !include $(SILICON_PKG)/Product/Whitley/SiliconPkg10nmPcds.dsc
 
 [PcdsFixedAtBuild.IA32]
+  #
+  # FSP Base address PCD will be updated in FDF basing on flash map.
+  #
+  gIntelFsp2WrapperTokenSpaceGuid.PcdFsptBaseAddress|0
+  gIntelFsp2WrapperTokenSpaceGuid.PcdFspmBaseAddress|0
+
 !if ($(FSP_MODE) == 0)
   gMinPlatformPkgTokenSpaceGuid.PcdFspWrapperBootMode|TRUE
   gIntelFsp2WrapperTokenSpaceGuid.PcdPeiMinMemSize|0x4000000
@@ -541,12 +561,11 @@
   VmgExitLib|UefiCpuPkg/Library/VmgExitLibNull/VmgExitLibNull.inf
 
 [LibraryClasses.Common.SEC, LibraryClasses.Common.PEI_CORE, LibraryClasses.Common.PEIM]
-!if ($(FSP_MODE) == 0)
   FspWrapperApiLib|IntelFsp2WrapperPkg/Library/BaseFspWrapperApiLib/BaseFspWrapperApiLib.inf
   FspWrapperApiTestLib|IntelFsp2WrapperPkg/Library/PeiFspWrapperApiTestLib/PeiFspWrapperApiTestLib.inf
   FspWrapperPlatformLib|WhitleySiliconPkg/Library/FspWrapperPlatformLib/FspWrapperPlatformLib.inf
   FspWrapperHobProcessLib|WhitleyOpenBoardPkg/Library/PeiFspWrapperHobProcessLib/PeiFspWrapperHobProcessLib.inf
-!endif
+
   FspSwitchStackLib|IntelFsp2Pkg/Library/BaseFspSwitchStackLib/BaseFspSwitchStackLib.inf
   FspCommonLib|IntelFsp2Pkg/Library/BaseFspCommonLib/BaseFspCommonLib.inf
   FspPlatformLib|IntelFsp2Pkg/Library/BaseFspPlatformLib/BaseFspPlatformLib.inf
@@ -556,6 +575,11 @@
   # SEC phase
   #
   TimerLib|MdePkg/Library/BaseTimerLibNullTemplate/BaseTimerLibNullTemplate.inf
+
+  PlatformSecLib|$(RP_PKG)/Library/SecFspWrapperPlatformSecLib/SecFspWrapperPlatformSecLib.inf
+  SecBoardInitLib|MinPlatformPkg/PlatformInit/Library/SecBoardInitLibNull/SecBoardInitLibNull.inf
+  TestPointCheckLib|MinPlatformPkg/Test/Library/TestPointCheckLib/SecTestPointCheckLib.inf
+  VariableReadLib|MinPlatformPkg/Library/BaseVariableReadLibNull/BaseVariableReadLibNull.inf
 
 [LibraryClasses.Common.PEI_CORE, LibraryClasses.Common.PEIM]
   #
@@ -603,18 +627,21 @@
 
 [LibraryClasses.Common.DXE_SMM_DRIVER]
   SpiFlashCommonLib|$(RP_PKG)/Library/SmmSpiFlashCommonLib/SmmSpiFlashCommonLib.inf
-
   TestPointCheckLib|MinPlatformPkg/Test/Library/TestPointCheckLib/SmmTestPointCheckLib.inf
   TestPointLib|MinPlatformPkg/Test/Library/TestPointLib/SmmTestPointLib.inf
   MmServicesTableLib|MdePkg/Library/MmServicesTableLib/MmServicesTableLib.inf
+  BoardAcpiEnableLib|$(RP_PKG)/Library/BoardAcpiLib/SmmBoardAcpiEnableLib.inf
 
 [LibraryClasses.Common.SMM_CORE]
   S3BootScriptLib|MdePkg/Library/BaseS3BootScriptLibNull/BaseS3BootScriptLibNull.inf
 
 [LibraryClasses.Common]
   DebugLib|MdePkg/Library/BaseDebugLibSerialPort/BaseDebugLibSerialPort.inf
+  PeiLib|MinPlatformPkg/Library/PeiLib/PeiLib.inf
 
 [Components.IA32]
+  UefiCpuPkg/SecCore/SecCore.inf
+
   !include MinPlatformPkg/Include/Dsc/CorePeiInclude.dsc
 
   MdeModulePkg/Universal/PCD/Pei/Pcd.inf {
@@ -623,8 +650,9 @@
       # Beware of circular dependencies on PCD if you want to use another DebugLib instance.
       #
       PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
-      NULL|$(FSP_BIN_PKG)/Library/FspPcdListLibNull/FspPcdListLibNull.inf              # Include FSP DynamicEx PCD
-      NULL|$(FSP_BIN_PKG)/Library/FspPcdListLibNull/FspPcdListLibNullFvLateSilicon.inf # Include FvLateSilicon DynamicEx PCD
+      NULL|$(FSP_BIN_PKG)/Library/FspPcdListLibNull/FspPcdListLibNull.inf                 # Include FSP DynamicEx PCD
+      NULL|$(FSP_BIN_PKG)/Library/FspPcdListLibNull/FspPcdListLibNullFvLateSilicon.inf    # Include FvLateSilicon DynamicEx PCD
+      NULL|$(FSP_BIN_PKG)/Library/FspPcdListLibNull/FspPcdListLibNullFvLateOpenBoard.inf  # Include FvLateBoard DynamicEx PCD
   }
   $(RP_PKG)/Universal/PeiExStatusCodeRouter/ExReportStatusCodeRouterPei.inf
   $(RP_PKG)/Universal/PeiExStatusCodeHandler/ExStatusCodeHandlerPei.inf
@@ -651,14 +679,15 @@
       BoardInitLib|$(PLATFORM_PKG)/PlatformInit/Library/BoardInitLibNull/BoardInitLibNull.inf
   }
 
-!if ($(FSP_MODE) == 0)
   IntelFsp2WrapperPkg/FspmWrapperPeim/FspmWrapperPeim.inf
+!if ($(FSP_MODE) == 0)
   IntelFsp2WrapperPkg/FspsWrapperPeim/FspsWrapperPeim.inf
   $(RP_PKG)/Platform/Pei/DummyPchSpi/DummyPchSpi.inf
 !endif
 
   $(RP_PKG)/BiosInfo/BiosInfo.inf
 
+  WhitleySiliconPkg/Pch/SouthClusterLbg/MultiPch/Pei/MultiPchPei.inf
   UefiCpuPkg/PiSmmCommunication/PiSmmCommunicationPei.inf
 
   UefiCpuPkg/CpuMpPei/CpuMpPei.inf
@@ -710,19 +739,13 @@
   UefiCpuPkg/CpuS3DataDxe/CpuS3DataDxe.inf
 
   $(RP_PKG)/Features/Pci/Dxe/PciHostBridge/PciHostBridge.inf
-  $(PLATFORM_PKG)/Flash/SpiFvbService/SpiFvbServiceSmm.inf
+  IntelSiliconPkg/Feature/Flash/SpiFvbService/SpiFvbServiceSmm.inf
 
   $(RP_PKG)/Features/Pci/Dxe/PciPlatform/PciPlatform.inf
 
-  $(PLATFORM_PKG)/Acpi/AcpiTables/AcpiPlatform.inf {
-    <LibraryClasses>
-      BoardAcpiTableLib|$(RP_PKG)/Library/BoardAcpiLib/DxeBoardAcpiTableLib.inf
-  }
+  $(RP_PKG)/Features/AcpiVtd/AcpiVtd.inf
 
-  $(PLATFORM_PKG)/Acpi/AcpiSmm/AcpiSmm.inf {
-    <LibraryClasses>
-      BoardAcpiEnableLib|$(RP_PKG)/Library/BoardAcpiLib/SmmBoardAcpiEnableLib.inf
-  }
+  $(PLATFORM_PKG)/Acpi/AcpiSmm/AcpiSmm.inf
 
   $(PLATFORM_PKG)/PlatformInit/PlatformInitDxe/PlatformInitDxe.inf {
   <LibraryClasses>

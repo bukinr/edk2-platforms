@@ -1,7 +1,7 @@
 /**@file
   Build up platform processor information.
 
-  Copyright (c) 2019, Hewlett Packard Enterprise Development LP. All rights reserved.<BR>
+  Copyright (c) 2021, Hewlett Packard Enterprise Development LP. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -32,6 +32,7 @@
   @return EFI_SUCCESS     The PEIM initialized successfully.
 
 **/
+STATIC
 EFI_STATUS
 EFIAPI
 CreateU5MCCoreplexProcessorSpecificDataHob (
@@ -74,14 +75,7 @@ CreateU5MCCoreplexProcessorSpecificDataHob (
   }
   DEBUG ((DEBUG_INFO, "Support %d U5 application cores on U5 platform\n", HartIdNumber - (UINT32)MCSupport));
 
-  if (HartIdNumber != FixedPcdGet32 (PcdHartCount)) {
-    DEBUG ((DEBUG_ERROR, "Improper core settings...\n"));
-    DEBUG ((DEBUG_ERROR, "    PcdHartCount\n"));
-    DEBUG ((DEBUG_ERROR, "    PcdNumberofU5Cores\n"));
-    DEBUG ((DEBUG_ERROR, "    PcdE5MCSupported\n\n"));
-    ASSERT (FALSE);
-  }
-  return Status;
+  return EFI_SUCCESS;
 }
 
 /**
@@ -96,6 +90,7 @@ CreateU5MCCoreplexProcessorSpecificDataHob (
   @return EFI_SUCCESS     The SMBIOS Hobs were created successfully.
 
 **/
+STATIC
 EFI_STATUS
 EFIAPI
 CreateU5MCProcessorSmbiosDataHob (
@@ -160,6 +155,34 @@ CreateU5MCProcessorSmbiosDataHob (
   }
   *SmbiosHobPtr = SmbiosDataHobPtr;
   DEBUG ((DEBUG_INFO, "%a: Exit\n", __FUNCTION__));
+
+  return EFI_SUCCESS;
+}
+
+/**
+  Build processor and platform information for the U5 platform
+
+  @return EFI_SUCCESS     Status.
+
+**/
+EFI_STATUS
+BuildRiscVSmbiosHobs (
+  VOID
+)
+{
+  EFI_STATUS Status;
+  RISC_V_PROCESSOR_SMBIOS_HOB_DATA *SmbiosHobPtr;
+
+  Status = CreateU5MCCoreplexProcessorSpecificDataHob (0);
+  if (EFI_ERROR (Status)) {
+    ASSERT(FALSE);
+  }
+  Status = CreateU5MCProcessorSmbiosDataHob (0, &SmbiosHobPtr);
+  if (EFI_ERROR (Status)) {
+    ASSERT(FALSE);
+  }
+
+  DEBUG ((DEBUG_INFO, "U5 MC Coreplex SMBIOS DATA HOB at address 0x%x\n", SmbiosHobPtr));
 
   return EFI_SUCCESS;
 }

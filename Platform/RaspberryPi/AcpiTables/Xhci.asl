@@ -9,6 +9,8 @@
 
 #include <IndustryStandard/Bcm2711.h>
 
+#include "AcpiTables.h"
+
 /*
  * The following can be used to remove parenthesis from
  * defined macros that the compiler complains about.
@@ -24,12 +26,17 @@
  */
 #define XHCI_REG_LENGTH                 0x1000
 
-Device (SCB0) {
-    Name (_HID, "ACPI0004")
-    Name (_UID, 0x0)
-    Name (_CCA, 0x0)
+DefinitionBlock (__FILE__, "SSDT", 5, "RPIFDN", "RPI4XHCI", 2)
+{
+  Scope (\_SB_)
+  {
 
-    Method (_CRS, 0, Serialized) { // _CRS: Current Resource Settings
+    Device (SCB0) {
+      Name (_HID, "ACPI0004")
+      Name (_UID, 0x0)
+      Name (_CCA, 0x0)
+
+      Method (_CRS, 0, Serialized) { // _CRS: Current Resource Settings
         /*
          * Container devices with _DMA must have _CRS, meaning SCB0
          * to provide all resources that XHC0 consumes (except
@@ -57,15 +64,15 @@ Device (SCB0) {
         Add (MMBE, XHCI_REG_LENGTH - 1, MMBE)
         Add (MMLE, XHCI_REG_LENGTH - 1, MMLE)
         Return (RBUF)
-    }
+      }
 
-    Name (_DMA, ResourceTemplate() {
+      Name (_DMA, ResourceTemplate() {
         /*
          * XHC0 is limited to DMA to first 3GB. Note this
          * only applies to PCIe, not GENET or other devices
          * next to the A72.
          */
-        QWordMemory (ResourceConsumer,
+        QWordMemory (ResourceProducer,
             ,
             MinFixed,
             MaxFixed,
@@ -79,10 +86,10 @@ Device (SCB0) {
             ,
             ,
             )
-    })
+      })
 
-    Device (XHC0)
-    {
+      Device (XHC0)
+      {
         Name (_HID, "PNP0D10")      // _HID: Hardware ID
         Name (_UID, 0x0)            // _UID: Unique ID
         Name (_CCA, 0x0)            // _CCA: Cache Coherency Attribute
@@ -131,5 +138,28 @@ Device (SCB0) {
             Debug = "xHCI enable"
             Store (0x6, CMND)
         }
-    }
-}
+
+        /*
+         * Microsoft's USB Device-Specific Methods. See:
+         * https://docs.microsoft.com/en-us/windows-hardware/drivers/bringup/usb-device-specific-method---dsm-
+         */
+        Name (DSMU, ToUUID ("ce2ee385-00e6-48cb-9f05-2edb927c4899"))
+
+        Method (_DSM, 4, Serialized) {
+            If (LEqual (Arg0, DSMU)) {              // USB capabilities UUID
+                Switch (ToInteger (Arg2)) {
+                Case (0) {                          // Function 0: List of supported functions
+                    Return (Buffer () { 0x41 })     // 0x41 - Functions 0 and 6 supported
+                }
+                Case (6) {                          // Function 6: RegisterAccessType
+                    Return (Buffer () { 0x01 })     // 0x01 - Must use 32bit register access
+                }
+                Default { }                         // Unsupported
+                }
+            }
+            return (Buffer () { 0x00 })             // Return 0x00 for anything unsupported
+        }
+      } // end XHC0
+    } //end SCB0
+  } //end scope sb
+} //end definition block

@@ -182,17 +182,6 @@
   # Board-specific
   #######################################
   PlatformHookLib|$(PROJECT)/Library/BasePlatformHookLib/BasePlatformHookLib.inf
-!if gIntelFsp2WrapperTokenSpaceGuid.PcdFspModeSelection == 1
-  #
-  # FSP API mode
-  #
-  SiliconPolicyUpdateLib|$(PROJECT)/FspWrapper/Library/PeiSiliconPolicyUpdateLibFsp/PeiSiliconPolicyUpdateLibFsp.inf
-!else
-  #
-  # FSP Dispatch mode and non-FSP build (EDK2 build)
-  #
-  SiliconPolicyUpdateLib|$(PROJECT)/Policy/Library/PeiSiliconPolicyUpdateLib/PeiSiliconPolicyUpdateLib.inf
-!endif
 
 [LibraryClasses.IA32.SEC]
   #######################################
@@ -200,6 +189,7 @@
   #######################################
   TestPointCheckLib|$(PLATFORM_PACKAGE)/Test/Library/TestPointCheckLib/SecTestPointCheckLib.inf
   SecBoardInitLib|$(PLATFORM_PACKAGE)/PlatformInit/Library/SecBoardInitLibNull/SecBoardInitLibNull.inf
+  SiliconPolicyUpdateLib|MinPlatformPkg/PlatformInit/Library/SiliconPolicyUpdateLibNull/SiliconPolicyUpdateLibNull.inf
 
 [LibraryClasses.common.PEIM]
   #######################################
@@ -222,6 +212,18 @@
   #######################################
   # Board Package
   #######################################
+!if gIntelFsp2WrapperTokenSpaceGuid.PcdFspModeSelection == 1
+  #
+  # FSP API mode
+  #
+  SiliconPolicyUpdateLib|$(PROJECT)/FspWrapper/Library/PeiSiliconPolicyUpdateLibFsp/PeiSiliconPolicyUpdateLibFsp.inf
+!else
+  #
+  # FSP Dispatch mode and non-FSP build (EDK2 build)
+  #
+  SiliconPolicyUpdateLib|$(PROJECT)/Policy/Library/PeiSiliconPolicyUpdateLib/PeiSiliconPolicyUpdateLib.inf
+!endif
+
   # Thunderbolt
 !if gKabylakeOpenBoardPkgTokenSpaceGuid.PcdTbtEnable == TRUE
   PeiDTbtInitLib|$(PLATFORM_BOARD_PACKAGE)/Features/Tbt/Library/Private/PeiDTbtInitLib/PeiDTbtInitLib.inf
@@ -268,7 +270,7 @@
   #######################################
   # Silicon Initialization Package
   #######################################
-  SpiFlashCommonLib|$(PLATFORM_SI_PACKAGE)/Pch/Library/SmmSpiFlashCommonLib/SmmSpiFlashCommonLib.inf
+  SpiFlashCommonLib|IntelSiliconPkg/Library/SmmSpiFlashCommonLib/SmmSpiFlashCommonLib.inf
 
   #######################################
   # Platform Package
@@ -392,6 +394,8 @@
 !endif
   $(PLATFORM_BOARD_PACKAGE)/BiosInfo/BiosInfo.inf
 
+  $(PLATFORM_BOARD_PACKAGE)/Library/PeiSerialPortLibSpiFlash/PeiSerialPortLibSpiFlash.inf
+
 #######################################
 # DXE Components
 #######################################
@@ -456,6 +460,10 @@
   IntelSiliconPkg/Feature/VTd/IntelVTdDxe/IntelVTdDxe.inf
   $(PLATFORM_SI_BIN_PACKAGE)/Microcode/MicrocodeUpdates.inf
 
+!if gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly == FALSE
+  IntelSiliconPkg/Feature/Flash/SpiFvbService/SpiFvbServiceSmm.inf
+!endif
+
   #######################################
   # Platform Package
   #######################################
@@ -472,7 +480,6 @@
 
 !if gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly == FALSE
 
-  $(PLATFORM_PACKAGE)/Flash/SpiFvbService/SpiFvbServiceSmm.inf
   $(PLATFORM_PACKAGE)/PlatformInit/PlatformInitSmm/PlatformInitSmm.inf
 
   $(PLATFORM_PACKAGE)/Acpi/AcpiSmm/AcpiSmm.inf {

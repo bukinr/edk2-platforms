@@ -2,6 +2,7 @@
 #  Component description file for the PchSpiCommonLib
 #
 # Copyright (c) 2019 Intel Corporation. All rights reserved. <BR>
+# Copyright (c) Microsoft Corporation.<BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -20,6 +21,7 @@
 
 [Packages]
   MdePkg/MdePkg.dec
+  IntelSiliconPkg/IntelSiliconPkg.dec
   SimicsIch10Pkg/Ich10Pkg.dec
 
 [LibraryClasses]
@@ -27,5 +29,15 @@
   DebugLib
 
 [Pcd]
-  gEfiPchTokenSpaceGuid.PcdFlashAreaBaseAddress  ## CONSUMES
-  gEfiPchTokenSpaceGuid.PcdFlashAreaSize         ## CONSUMES
+  gIntelSiliconPkgTokenSpaceGuid.PcdBiosAreaBaseAddress   ## CONSUMES
+  gIntelSiliconPkgTokenSpaceGuid.PcdBiosSize              ## CONSUMES
+
+[Guids]
+  gFlashRegionDescriptorGuid
+  gFlashRegionBiosGuid
+  gFlashRegionMeGuid
+  gFlashRegionGbeGuid
+  gFlashRegionPlatformDataGuid
+  gFlashRegionDerGuid
+  gFlashRegionAllGuid
+  gFlashRegionMaxGuid

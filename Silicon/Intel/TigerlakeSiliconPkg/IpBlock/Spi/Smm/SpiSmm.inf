@@ -30,6 +30,7 @@ PchPciBdfLib
 
 [Packages]
 MdePkg/MdePkg.dec
+IntelSiliconPkg/IntelSiliconPkg.dec
 TigerlakeSiliconPkg/SiPkg.dec
 
 
@@ -38,7 +39,7 @@ Spi.c
 
 
 [Protocols]
-gPchSmmSpiProtocolGuid ## PRODUCES
+gPchSmmSpi2ProtocolGuid ## PRODUCES
 gEfiSmmCpuProtocolGuid ## CONSUMES
 
 

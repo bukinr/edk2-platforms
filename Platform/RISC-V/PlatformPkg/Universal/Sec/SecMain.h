@@ -16,6 +16,7 @@
 #include <Library/BaseMemoryLib.h>
 #include <Library/DebugAgentLib.h>
 #include <Library/DebugLib.h>
+#include <Library/Edk2OpensbiPlatformWrapperLib.h>
 #include <Library/ExtractGuidedSectionLib.h>
 #include <Library/IoLib.h>
 #include <Library/HobLib.h>
@@ -25,8 +26,16 @@
 #include <Library/PeCoffLib.h>
 #include <Library/PeiServicesLib.h>
 #include <Library/RiscVCpuLib.h>
-#include <Ppi/TemporaryRamDone.h>
-#include <Ppi/TemporaryRamSupport.h>
+
+int
+SecPostOpenSbiPlatformEarlylInit(
+  IN BOOLEAN ColdBoot
+  );
+
+int
+SecPostOpenSbiPlatformFinalInit (
+  IN BOOLEAN ColdBoot
+  );
 
 VOID
 SecMachineModeTrapHandler (
@@ -37,21 +46,6 @@ VOID
 EFIAPI
 SecStartupPhase2 (
   IN VOID                     *Context
-  );
-
-EFI_STATUS
-EFIAPI
-TemporaryRamMigration (
-  IN CONST EFI_PEI_SERVICES   **PeiServices,
-  IN EFI_PHYSICAL_ADDRESS     TemporaryMemoryBase,
-  IN EFI_PHYSICAL_ADDRESS     PermanentMemoryBase,
-  IN UINTN                    CopySize
-  );
-
-EFI_STATUS
-EFIAPI
-TemporaryRamDone (
-  VOID
   );
 
 #endif // _SECMAIN_H_

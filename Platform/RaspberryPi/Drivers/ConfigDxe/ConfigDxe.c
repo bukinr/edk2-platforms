@@ -1,6 +1,6 @@
 /** @file
  *
- *  Copyright (c) 2019 - 2021, ARM Limited. All rights reserved.
+ *  Copyright (c) 2019 - 2020, ARM Limited. All rights reserved.
  *  Copyright (c) 2018 - 2020, Andrei Warkentin <andrey.warkentin@gmail.com>
  *
  *  SPDX-License-Identifier: BSD-2-Clause-Patent
@@ -43,6 +43,7 @@ extern UINT8 ConfigDxeStrings[];
 STATIC RASPBERRY_PI_FIRMWARE_PROTOCOL *mFwProtocol;
 STATIC UINT32 mModelFamily = 0;
 STATIC UINT32 mModelInstalledMB = 0;
+STATIC UINT32 mModelRevision = 0;
 
 STATIC EFI_MAC_ADDRESS  mMacAddress;
 
@@ -271,6 +272,40 @@ SetupVariables (
     ASSERT_EFI_ERROR (Status);
   }
 
+  if (mModelFamily >= 4) {
+    if (((mModelRevision >> 4) & 0xFF) == 0x14) {
+      /*
+       * Enable PCIe by default on CM4
+       */
+      Status = PcdSet32S (PcdXhciPci, 2);
+      ASSERT_EFI_ERROR (Status);
+    } else {
+      Size = sizeof (UINT32);
+      Status = gRT->GetVariable (L"XhciPci",
+                                 &gConfigDxeFormSetGuid,
+                                 NULL, &Size, &Var32);
+      if (EFI_ERROR (Status) || (Var32 == 0)) {
+        /*
+         * Enable XHCI by default
+         */
+        Status = PcdSet32S (PcdXhciPci, 0);
+        ASSERT_EFI_ERROR (Status);
+      } else {
+        /*
+         * Enable PCIe
+         */
+        Status = PcdSet32S (PcdXhciPci, 1);
+        ASSERT_EFI_ERROR (Status);
+      }
+    }
+  } else {
+    /*
+     * Disable PCIe and XHCI
+     */
+    Status = PcdSet32S (PcdXhciPci, 0);
+    ASSERT_EFI_ERROR (Status);
+  }
+
   Size = sizeof (AssetTagVar);
   Status = gRT->GetVariable (L"AssetTag",
                   &gConfigDxeFormSetGuid,
@@ -284,15 +319,6 @@ SetupVariables (
                     sizeof (AssetTagVar),
                     AssetTagVar
                     );
-  }
-
-  Size = sizeof (UINT32);
-  Status = gRT->GetVariable (L"BootPolicy",
-                  &gConfigDxeFormSetGuid,
-                  NULL, &Size, &Var32);
-  if (EFI_ERROR (Status)) {
-    Status = PcdSet32S (PcdBootPolicy, PcdGet32 (PcdBootPolicy));
-    ASSERT_EFI_ERROR (Status);
   }
 
   Size = sizeof (UINT32);
@@ -473,7 +499,7 @@ ApplyVariables (
 
     Status = gDS->AddMemorySpace (EfiGcdMemoryTypeSystemMemory, 3UL * BASE_1GB,
                     SystemMemorySizeBelow4GB - (3UL * SIZE_1GB),
-                    EFI_MEMORY_UC | EFI_MEMORY_WC | EFI_MEMORY_WT | EFI_MEMORY_WB);
+                    EFI_MEMORY_WC | EFI_MEMORY_WT | EFI_MEMORY_WB);
     ASSERT_EFI_ERROR (Status);
     Status = gDS->SetMemorySpaceAttributes (3UL * BASE_1GB,
                     SystemMemorySizeBelow4GB - (3UL * SIZE_1GB), EFI_MEMORY_WB);
@@ -485,7 +511,7 @@ ApplyVariables (
       //
       Status = gDS->AddMemorySpace (EfiGcdMemoryTypeSystemMemory, 4UL * BASE_1GB,
                       SystemMemorySize - (4UL * SIZE_1GB),
-                      EFI_MEMORY_UC | EFI_MEMORY_WC | EFI_MEMORY_WT | EFI_MEMORY_WB);
+                      EFI_MEMORY_WC | EFI_MEMORY_WT | EFI_MEMORY_WB);
       ASSERT_EFI_ERROR (Status);
       Status = gDS->SetMemorySpaceAttributes (4UL * BASE_1GB,
                       SystemMemorySize - (4UL * SIZE_1GB), EFI_MEMORY_WB);
@@ -788,6 +814,20 @@ STATIC CONST NAMESPACE_TABLES SdtTables[] = {
     PcdToken(PcdSdIsArasan),
     SsdtEmmcNameOpReplace
   },
+#if (RPI_MODEL == 4)
+  {
+    SIGNATURE_64 ('R', 'P', 'I', '4', 'X', 'H', 'C', 'I'),
+    0,
+    PcdToken(PcdXhciPci),
+    NULL
+  },
+  {
+    SIGNATURE_64 ('R', 'P', 'I', '4', 'P', 'C', 'I', 'E'),
+    PcdToken(PcdXhciPci),
+    0,
+    NULL
+  },
+#endif
   { // DSDT
     SIGNATURE_64 ('R', 'P', 'I', 0, 0, 0, 0, 0),
     0,
@@ -895,6 +935,13 @@ ConfigInitialize (
     DEBUG ((DEBUG_ERROR, "Couldn't get the Raspberry Pi installed RAM size: %r\n", Status));
   } else {
     DEBUG ((DEBUG_INFO, "Current Raspberry Pi installed RAM size is %d MB\n", mModelInstalledMB));
+  }
+
+  Status = mFwProtocol->GetModelRevision (&mModelRevision);
+  if (Status != EFI_SUCCESS) {
+    DEBUG ((DEBUG_ERROR, "Couldn't get the Raspberry Pi revision: %r\n", Status));
+  } else {
+    DEBUG ((DEBUG_INFO, "Current Raspberry Pi revision %x\n", mModelRevision));
   }
 
   Status = SetupVariables ();
