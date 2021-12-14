@@ -72,6 +72,13 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdSrIovSupport|FALSE
   gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress|0x20000000
 
+  #FVP Specific PCD values for PCIe
+  gArmMorelloTokenSpaceGuid.PcdPciBusMax|15
+  gArmMorelloTokenSpaceGuid.PcdPciBusCount|16
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64Size|0x2000000000
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64MaxBase|0x28FFFFFFFF
+  gArmMorelloTokenSpaceGuid.PcdPciExpressBaseAddress|0x20000000
+
 [Components.common]
   OvmfPkg/VirtioBlkDxe/VirtioBlk.inf
   OvmfPkg/VirtioNetDxe/VirtioNet.inf
@@ -81,17 +88,3 @@
 
   # Required by PCI
   ArmPkg/Drivers/ArmPciCpuIo2Dxe/ArmPciCpuIo2Dxe.inf
-
-  # PCI Support
-  MdeModulePkg/Bus/Pci/PciBusDxe/PciBusDxe.inf
-  MdeModulePkg/Bus/Pci/PciHostBridgeDxe/PciHostBridgeDxe.inf {
-    <PcdsFixedAtBuild>
-      gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x8010004F
-  }
-
-  # AHCI Support
-  MdeModulePkg/Bus/Ata/AtaAtapiPassThru/AtaAtapiPassThru.inf
-  MdeModulePkg/Bus/Ata/AtaBusDxe/AtaBusDxe.inf
-
-  # SATA Controller
-  MdeModulePkg/Bus/Pci/SataControllerDxe/SataControllerDxe.inf
