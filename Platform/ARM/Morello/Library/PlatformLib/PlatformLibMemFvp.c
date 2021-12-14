@@ -9,6 +9,8 @@
 #include <Library/DebugLib.h>
 #include <Library/HobLib.h>
 #include <Library/MemoryAllocationLib.h>
+#include <Library/PeiServicesLib.h>
+#include <libfdt.h>
 #include <MorelloPlatform.h>
 
 // The total number of descriptors, including the final "end-of-table" descriptor.
@@ -39,6 +41,60 @@ STATIC CONST CHAR8 *gTblAttrDesc[] = {
                         gTblAttrDesc[VirtualMemoryTable[Index].Attributes]  \
                         ));
 
+/** A helper function to locate the NtFwConfig PPI and get the base address of
+  NT_FW_CONFIG DT from which values are obtained using FDT helper functions.
+
+  @param [out]  plat_info  Pointer to the MORELLO PLATFORM_INFO HOB
+
+  @retval EFI_SUCCESS            Success.
+  returns EFI_INVALID_PARAMETER  A parameter is invalid.
+**/
+EFI_STATUS
+GetMorelloPlatInfo (
+  OUT MORELLO_PLAT_INFO_FVP *plat_info
+)
+{
+  CONST UINT64                  *Property;
+  INT32                         Offset;
+  CONST VOID                    *NtFwCfgDtBlob;
+  MORELLO_NT_FW_CONFIG_INFO_PPI *NtFwConfigInfoPpi;
+  EFI_STATUS                    Status;
+
+  Status = PeiServicesLocatePpi (
+             &gNtFwConfigDtInfoPpiGuid,
+             0,
+             NULL,
+             (VOID**)&NtFwConfigInfoPpi
+             );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR,
+      "PeiServicesLocatePpi failed with error %r\n", Status));
+    return EFI_INVALID_PARAMETER;
+  }
+
+  NtFwCfgDtBlob = (VOID *)(UINTN)NtFwConfigInfoPpi->NtFwConfigDtAddr;
+  if (fdt_check_header (NtFwCfgDtBlob) != 0) {
+    DEBUG ((DEBUG_ERROR, "Invalid DTB file %p passed\n", NtFwCfgDtBlob));
+    return EFI_INVALID_PARAMETER;
+  }
+
+  Offset = fdt_subnode_offset (NtFwCfgDtBlob, 0, "platform-info");
+  if (Offset == -FDT_ERR_NOTFOUND) {
+    DEBUG ((DEBUG_ERROR, "Invalid DTB : platform-info node not found\n"));
+    return EFI_INVALID_PARAMETER;
+  }
+
+  Property = fdt_getprop (NtFwCfgDtBlob, Offset, "local-ddr-size", NULL);
+  if (Property == NULL) {
+    DEBUG ((DEBUG_ERROR, "local-ddr-size property not found\n"));
+    return EFI_INVALID_PARAMETER;
+  }
+
+  plat_info->LocalDdrSize = fdt64_to_cpu (ReadUnaligned64 (Property));
+  return EFI_SUCCESS;
+}
+
 /**
   Returns the Virtual Memory Map of the platform.
 
@@ -57,13 +113,27 @@ ArmPlatformGetVirtualMemoryMap (
   UINTN                           Index;
   ARM_MEMORY_REGION_DESCRIPTOR  * VirtualMemoryTable;
   EFI_RESOURCE_ATTRIBUTE_TYPE     ResourceAttributes;
-  MORELLO_PLAT_INFO             * PlatInfo;
+  MORELLO_PLAT_INFO_FVP         * PlatInfo;
   UINT64                          DramBlock2Size;
+  EFI_STATUS                      Status;
 
   Index = 0;
   DramBlock2Size = 0;
 
-  PlatInfo = (MORELLO_PLAT_INFO *)MORELLO_PLAT_INFO_STRUCT_BASE;
+  // Create platform info HOB
+  PlatInfo = (MORELLO_PLAT_INFO_FVP *)BuildGuidHob (
+                                        &gArmMorelloPlatformInfoDescriptorGuid,
+                                        sizeof (MORELLO_PLAT_INFO_FVP)
+                                        );
+  if (PlatInfo == NULL) {
+    DEBUG ((DEBUG_ERROR, "Platform HOB is NULL\n"));
+    ASSERT (FALSE);
+    return;
+  }
+
+  Status = GetMorelloPlatInfo (PlatInfo);
+  ASSERT (Status == 0);
+
   if (PlatInfo->LocalDdrSize > MORELLO_DRAM_BLOCK1_SIZE) {
     DramBlock2Size = PlatInfo->LocalDdrSize - MORELLO_DRAM_BLOCK1_SIZE;
   }
