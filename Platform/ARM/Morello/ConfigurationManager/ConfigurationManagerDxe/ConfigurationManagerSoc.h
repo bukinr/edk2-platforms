@@ -16,7 +16,7 @@
 
 /** The number of ACPI tables to install
 */
-#define PLAT_ACPI_TABLE_COUNT  7
+#define PLAT_ACPI_TABLE_COUNT  10
 
 /** A helper macro for mapping a reference token
 */
@@ -29,12 +29,34 @@
     containing the AML bytecode array.
 */
 extern CHAR8  dsdtsoc_aml_code[];
+extern CHAR8  ssdtpcisoc_aml_code[];
 
 /** A structure describing the SoC Platform specific information
 */
 typedef struct SocPlatformRepositoryInfo {
   /// List of ACPI tables
-  CM_STD_OBJ_ACPI_TABLE_INFO    CmAcpiTableList[PLAT_ACPI_TABLE_COUNT];
+  CM_STD_OBJ_ACPI_TABLE_INFO      CmAcpiTableList[PLAT_ACPI_TABLE_COUNT];
+
+  /// GIC ITS information
+  CM_ARM_GIC_ITS_INFO             GicItsInfo[4];
+
+  /// ITS Group node
+  CM_ARM_ITS_GROUP_NODE           ItsGroupInfo[4];
+
+  /// ITS Identifier array
+  CM_ARM_ITS_IDENTIFIER           ItsIdentifierArray[4];
+
+  /// SMMUv3 node
+  CM_ARM_SMMUV3_NODE              SmmuV3Info[2];
+
+  /// PCI Root complex node
+  CM_ARM_ROOT_COMPLEX_NODE        RootComplexInfo[2];
+
+  /// Array of DeviceID mapping
+  CM_ARM_ID_MAPPING               DeviceIdMapping[3][2];
+
+  /// PCI configuration space information
+  CM_ARM_PCI_CONFIG_SPACE_INFO    PciConfigInfo[2];
 } EDKII_SOC_PLATFORM_REPOSITORY_INFO;
 
 /** A structure describing the platform configuration
