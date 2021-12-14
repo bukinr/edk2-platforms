@@ -39,14 +39,18 @@
 !include MdePkg/MdeLibs.dsc.inc
 
 [LibraryClasses.common]
+  # Platform Library
+  ArmPlatformLib|Platform/ARM/Morello/Library/PlatformLib/PlatformLibFvp.inf
+
   # Virtio Support
   VirtioLib|OvmfPkg/Library/VirtioLib/VirtioLib.inf
   VirtioMmioDeviceLib|OvmfPkg/Library/VirtioMmioDeviceLib/VirtioMmioDeviceLib.inf
-  FileExplorerLib|MdeModulePkg/Library/FileExplorerLib/FileExplorerLib.inf
-  OrderedCollectionLib|MdePkg/Library/BaseOrderedCollectionRedBlackTreeLib/BaseOrderedCollectionRedBlackTreeLib.inf
 
 [LibraryClasses.common.DXE_DRIVER]
   PciHostBridgeLib|Platform/ARM/Morello/Library/PciHostBridgeLib/PciHostBridgeLibFvp.inf
+  PciSegmentLib|MdePkg/Library/BasePciSegmentLibPci/BasePciSegmentLibPci.inf
+  PciLib|MdePkg/Library/BasePciLibPciExpress/BasePciLibPciExpress.inf
+  PciExpressLib|MdePkg/Library/BasePciExpressLib/BasePciExpressLib.inf
 
 [PcdsFeatureFlag.common]
   gArmMorelloTokenSpaceGuid.PcdVirtioBlkSupported|TRUE
@@ -63,9 +67,31 @@
   gArmMorelloTokenSpaceGuid.PcdVirtioNetSize|0x200
   gArmMorelloTokenSpaceGuid.PcdVirtioNetInterrupt|134
 
+  # PCIe
+  gEmbeddedTokenSpaceGuid.PcdPrePiCpuIoSize|24
+  gEfiMdeModulePkgTokenSpaceGuid.PcdSrIovSupport|FALSE
+  gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress|0x20000000
+
 [Components.common]
   OvmfPkg/VirtioBlkDxe/VirtioBlk.inf
   OvmfPkg/VirtioNetDxe/VirtioNet.inf
 
   # Platform driver
   Platform/ARM/Morello/Drivers/PlatformDxe/PlatformDxeFvp.inf
+
+  # Required by PCI
+  ArmPkg/Drivers/ArmPciCpuIo2Dxe/ArmPciCpuIo2Dxe.inf
+
+  # PCI Support
+  MdeModulePkg/Bus/Pci/PciBusDxe/PciBusDxe.inf
+  MdeModulePkg/Bus/Pci/PciHostBridgeDxe/PciHostBridgeDxe.inf {
+    <PcdsFixedAtBuild>
+      gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x8010004F
+  }
+
+  # AHCI Support
+  MdeModulePkg/Bus/Ata/AtaAtapiPassThru/AtaAtapiPassThru.inf
+  MdeModulePkg/Bus/Ata/AtaBusDxe/AtaBusDxe.inf
+
+  # SATA Controller
+  MdeModulePkg/Bus/Pci/SataControllerDxe/SataControllerDxe.inf
