@@ -39,14 +39,18 @@
 !include MdePkg/MdeLibs.dsc.inc
 
 [LibraryClasses.common]
+  # Platform Library
+  ArmPlatformLib|Platform/ARM/Morello/Library/PlatformLib/PlatformLibFvp.inf
+
   # Virtio Support
   VirtioLib|OvmfPkg/Library/VirtioLib/VirtioLib.inf
   VirtioMmioDeviceLib|OvmfPkg/Library/VirtioMmioDeviceLib/VirtioMmioDeviceLib.inf
-  FileExplorerLib|MdeModulePkg/Library/FileExplorerLib/FileExplorerLib.inf
-  OrderedCollectionLib|MdePkg/Library/BaseOrderedCollectionRedBlackTreeLib/BaseOrderedCollectionRedBlackTreeLib.inf
 
 [LibraryClasses.common.DXE_DRIVER]
   PciHostBridgeLib|Platform/ARM/Morello/Library/PciHostBridgeLib/PciHostBridgeLibFvp.inf
+  PciSegmentLib|MdePkg/Library/BasePciSegmentLibPci/BasePciSegmentLibPci.inf
+  PciLib|MdePkg/Library/BasePciLibPciExpress/BasePciLibPciExpress.inf
+  PciExpressLib|MdePkg/Library/BasePciExpressLib/BasePciExpressLib.inf
 
 [PcdsFeatureFlag.common]
   gArmMorelloTokenSpaceGuid.PcdVirtioBlkSupported|TRUE
@@ -63,9 +67,24 @@
   gArmMorelloTokenSpaceGuid.PcdVirtioNetSize|0x200
   gArmMorelloTokenSpaceGuid.PcdVirtioNetInterrupt|134
 
+  # PCIe
+  gEmbeddedTokenSpaceGuid.PcdPrePiCpuIoSize|24
+  gEfiMdeModulePkgTokenSpaceGuid.PcdSrIovSupport|FALSE
+  gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress|0x20000000
+
+  #FVP Specific PCD values for PCIe
+  gArmMorelloTokenSpaceGuid.PcdPciBusMax|15
+  gArmMorelloTokenSpaceGuid.PcdPciBusCount|16
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64Size|0x2000000000
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64MaxBase|0x28FFFFFFFF
+  gArmMorelloTokenSpaceGuid.PcdPciExpressBaseAddress|0x20000000
+
 [Components.common]
   OvmfPkg/VirtioBlkDxe/VirtioBlk.inf
   OvmfPkg/VirtioNetDxe/VirtioNet.inf
 
   # Platform driver
   Platform/ARM/Morello/Drivers/PlatformDxe/PlatformDxeFvp.inf
+
+  # Required by PCI
+  ArmPkg/Drivers/ArmPciCpuIo2Dxe/ArmPciCpuIo2Dxe.inf

@@ -1,0 +1,68 @@
+## @file
+#  Platform Library for Morello SoC platform.
+#
+#  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x0001001B
+  BASE_NAME                      = ArmMorelloLib
+  FILE_GUID                      = 7858ED56-9716-454F-90D7-D117B05063EA
+  MODULE_TYPE                    = BASE
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = ArmPlatformLib
+
+[Packages]
+  ArmPkg/ArmPkg.dec
+  ArmPlatformPkg/ArmPlatformPkg.dec
+  EmbeddedPkg/EmbeddedPkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  MdePkg/MdePkg.dec
+  Platform/ARM/Morello/MorelloPlatform.dec
+
+[LibraryClasses]
+  FdtLib
+
+[Sources.common]
+  PlatformLib.c
+  PlatformLibMemSoc.c
+
+[Sources.AARCH64]
+  AArch64/Helper.S | GCC
+
+[FixedPcd]
+  gArmMorelloTokenSpaceGuid.PcdDramBlock2Base
+
+  gArmMorelloTokenSpaceGuid.PcdPciBusMax
+  gArmMorelloTokenSpaceGuid.PcdPciBusMin
+  gArmMorelloTokenSpaceGuid.PcdPciExpressBaseAddress
+  gArmMorelloTokenSpaceGuid.PcdPciIoSize
+  gArmMorelloTokenSpaceGuid.PcdPciMmio32Base
+  gArmMorelloTokenSpaceGuid.PcdPciMmio32Size
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64Base
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64Size
+
+  gArmMorelloTokenSpaceGuid.PcdCcixBusMax
+  gArmMorelloTokenSpaceGuid.PcdCcixBusMin
+  gArmMorelloTokenSpaceGuid.PcdCcixExpressBaseAddress
+  gArmMorelloTokenSpaceGuid.PcdCcixIoSize
+  gArmMorelloTokenSpaceGuid.PcdCcixMmio32Base
+  gArmMorelloTokenSpaceGuid.PcdCcixMmio32Size
+  gArmMorelloTokenSpaceGuid.PcdCcixMmio64Base
+  gArmMorelloTokenSpaceGuid.PcdCcixMmio64Size
+
+  gArmTokenSpaceGuid.PcdArmPrimaryCore
+  gArmTokenSpaceGuid.PcdArmPrimaryCoreMask
+  gArmTokenSpaceGuid.PcdSystemMemoryBase
+  gArmTokenSpaceGuid.PcdSystemMemorySize
+
+[Guids]
+  gArmMorelloPlatformInfoDescriptorGuid
+  gEfiHobListGuid          ## CONSUMES  ## SystemTable
+
+[Ppis]
+  gArmMpCoreInfoPpiGuid
+  gNtFwConfigDtInfoPpiGuid
