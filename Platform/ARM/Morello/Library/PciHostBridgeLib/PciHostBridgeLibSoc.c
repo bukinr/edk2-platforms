@@ -13,10 +13,11 @@
 
 #define ROOT_COMPLEX_NUM  2
 
-GLOBAL_REMOVE_IF_UNREFERENCED
+#if !defined(MDEPKG_NDEBUG)
 STATIC CHAR16 CONST *CONST  mPciHostBridgeLibAcpiAddressSpaceTypeStr[] = {
   L"Mem", L"I/O", L"Bus"
 };
+#endif
 
 #pragma pack(1)
 typedef struct {
