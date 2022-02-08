@@ -1,7 +1,7 @@
 ## @file
 #  FDF file of Morello SoC platform
 #
-#  Copyright (c) 2021-2022, ARM Limited. All rights reserved.<BR>
+#  Copyright (c) 2021 - 2022, ARM Limited. All rights reserved.<BR>
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 ##
@@ -114,6 +114,8 @@ READ_LOCK_STATUS   = TRUE
   INF ArmPkg/Drivers/ArmGic/ArmGicDxe.inf
   INF ArmPkg/Drivers/GenericWatchdogDxe/GenericWatchdogDxe.inf
   INF ArmPkg/Drivers/TimerDxe/TimerDxe.inf
+
+  INF Platform/ARM/Morello/Drivers/CadenceQspiDxe/CadenceQspiDxe.inf
 
   INF Platform/ARM/Drivers/BootMonFs/BootMonFs.inf
   INF MdeModulePkg/Universal/PCD/Dxe/Pcd.inf
