@@ -1,7 +1,7 @@
 ## @file
 #  Compoenent description file specific for Morello SoC Platform
 #
-#  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
+#  Copyright (c) 2021-2022, ARM Limited. All rights reserved.<BR>
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 ##
@@ -26,9 +26,6 @@
   SKUID_IDENTIFIER               = DEFAULT
   FLASH_DEFINITION               = Platform/ARM/Morello/MorelloPlatformSoc.fdf
   BUILD_NUMBER                   = 1
-
-  # Network definition
-  DEFINE NETWORK_ISCSI_ENABLE    = FALSE
 
 !include Platform/ARM/Morello/MorelloPlatform.dsc.inc
 !include Platform/ARM/VExpressPkg/ArmVExpress.dsc.inc
