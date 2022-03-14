@@ -40,22 +40,24 @@
   gArmMorelloTokenSpaceGuid.PcdVirtioBlkInterrupt|0x00000000|UINT32|0x00000006
 
   # PCIe
-  gArmMorelloTokenSpaceGuid.PcdPciBusMin|0|UINT32|0x00000009
-  gArmMorelloTokenSpaceGuid.PcdPciBusMax|255|UINT32|0x0000000A
-  gArmMorelloTokenSpaceGuid.PcdPciBusCount|256|UINT32|0x0000000B
-  gArmMorelloTokenSpaceGuid.PcdPciIoBase|0x0|UINT32|0x0000000C
-  gArmMorelloTokenSpaceGuid.PcdPciIoSize|0x00400000|UINT32|0x0000000D
-  gArmMorelloTokenSpaceGuid.PcdPciIoMaxBase|0x003FFFFF|UINT32|0x0000000E
-  gArmMorelloTokenSpaceGuid.PcdPciIoTranslation|0x6F000000|UINT32|0x0000000F
-  gArmMorelloTokenSpaceGuid.PcdPciMmio32Base|0x60000000|UINT32|0x00000010
-  gArmMorelloTokenSpaceGuid.PcdPciMmio32Size|0x0F000000|UINT32|0x00000011
-  gArmMorelloTokenSpaceGuid.PcdPciMmio32MaxBase|0x6EFFFFFF|UINT32|0x00000012
-  gArmMorelloTokenSpaceGuid.PcdPciMmio32Translation|0x0|UINT32|0x00000013
-  gArmMorelloTokenSpaceGuid.PcdPciMmio64Base|0x900000000|UINT64|0x00000014
-  gArmMorelloTokenSpaceGuid.PcdPciMmio64Size|0x1FC0000000|UINT64|0x00000015
-  gArmMorelloTokenSpaceGuid.PcdPciMmio64MaxBase|0x28BFFFFFFF|UINT64|0x00000016
-  gArmMorelloTokenSpaceGuid.PcdPciMmio64Translation|0x0|UINT64|0x00000017
-  gArmMorelloTokenSpaceGuid.PcdPciExpressBaseAddress|0x28C0000000|UINT64|0x00000018
+  gArmMorelloTokenSpaceGuid.PcdPciBusMin|0|UINT32|0x00000007
+  gArmMorelloTokenSpaceGuid.PcdPciBusMax|255|UINT32|0x00000008
+  gArmMorelloTokenSpaceGuid.PcdPciBusCount|256|UINT32|0x00000009
+  gArmMorelloTokenSpaceGuid.PcdPciIoBase|0x0|UINT32|0x0000000A
+  gArmMorelloTokenSpaceGuid.PcdPciIoSize|0x00400000|UINT32|0x0000000B
+  gArmMorelloTokenSpaceGuid.PcdPciIoMaxBase|0x003FFFFF|UINT32|0x0000000C
+  gArmMorelloTokenSpaceGuid.PcdPciIoTranslation|0x6F000000|UINT32|0x0000000D
+  gArmMorelloTokenSpaceGuid.PcdPciMmio32Base|0x60000000|UINT32|0x0000000E
+  gArmMorelloTokenSpaceGuid.PcdPciMmio32Size|0x0F000000|UINT32|0x0000000F
+  gArmMorelloTokenSpaceGuid.PcdPciMmio32MaxBase|0x6EFFFFFF|UINT32|0x00000010
+  gArmMorelloTokenSpaceGuid.PcdPciMmio32Translation|0x0|UINT32|0x00000011
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64Base|0x900000000|UINT64|0x00000012
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64Size|0x1FC0000000|UINT64|0x00000013
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64MaxBase|0x28BFFFFFFF|UINT64|0x00000014
+  gArmMorelloTokenSpaceGuid.PcdPciMmio64Translation|0x0|UINT64|0x00000015
+  gArmMorelloTokenSpaceGuid.PcdPciExpressBaseAddress|0x28C0000000|UINT64|0x00000016
+  gArmMorelloTokenSpaceGuid.PcdPciConfigurationSpaceSize|0x10000000|UINT64|0x00000017
+  gArmMorelloTokenSpaceGuid.PcdPciConfigurationSpaceLimit|0x28CFFFFFFF|UINT64|0x00000018
 
   # CCIX
   gArmMorelloTokenSpaceGuid.PcdCcixBusMin|0|UINT32|0x0000019
@@ -74,19 +76,21 @@
   gArmMorelloTokenSpaceGuid.PcdCcixMmio64MaxBase|0x4FBFFFFFFF|UINT64|0x00000026
   gArmMorelloTokenSpaceGuid.PcdCcixMmio64Translation|0x0|UINT64|0x00000027
   gArmMorelloTokenSpaceGuid.PcdCcixExpressBaseAddress|0x4FC0000000|UINT64|0x0000028
+  gArmMorelloTokenSpaceGuid.PcdCcixConfigurationSpaceSize|0x10000000|UINT64|0x00000029
+  gArmMorelloTokenSpaceGuid.PcdCcixConfigurationSpaceLimit|0x4FCFFFFFFF|UINT64|0x0000002A
 
   # Virtio Net device
-  gArmMorelloTokenSpaceGuid.PcdVirtioNetBaseAddress|0x00000000|UINT32|0x00000029
-  gArmMorelloTokenSpaceGuid.PcdVirtioNetSize|0x00000000|UINT32|0x0000002A
-  gArmMorelloTokenSpaceGuid.PcdVirtioNetInterrupt|0x00000000|UINT32|0x0000002B
+  gArmMorelloTokenSpaceGuid.PcdVirtioNetBaseAddress|0x00000000|UINT32|0x0000002B
+  gArmMorelloTokenSpaceGuid.PcdVirtioNetSize|0x00000000|UINT32|0x0000002C
+  gArmMorelloTokenSpaceGuid.PcdVirtioNetInterrupt|0x00000000|UINT32|0x0000002D
 
   # Base address of Cadence QSPI controller configuration registers
-  gArmMorelloTokenSpaceGuid.PcdCadenceQspiDxeRegBaseAddress|0x1C050000|UINT32|0x0000002D
+  gArmMorelloTokenSpaceGuid.PcdCadenceQspiDxeRegBaseAddress|0x1C050000|UINT32|0x0000002E
 
 [PcdsFeatureFlag.common]
-  gArmMorelloTokenSpaceGuid.PcdRamDiskSupported|FALSE|BOOLEAN|0x00000007
-  gArmMorelloTokenSpaceGuid.PcdVirtioBlkSupported|FALSE|BOOLEAN|0x00000008
-  gArmMorelloTokenSpaceGuid.PcdVirtioNetSupported|FALSE|BOOLEAN|0x0000002C
+  gArmMorelloTokenSpaceGuid.PcdRamDiskSupported|FALSE|BOOLEAN|0x0000002F
+  gArmMorelloTokenSpaceGuid.PcdVirtioBlkSupported|FALSE|BOOLEAN|0x00000030
+  gArmMorelloTokenSpaceGuid.PcdVirtioNetSupported|FALSE|BOOLEAN|0x00000031
 
 [Ppis]
   gNtFwConfigDtInfoPpiGuid =  { 0x8E289A83, 0x44E1, 0x41CF, { 0xA7, 0x41, 0x83, 0x80, 0x89, 0x23, 0x43, 0xA3 } }
