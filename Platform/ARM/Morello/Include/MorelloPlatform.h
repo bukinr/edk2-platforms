@@ -38,7 +38,7 @@
 
 // AXI Expansion peripherals
 #define MORELLO_EXP_PERIPH_BASE                0x1C000000
-#define MORELLO_EXP_PERIPH_BASE_SZ             0x1300000
+#define MORELLO_EXP_PERIPH_SZ                  0x1300000
 
 // AP QSPI flash device
 #define MORELLO_AP_QSPI_AHB_BASE               0x1A000000
