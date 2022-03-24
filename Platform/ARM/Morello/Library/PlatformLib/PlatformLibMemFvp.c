@@ -227,7 +227,7 @@ ArmPlatformGetVirtualMemoryMap (
   // Expansion Peripherals
   VirtualMemoryTable[++Index].PhysicalBase  = MORELLO_EXP_PERIPH_BASE;
   VirtualMemoryTable[Index].VirtualBase     = MORELLO_EXP_PERIPH_BASE;
-  VirtualMemoryTable[Index].Length          = MORELLO_EXP_PERIPH_BASE_SZ;
+  VirtualMemoryTable[Index].Length          = MORELLO_EXP_PERIPH_SZ;
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
   LOG_MEM ("Expansion Peripherals           : 0x%016lx - 0x%016lx [ 0x%016lx ] { %a }\n");
 

@@ -1,7 +1,7 @@
 ## @file
 #  Describes the entire platform configuration.
 #
-#  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
+#  Copyright (c) 2021 - 2022, ARM Limited. All rights reserved.<BR>
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 ##
@@ -79,6 +79,9 @@
   gArmMorelloTokenSpaceGuid.PcdVirtioNetBaseAddress|0x00000000|UINT32|0x00000029
   gArmMorelloTokenSpaceGuid.PcdVirtioNetSize|0x00000000|UINT32|0x0000002A
   gArmMorelloTokenSpaceGuid.PcdVirtioNetInterrupt|0x00000000|UINT32|0x0000002B
+
+  # Base address of Cadence QSPI controller configuration registers
+  gArmMorelloTokenSpaceGuid.PcdCadenceQspiDxeRegBaseAddress|0x1C050000|UINT32|0x0000002D
 
 [PcdsFeatureFlag.common]
   gArmMorelloTokenSpaceGuid.PcdRamDiskSupported|FALSE|BOOLEAN|0x00000007

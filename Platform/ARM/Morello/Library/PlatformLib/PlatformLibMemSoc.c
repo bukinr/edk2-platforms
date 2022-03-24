@@ -1,6 +1,6 @@
 /** @file
 
-  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
+  Copyright (c) 2021 - 2022, ARM Limited. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
@@ -14,7 +14,7 @@
 #include <MorelloPlatform.h>
 
 // The total number of descriptors, including the final "end-of-table" descriptor.
-#define MAX_VIRTUAL_MEMORY_MAP_DESCRIPTORS  15
+#define MAX_VIRTUAL_MEMORY_MAP_DESCRIPTORS  16
 
 #if !defined (MDEPKG_NDEBUG)
   STATIC CONST CHAR8  *gTblAttrDesc[] = {
@@ -264,10 +264,17 @@ ArmPlatformGetVirtualMemoryMap (
     LOG_MEM ("DDR Secondary                   : 0x%016lx - 0x%016lx [ 0x%016lx ] { %a }\n");
   }
 
+  // AP QSPI flash device
+  VirtualMemoryTable[++Index].PhysicalBase = MORELLO_AP_QSPI_AHB_BASE;
+  VirtualMemoryTable[Index].VirtualBase    = MORELLO_AP_QSPI_AHB_BASE;
+  VirtualMemoryTable[Index].Length     = MORELLO_AP_QSPI_AHB_SZ;
+  VirtualMemoryTable[Index].Attributes = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
+  LOG_MEM ("AP QSPI flash device            : 0x%016lx - 0x%016lx [ 0x%016lx ] { %a }\n");
+
   // Expansion Peripherals
   VirtualMemoryTable[++Index].PhysicalBase = MORELLO_EXP_PERIPH_BASE;
   VirtualMemoryTable[Index].VirtualBase    = MORELLO_EXP_PERIPH_BASE;
-  VirtualMemoryTable[Index].Length     = MORELLO_EXP_PERIPH_BASE_SZ;
+  VirtualMemoryTable[Index].Length     = MORELLO_EXP_PERIPH_SZ;
   VirtualMemoryTable[Index].Attributes = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
   LOG_MEM ("Expansion Peripherals           : 0x%016lx - 0x%016lx [ 0x%016lx ] { %a }\n");
 
