@@ -1,6 +1,6 @@
 /** @file
 
-  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
+  Copyright (c) 2021 - 2022, ARM Limited. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
@@ -14,7 +14,7 @@
 #include <MorelloPlatform.h>
 
 // The total number of descriptors, including the final "end-of-table" descriptor.
-#define MAX_VIRTUAL_MEMORY_MAP_DESCRIPTORS  12
+#define MAX_VIRTUAL_MEMORY_MAP_DESCRIPTORS  17
 
 #if !defined(MDEPKG_NDEBUG)
 STATIC CONST CHAR8 *gTblAttrDesc[] = {
@@ -180,6 +180,27 @@ ArmPlatformGetVirtualMemoryMap (
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
   LOG_MEM ("Generic Watchdog                : 0x%016lx - 0x%016lx [ 0x%016lx ] { %a }\n");
 
+  // SubSystem Peripherals - REFCLK CNTRead
+  VirtualMemoryTable[++Index].PhysicalBase  = MORELLO_REFCLK_CNT_BASE;
+  VirtualMemoryTable[Index].VirtualBase     = MORELLO_REFCLK_CNT_BASE;
+  VirtualMemoryTable[Index].Length          = MORELLO_REFCLK_CNT_SZ;
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
+  LOG_MEM ("REFCLK CNTRead                  : 0x%016lx - 0x%016lx [ 0x%016lx ] { %a }\n");
+
+  // SubSystem Peripherals - AP_REFCLK CNTCTL
+  VirtualMemoryTable[++Index].PhysicalBase  = MORELLO_AP_REFCLK_CNT_BASE;
+  VirtualMemoryTable[Index].VirtualBase     = MORELLO_AP_REFCLK_CNT_BASE;
+  VirtualMemoryTable[Index].Length          = MORELLO_AP_REFCLK_CNT_SZ;
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
+  LOG_MEM ("AP_REFCLK CNTCL                 : 0x%016lx - 0x%016lx [ 0x%016lx ] { %a }\n");
+
+  // SubSystem Peripherals - AP_REFCLK_NS CNTCTL
+  VirtualMemoryTable[++Index].PhysicalBase  = MORELLO_AP_REFCLK_NS_CNT_BASE;
+  VirtualMemoryTable[Index].VirtualBase     = MORELLO_AP_REFCLK_NS_CNT_BASE;
+  VirtualMemoryTable[Index].Length          = MORELLO_AP_REFCLK_NS_CNT_SZ;
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
+  LOG_MEM ("AP_REFCLK_NS CNTCTL             : 0x%016lx - 0x%016lx [ 0x%016lx ] { %a }\n");
+
   // SubSystem Peripherals - GIC-600
   VirtualMemoryTable[++Index].PhysicalBase  = MORELLO_GIC_BASE;
   VirtualMemoryTable[Index].VirtualBase     = MORELLO_GIC_BASE;
@@ -187,12 +208,26 @@ ArmPlatformGetVirtualMemoryMap (
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
   LOG_MEM ("GIC-600                         : 0x%016lx - 0x%016lx [ 0x%016lx ] { %a }\n");
 
+  // SubSystem Peripherals - GICITS-600
+  VirtualMemoryTable[++Index].PhysicalBase  = MORELLO_GICITS_BASE;
+  VirtualMemoryTable[Index].VirtualBase     = MORELLO_GICITS_BASE;
+  VirtualMemoryTable[Index].Length          = MORELLO_GICITS_SZ;
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
+  LOG_MEM ("GICITS-600                      : 0x%016lx - 0x%016lx [ 0x%016lx ] { %a }\n");
+
   // SubSystem Peripherals - GICR-600
   VirtualMemoryTable[++Index].PhysicalBase  = MORELLO_GICR_BASE;
   VirtualMemoryTable[Index].VirtualBase     = MORELLO_GICR_BASE;
   VirtualMemoryTable[Index].Length          = MORELLO_GICR_SZ;
   VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
   LOG_MEM ("GICR-600                        : 0x%016lx - 0x%016lx [ 0x%016lx ] { %a }\n");
+
+  // SubSystem Peripherals - SMMU
+  VirtualMemoryTable[++Index].PhysicalBase  = MORELLO_SMMU_BASE;
+  VirtualMemoryTable[Index].VirtualBase     = MORELLO_SMMU_BASE;
+  VirtualMemoryTable[Index].Length          = MORELLO_SMMU_SZ;
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
+  LOG_MEM ("SMMU                            : 0x%016lx - 0x%016lx [ 0x%016lx ] { %a }\n");
 
   // SubSystem non-secure SRAM
   VirtualMemoryTable[++Index].PhysicalBase  = MORELLO_NON_SECURE_SRAM_BASE;
