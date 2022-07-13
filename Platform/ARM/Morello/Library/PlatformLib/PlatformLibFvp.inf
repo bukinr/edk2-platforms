@@ -1,7 +1,7 @@
 ## @file
 #  Platform Library for Morello FVP platform.
 #
-#  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
+#  Copyright (c) 2021 - 2022, ARM Limited. All rights reserved.<BR>
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -34,6 +34,8 @@
   AArch64/Helper.S | GCC
 
 [FixedPcd]
+  gArmMorelloTokenSpaceGuid.PcdArmMaliDxxBase
+  gArmMorelloTokenSpaceGuid.PcdArmMaliDxxSize
   gArmMorelloTokenSpaceGuid.PcdDramBlock2Base
   gArmMorelloTokenSpaceGuid.PcdPciBusMax
   gArmMorelloTokenSpaceGuid.PcdPciBusMin
@@ -43,6 +45,8 @@
   gArmMorelloTokenSpaceGuid.PcdPciMmio32Size
   gArmMorelloTokenSpaceGuid.PcdPciMmio64Base
   gArmMorelloTokenSpaceGuid.PcdPciMmio64Size
+  gArmMorelloTokenSpaceGuid.PcdPlatformGopBufferBase
+  gArmMorelloTokenSpaceGuid.PcdPlatformGopBufferSize
 
   gArmTokenSpaceGuid.PcdArmPrimaryCore
   gArmTokenSpaceGuid.PcdArmPrimaryCoreMask

@@ -78,14 +78,18 @@
 [PcdsFixedAtBuild.common]
   gArmTokenSpaceGuid.PcdVFPEnabled|1
 
+  # Size == 0 means to disable the GOP
+  gArmMorelloTokenSpaceGuid.PcdPlatformGopBufferSize|0x1000000
+  gArmMorelloTokenSpaceGuid.PcdPlatformGopBufferBase|gArmTokenSpaceGuid.PcdSystemMemoryBase + gArmTokenSpaceGuid.PcdSystemMemorySize
+
   # Stacks for MPCores in Normal World
   gArmPlatformTokenSpaceGuid.PcdCPUCoresStackBase|0x80000000
   gArmPlatformTokenSpaceGuid.PcdCPUCorePrimaryStackSize|0x40000
   gArmPlatformTokenSpaceGuid.PcdCPUCoreSecondaryStackSize|0x0
 
-  # System Memory (2GB - 16MB)
+  # System Memory (2GB - 16MB - The GOP frame-buffer)
   gArmTokenSpaceGuid.PcdSystemMemoryBase|0x80000000
-  gArmTokenSpaceGuid.PcdSystemMemorySize|0x7F000000
+  gArmTokenSpaceGuid.PcdSystemMemorySize|0x7F000000 - gArmMorelloTokenSpaceGuid.PcdPlatformGopBufferSize
 
   # Secondary DDR memory
   gArmMorelloTokenSpaceGuid.PcdDramBlock2Base|0x8080000000

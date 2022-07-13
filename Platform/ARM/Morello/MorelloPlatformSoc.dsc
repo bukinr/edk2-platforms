@@ -35,6 +35,10 @@
 # include common/basic libraries from MdePkg.
 !include MdePkg/MdeLibs.dsc.inc
 
+[PcdsPatchableInModule]
+  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution|1920
+  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoVerticalResolution|1080
+
 [LibraryClasses.common]
   # Platform Library
   ArmPlatformLib|Platform/ARM/Morello/Library/PlatformLib/PlatformLibSoc.inf
@@ -65,6 +69,14 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableBase|0x1AF00000
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableSize|0x00020000
 
+  # Hdmi I2C bus
+  gArmMorelloTokenSpaceGuid.PcdHdmiI2cBusCadanceControllerInputClk|85000000
+  gArmMorelloTokenSpaceGuid.PcdHdmiI2cBusCadanceControllerIoBase|0x1C0F0000
+  gArmMorelloTokenSpaceGuid.PcdHdmiI2cBusCadanceControllerIoSize|0x00010000
+  gArmMorelloTokenSpaceGuid.PcdHdmiI2cBusDeviceAddrTda19988Cec|0x34
+  gArmMorelloTokenSpaceGuid.PcdHdmiI2cBusDeviceAddrTda19988Hdmi|0x70
+  gArmMorelloTokenSpaceGuid.PcdHdmiI2cBusSpeed|400000
+
 [Components.common]
   # Platform driver
   Platform/ARM/Morello/Drivers/PlatformDxe/PlatformDxeSoc.inf
@@ -74,6 +86,9 @@
       <LibraryClasses>
       NorFlashPlatformLib|Platform/ARM/Morello/Library/NorFlashLib/NorFlashLib.inf
   }
+
+  # I2C
+  MdeModulePkg/Bus/I2c/I2cDxe/I2cDxe.inf
 
   # Usb Support
   MdeModulePkg/Bus/Pci/UhciDxe/UhciDxe.inf
@@ -94,3 +109,12 @@
       BaseMemoryLib|MdePkg/Library/BaseMemoryLib/BaseMemoryLib.inf
   }
   MdeModulePkg/Universal/FaultTolerantWriteDxe/FaultTolerantWriteDxe.inf
+
+  # Platform GOP
+  ArmPlatformPkg/Drivers/LcdGraphicsOutputDxe/LcdGraphicsOutputDxe.inf {
+    <LibraryClasses>
+      LcdHwLib|Platform/ARM/Morello/Library/LcdHwMaliDxxLib/LcdHwMaliDxxLib.inf
+      LcdPlatformLib|Platform/ARM/Morello/Library/LcdPlatformLibMorello/LcdPlatformLibMorelloSoc.inf
+  }
+  Platform/ARM/Morello/Drivers/CadenceI2cDxe/CadenceI2cDxe.inf
+  Platform/ARM/Morello/Drivers/Tda19988Dxe/Tda19988Dxe.inf
