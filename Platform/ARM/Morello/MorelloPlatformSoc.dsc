@@ -1,7 +1,7 @@
 ## @file
 #  Compoenent description file specific for Morello SoC Platform
 #
-#  Copyright (c) 2021 - 2022, ARM Limited. All rights reserved.<BR>
+#  Copyright (c) 2021 - 2023, ARM Limited. All rights reserved.<BR>
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 ##
@@ -86,6 +86,9 @@
       <LibraryClasses>
       NorFlashPlatformLib|Platform/ARM/Morello/Library/NorFlashLib/NorFlashLib.inf
   }
+
+  # PEI Phase modules
+  Platform/ARM/Morello/Drivers/MorelloNtFwConfigPei/Soc.inf
 
   # I2C
   MdeModulePkg/Bus/I2c/I2cDxe/I2cDxe.inf

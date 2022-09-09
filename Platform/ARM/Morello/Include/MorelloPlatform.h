@@ -1,6 +1,6 @@
 /** @file
 
-  Copyright (c) 2021 - 2022, ARM Limited. All rights reserved.<BR>
+  Copyright (c) 2021 - 2023, ARM Limited. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
@@ -87,9 +87,7 @@ typedef struct {
 
 #pragma pack()
 
-// NT_FW_CONFIG DT structure
 typedef struct {
-  UINT64                  NtFwConfigDtAddr;
-} MORELLO_NT_FW_CONFIG_INFO_PPI;
-
+  CONST VOID    *NtFwConfig;
+} MORELLO_EL3_FW_HANDOFF_PARAM_PPI;
 #endif //MORELLO_PLATFORM_H_
