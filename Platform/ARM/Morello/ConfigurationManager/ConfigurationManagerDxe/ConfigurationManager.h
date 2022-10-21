@@ -1,6 +1,6 @@
 /** @file
 
-  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
+  Copyright (c) 2021 - 2023, ARM Limited. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -48,7 +48,7 @@
           ) {                                                            \
     CPUInterfaceNumber,       /* UINT32  CPUInterfaceNumber           */ \
     CPUInterfaceNumber,       /* UINT32  AcpiProcessorUid             */ \
-    EFI_ACPI_6_2_GIC_ENABLED, /* UINT32  Flags                        */ \
+    EFI_ACPI_6_4_GIC_ENABLED, /* UINT32  Flags                        */ \
     0,                        /* UINT32  ParkingProtocolVersion       */ \
     PmuIrq,                   /* UINT32  PerformanceInterruptGsiv     */ \
     0,                        /* UINT64  ParkedAddress                */ \
@@ -64,7 +64,7 @@
     SpeIrq,                   /* UINT16  SpeOverflowInterrupt         */ \
     ProximityDomain,          /* UINT32  ProximityDomain              */ \
     ClockDomain,              /* UINT32  ClockDomain                  */ \
-    EFI_ACPI_6_3_GICC_ENABLED,/* UINT32  Flags                        */ \
+    EFI_ACPI_6_4_GICC_ENABLED,/* UINT32  Flags                        */ \
     }
 
 /** A helper macro for populating the Processor Hierarchy Node flags
@@ -195,7 +195,7 @@ HandleCmObjectRefByToken (
     - core L2 cache
     - slc unified cache
 */
-#define PLAT_CACHE_COUNT                5
+#define PLAT_CACHE_COUNT                15
 
 /** The number of resources private to the cluster
     - L3 cache
@@ -266,13 +266,25 @@ typedef struct CommonPlatformRepositoryInfo {
   // Cache information
   CM_ARM_CACHE_INFO                     CacheInfo[PLAT_CACHE_COUNT];
 
-  // Cluster private resources
-  CM_ARM_OBJ_REF                        ClusterResources[CLUSTER_RESOURCE_COUNT];
+  // Cluster0 private resources
+  CM_ARM_OBJ_REF                        Cluster0Resources[CLUSTER_RESOURCE_COUNT];
 
-  // Core private resources
-  CM_ARM_OBJ_REF                        CoreResources[CORE_RESOURCE_COUNT];
+  // Cluster1 private resources
+  CM_ARM_OBJ_REF                        Cluster1Resources[CLUSTER_RESOURCE_COUNT];
 
-  // SoC Resources
+  // Core0 private resources
+  CM_ARM_OBJ_REF                        Core0Resources[CORE_RESOURCE_COUNT];
+
+  // Core1 private resources
+  CM_ARM_OBJ_REF                        Core1Resources[CORE_RESOURCE_COUNT];
+
+  // Core2 private resources
+  CM_ARM_OBJ_REF                        Core2Resources[CORE_RESOURCE_COUNT];
+
+  // Core3 private resources
+  CM_ARM_OBJ_REF                        Core3Resources[CORE_RESOURCE_COUNT];
+
+  // SoC private resources
   CM_ARM_OBJ_REF                        SocResources[SOC_RESOURCE_COUNT];
 
 } EDKII_COMMON_PLATFORM_REPOSITORY_INFO;
