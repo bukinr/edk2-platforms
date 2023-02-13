@@ -65,6 +65,12 @@
 // Platform information structure base address
 #define MORELLO_PLAT_INFO_STRUCT_BASE          MORELLO_NON_SECURE_SRAM_BASE
 
+// morello silicon revision
+#define MORELLO_SILICON_REVISION_R_MASK        0xFFFF0000
+#define MORELLO_SILICON_REVISION_P_MASK        0x0000FFFF
+#define MORELLO_SILICON_REVISION_R_POS         16
+#define MORELLO_SILICON_REVISION_P_POS         0
+
 /*
  * Platform information structure stored in Non-secure SRAM. Platform
  * information are passed from the trusted firmware with the below structure
