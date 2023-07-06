@@ -1,7 +1,7 @@
 /** @file
   Unicode collation routines
 
-  Copyright (c) 2021 Pedro Falcato All rights reserved.
+  Copyright (c) 2021 - 2023 Pedro Falcato All rights reserved.
   Copyright (c) 2005 - 2017, Intel Corporation. All rights reserved.
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
@@ -9,6 +9,7 @@
 
 #include <Uefi.h>
 
+#include <Library/DebugLib.h>
 #include <Library/UefiLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/MemoryAllocationLib.h>
@@ -22,6 +23,21 @@ STATIC EFI_UNICODE_COLLATION_PROTOCOL  *gUnicodeCollationInterface = NULL;
  * they're doing.
  * PS: Maybe all this code could be put in a library? It looks heavily shareable.
 **/
+
+/**
+   Check if unicode collation is initialized
+
+   @retval TRUE if Ext4InitialiseUnicodeCollation() was already called successfully
+   @retval FALSE if Ext4InitialiseUnicodeCollation() was not yet called successfully
+**/
+STATIC
+BOOLEAN
+Ext4IsCollationInitialized (
+  VOID
+  )
+{
+  return gUnicodeCollationInterface != NULL;
+}
 
 /**
   Worker function to initialize Unicode Collation support.
@@ -58,7 +74,7 @@ Ext4InitialiseUnicodeCollationInternal (
   CHAR8                           *BestLanguage;
 
   Iso639Language = (BOOLEAN)(ProtocolGuid == &gEfiUnicodeCollationProtocolGuid);
-  RetStatus = EFI_UNSUPPORTED;
+  RetStatus      = EFI_UNSUPPORTED;
   GetEfiGlobalVariable2 (VariableName, (VOID **)&Language, NULL);
 
   Status = gBS->LocateHandleBuffer (
@@ -96,7 +112,7 @@ Ext4InitialiseUnicodeCollationInternal (
     if (BestLanguage != NULL) {
       FreePool (BestLanguage);
       gUnicodeCollationInterface = Uci;
-      RetStatus = EFI_SUCCESS;
+      RetStatus                  = EFI_SUCCESS;
       break;
     }
   }
@@ -126,6 +142,11 @@ Ext4InitialiseUnicodeCollation (
   EFI_STATUS  Status;
 
   Status = EFI_UNSUPPORTED;
+
+  // If already done, just return success.
+  if (Ext4IsCollationInitialized ()) {
+    return EFI_SUCCESS;
+  }
 
   //
   // First try to use RFC 4646 Unicode Collation 2 Protocol.
@@ -169,5 +190,6 @@ Ext4StrCmpInsensitive (
   IN CHAR16  *Str2
   )
 {
+  ASSERT (gUnicodeCollationInterface != NULL);
   return gUnicodeCollationInterface->StriColl (gUnicodeCollationInterface, Str1, Str2);
 }

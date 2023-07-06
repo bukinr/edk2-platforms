@@ -1,7 +1,7 @@
 /** @file
-  RISC-V Exception Handler library implementition.
+  RISC-V Exception Handler library implementation.
 
-  Copyright (c) 2016 - 2019, Hewlett Packard Enterprise Development LP. All rights reserved.<BR>
+  Copyright (c) 2016 - 2022, Hewlett Packard Enterprise Development LP. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -17,7 +17,7 @@
 
 #include "CpuExceptionHandlerLib.h"
 
-STATIC EFI_CPU_INTERRUPT_HANDLER mInterruptHandlers[2];
+STATIC EFI_CPU_INTERRUPT_HANDLER  mInterruptHandlers[2];
 
 /**
   Initializes all CPU exceptions entries and provides the default exception handlers.
@@ -38,32 +38,7 @@ STATIC EFI_CPU_INTERRUPT_HANDLER mInterruptHandlers[2];
 EFI_STATUS
 EFIAPI
 InitializeCpuExceptionHandlers (
-  IN EFI_VECTOR_HANDOFF_INFO       *VectorInfo OPTIONAL
-  )
-{
-  return EFI_SUCCESS;
-}
-
-/**
-  Initializes all CPU interrupt/exceptions entries and provides the default interrupt/exception handlers.
-
-  Caller should try to get an array of interrupt and/or exception vectors that are in use and need to
-  persist by EFI_VECTOR_HANDOFF_INFO defined in PI 1.3 specification.
-  If caller cannot get reserved vector list or it does not exists, set VectorInfo to NULL.
-  If VectorInfo is not NULL, the exception vectors will be initialized per vector attribute accordingly.
-
-  @param[in]  VectorInfo    Pointer to reserved vector list.
-
-  @retval EFI_SUCCESS           All CPU interrupt/exception entries have been successfully initialized
-                                with default interrupt/exception handlers.
-  @retval EFI_INVALID_PARAMETER VectorInfo includes the invalid content if VectorInfo is not NULL.
-  @retval EFI_UNSUPPORTED       This function is not supported.
-
-**/
-EFI_STATUS
-EFIAPI
-InitializeCpuInterruptHandlers (
-  IN EFI_VECTOR_HANDOFF_INFO       *VectorInfo OPTIONAL
+  IN EFI_VECTOR_HANDOFF_INFO  *VectorInfo OPTIONAL
   )
 {
   return EFI_SUCCESS;
@@ -95,15 +70,15 @@ InitializeCpuInterruptHandlers (
 EFI_STATUS
 EFIAPI
 RegisterCpuInterruptHandler (
-  IN EFI_EXCEPTION_TYPE            InterruptType,
-  IN EFI_CPU_INTERRUPT_HANDLER     InterruptHandler
+  IN EFI_EXCEPTION_TYPE         InterruptType,
+  IN EFI_CPU_INTERRUPT_HANDLER  InterruptHandler
   )
 {
-
   DEBUG ((DEBUG_INFO, "%a: Type:%x Handler: %x\n", __FUNCTION__, InterruptType, InterruptHandler));
   mInterruptHandlers[InterruptType] = InterruptHandler;
   return EFI_SUCCESS;
 }
+
 /**
   Machine mode trap handler.
 
@@ -112,59 +87,26 @@ RegisterCpuInterruptHandler (
 **/
 VOID
 RiscVSupervisorModeTrapHandler (
-  SMODE_TRAP_REGISTERS *SmodeTrapReg
+  SMODE_TRAP_REGISTERS  *SmodeTrapReg
   )
 {
-  UINTN SCause;
-  EFI_SYSTEM_CONTEXT RiscVSystemContext;
+  UINTN               SCause;
+  EFI_SYSTEM_CONTEXT  RiscVSystemContext;
 
   RiscVSystemContext.SystemContextRiscV64 = (EFI_SYSTEM_CONTEXT_RISCV64 *)SmodeTrapReg;
   //
   // Check scasue register.
   //
-  SCause = (UINTN)csr_read(RISCV_CSR_SUPERVISOR_SCAUSE);
+  SCause = (UINTN)csr_read (RISCV_CSR_SUPERVISOR_SCAUSE);
   if ((SCause & (1UL << (sizeof (UINTN) * 8- 1))) != 0) {
     //
     // This is interrupt event.
     //
     SCause &= ~(1UL << (sizeof (UINTN) * 8- 1));
-    if((SCause == SCAUSE_SUPERVISOR_TIMER_INT) && (mInterruptHandlers[EXCEPT_RISCV_TIMER_INT] != NULL)) {
+    if ((SCause == SCAUSE_SUPERVISOR_TIMER_INT) && (mInterruptHandlers[EXCEPT_RISCV_TIMER_INT] != NULL)) {
       mInterruptHandlers[EXCEPT_RISCV_TIMER_INT](EXCEPT_RISCV_TIMER_INT, RiscVSystemContext);
     }
   }
-}
-
-/**
-  Initializes all CPU exceptions entries with optional extra initializations.
-
-  By default, this method should include all functionalities implemented by
-  InitializeCpuExceptionHandlers(), plus extra initialization works, if any.
-  This could be done by calling InitializeCpuExceptionHandlers() directly
-  in this method besides the extra works.
-
-  InitData is optional and its use and content are processor arch dependent.
-  The typical usage of it is to convey resources which have to be reserved
-  elsewhere and are necessary for the extra initializations of exception.
-
-  @param[in]  VectorInfo    Pointer to reserved vector list.
-  @param[in]  InitData      Pointer to data optional for extra initializations
-                            of exception.
-
-  @retval EFI_SUCCESS             The exceptions have been successfully
-                                  initialized.
-  @retval EFI_INVALID_PARAMETER   VectorInfo or InitData contains invalid
-                                  content.
-  @retval EFI_UNSUPPORTED         This function is not supported.
-
-**/
-EFI_STATUS
-EFIAPI
-InitializeCpuExceptionHandlersEx (
-  IN EFI_VECTOR_HANDOFF_INFO            *VectorInfo OPTIONAL,
-  IN CPU_EXCEPTION_INIT_DATA            *InitData OPTIONAL
-  )
-{
-  return InitializeCpuExceptionHandlers (VectorInfo);
 }
 
 /**
@@ -186,9 +128,33 @@ CpuExceptionHandlerLibConstructor (
   )
 {
   //
-  // Set Superviosr mode trap handler.
+  // Set Supervisor mode trap handler.
   //
-  csr_write(CSR_STVEC, SupervisorModeTrap);
+  csr_write (CSR_STVEC, SupervisorModeTrap);
 
+  return EFI_SUCCESS;
+}
+
+/**
+  Setup separate stacks for certain exception handlers.
+  If the input Buffer and BufferSize are both NULL, use global variable if possible.
+
+  @param[in]       Buffer        Point to buffer used to separate exception stack.
+  @param[in, out]  BufferSize    On input, it indicates the byte size of Buffer.
+                                 If the size is not enough, the return status will
+                                 be EFI_BUFFER_TOO_SMALL, and output BufferSize
+                                 will be the size it needs.
+
+  @retval EFI_SUCCESS             The stacks are assigned successfully.
+  @retval EFI_UNSUPPORTED         This function is not supported.
+  @retval EFI_BUFFER_TOO_SMALL    This BufferSize is too small.
+**/
+EFI_STATUS
+EFIAPI
+InitializeSeparateExceptionStacks (
+  IN     VOID   *Buffer,
+  IN OUT UINTN  *BufferSize
+  )
+{
   return EFI_SUCCESS;
 }

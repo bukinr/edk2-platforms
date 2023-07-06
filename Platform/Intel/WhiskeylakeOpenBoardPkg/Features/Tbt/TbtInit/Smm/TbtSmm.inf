@@ -41,6 +41,7 @@
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
   MinPlatformPkg/MinPlatformPkg.dec
+  IntelSiliconPkg/IntelSiliconPkg.dec
   WhiskeylakeOpenBoardPkg/OpenBoardPkg.dec
   CoffeelakeSiliconPkg/SiPkg.dec
 
@@ -49,7 +50,7 @@
   gMinPlatformPkgTokenSpaceGuid.PcdPciExpressRegionLength      ## CONSUMES
 
 [FixedPcd]
-  gSiPkgTokenSpaceGuid.PcdAcpiBaseAddress       ## CONSUMES
+  gIntelSiliconPkgTokenSpaceGuid.PcdAcpiBaseAddress            ## CONSUMES
 
 [Sources]
   TbtSmiHandler.h
@@ -77,4 +78,3 @@
   gEfiVariableWriteArchProtocolGuid   AND
   gEfiVariableArchProtocolGuid        AND
   gEfiSmmVariableProtocolGuid
-

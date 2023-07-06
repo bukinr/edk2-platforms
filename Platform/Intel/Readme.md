@@ -92,14 +92,13 @@ A UEFI firmware implementation using MinPlatformPkg is constructed using the fol
 
 *Note: RVP = Reference and Validation Platform*
 
-#### Microsoft
+#### Open Compute Project (OCP)
 
 | Machine Name                          | Supported Chipsets                         | BoardPkg                     | Board Name         |
 ----------------------------------------|--------------------------------------------|------------------------------|--------------------|
+| Aowanda                               | IceLake-SP (Xeon Scalable)                 | WhitleyOpenBoardPkg          | Aowanda            |
+| Junction City                         | IceLake-SP (Xeon Scalable)                 | WhitleyOpenBoardPkg          | JunctionCity       |
 | Mt. Olympus                           | Purley                                     | PurleyOpenBoardPkg           | BoardMtOlympus     |
-
-| Machine Name                          | Supported Chipsets                         | BoardPkg                     | Board Name         |
-----------------------------------------|--------------------------------------------|------------------------------|--------------------|
 | TiogaPass                             | Purley                                     | PurleyOpenBoardPkg           | BoardTiogaPass     |
 
 
@@ -262,34 +261,47 @@ return back to the minimum platform caller.
           |       |        |
           |       |        |------PurleyOpenBoardPkg
           |       |        |       |------BoardMtOlympus
-          |       |        |               |---build_config.cfg: BoardMtOlympus specific
-          |       |        |               |                     build settings, environment variables.
-          |       |        |               |---build_board.py: Optional board-specific pre-build,
-          |       |        |                                   build, post-build and clean functions.
-          |       |        |------PurleyOpenBoardPkg
+          |       |        |       |       |---build_config.cfg: BoardMtOlympus specific
+          |       |        |       |       |                     build settings, environment variables.
+          |       |        |       |       |---build_board.py: Optional board-specific pre-build,
+          |       |        |       |                           build, post-build and clean functions.
           |       |        |       |------BoardTiogaPass
           |       |        |               |---build_config.cfg: BoardTiogaPass specific
           |       |        |               |                     build settings, environment variables.
           |       |        |               |---build_board.py: Optional board-specific pre-build,
-          |       |        |                                   build, post-build and clean functions.          
+          |       |        |                                   build, post-build and clean functions.
           |       |        |
           |       |        |------SimicsOpenBoardPkg
           |       |        |       |------BoardX58Ich10
           |       |        |               |---build_config.cfg: BoardX58Ich10 specific
           |       |        |                                     build settings, environment variables.
           |       |        |
-          |       |        |------WhiskeylakeOpenBoardPkg
+          |       |        |------WhitleyOpenBoardPkg
+          |       |        |       |------Aowanda
+          |       |        |       |       |---build_config.cfg: Aowanda  specific build
+          |       |        |       |       |                     settings environment variables.
+          |       |        |       |       |---build_board.py: Board-specific pre-build,
+          |       |        |       |                           build, post-build and clean functions.
           |       |        |       |------CooperCityRvp
           |       |        |       |       |---build_config.cfg: CooperCityRvp specific build
-          |       |        |       |                             settings environment variables.
+          |       |        |       |       |                     settings environment variables.
+          |       |        |       |       |---build_board.py: Board-specific pre-build,
+          |       |        |       |                           build, post-build and clean functions.
+          |       |        |       |------JunctionCity
+          |       |        |       |       |---build_config.cfg: CooperCityRvp specific build
+          |       |        |       |       |                     settings environment variables.
+          |       |        |       |       |---build_board.py: Board-specific pre-build,
+          |       |        |       |                           build, post-build and clean functions.
           |       |        |       |------WilsonCityRvp
           |       |        |               |---build_config.cfg: WilsonCityRvp specific build
-          |       |        |                                     settings environment variables.
+          |       |        |               |                     settings environment variables.
+          |       |        |               |---build_board.py: Board-specific pre-build,
+          |       |        |                                   build, post-build and clean functions.
           |       |        |
-          |       |        |------WhitleyOpenBoardPkg
+          |       |        |------WhiskeylakeOpenBoardPkg
           |       |        |       |------UpXtreme
-          |       |        |               |---build_config.cfg: UpXtreme specific build
-          |       |        |                                     settings environment variables.
+          |       |        |       |       |---build_config.cfg: UpXtreme specific build
+          |       |        |       |                             settings environment variables.
           |       |        |       |------WhiskeylakeURvp
           |       |        |               |---build_config.cfg: WhiskeylakeURvp specific build
           |       |        |                                     settings environment variables.
@@ -329,10 +341,10 @@ For PurleyOpenBoardPkg (TiogaPass)
 4. Type "bld" to build Purley BoardTiogaPass board UEFI firmware image, "bld release" for release build, "bld clean" to
    remove intermediate files."bld cache-produce" Generate a cache of binary files in the specified directory,
    "bld cache-consume" Consume a cache of binary files from the specified directory, BINARY_CACHE_PATH is empty,
-   used "BinCache" as default path.  
-5. Final BIOS image will be Build\PurleyOpenBoardPkg\BoardTiagoPass\DEBUG_VS2015x86\FV\PLATFORM.fd or    
+   used "BinCache" as default path.
+5. Final BIOS image will be Build\PurleyOpenBoardPkg\BoardTiagoPass\DEBUG_VS2015x86\FV\PLATFORM.fd or
    Build\PurleyOpenBoardPkg\BoardTiagoPass\RELEASE_VS2015x86\FV\PLATFORM.fd, depending on bld batch script input.
-6. This BIOS image needs to be merged with SPS FW    
+6. This BIOS image needs to be merged with SPS FW
 
 ### **Known limitations**
 
@@ -349,7 +361,7 @@ For PurleyOpenBoardPkg (TiogaPass)
 2. This firmware project does not build with the GCC compiler.
 3. The validated version of iASL compiler that can build MinPurley is 20180629. Older versions may generate ACPI build errors.
 
-**PurleyOpenBoardPkg Tioga Pass **
+**PurleyOpenBoardPkg Tioga Pass**
 1. This firmware project has only been tested on the Tioga Pass hardware.
 2. This firmware project build has only been tested using the Microsoft Visual Studio 2015 build tools.
 3. This firmware project does not build with the GCC compiler.
@@ -361,9 +373,9 @@ For PurleyOpenBoardPkg (TiogaPass)
 9. Verified Mellanox card detection during POST and OS
 10. LINUX Boot Support (PcdLinuxBootEnable needs to be enabled)
 
-1.	Follow directions on http://osresearch.net/Building/ to compile the heads kernel and initrd for qemu-system_x86_64 
-2.	Copy the following built files 
-(1) initrd.cpio.xz  to LinuxBootPkg/LinuxBinaries/initrd.cpio.xz 
+1. Follow directions on http://osresearch.net/Building/ to compile the heads kernel and initrd for qemu-system_x86_64
+2. Copy the following built files
+(1) initrd.cpio.xz  to LinuxBootPkg/LinuxBinaries/initrd.cpio.xz
 (2) bzimage to LinuxBootPkg/LinuxBinaries/linux.efi
 
 
@@ -391,6 +403,24 @@ For PurleyOpenBoardPkg (TiogaPass)
 
 **WhitleyOpenBoardPkg**
 1. This firmware project has been tested booting to UEFI shell with headless serial console
+
+**JunctionCity**
+1. This firmware project has been tested booting to UEFI shell
+2. Booted to RHEL 8.2, Ubuntu 18.04 using U2 NVME Disk
+3. Booted to Windows 2019 using M2 SSD Disk
+4. Booted to Ubuntu 18.04,Windows 2019, RHEL 8.3 using SATA HDD
+5. Connected PCIE Network card and made sure PCIE card detected in POST and in OS
+6. Verified TPM offboard chip detection
+
+**Aowanda**
+1. This firmware project has been tested booting to UEFI shell
+2. Installed and booted to RHEL 8.3 using M2 SSD disk
+3. Installed and booted to Windows 2019 using M2 SSD disk
+4. Verified TPM chip detection
+
+Note:
+For the network boot using the onboard Intel network card, please download the UEFI UNDI driver (E9712X3.efi) from https://www.intel.com/content/www/us/en/download/15755/intel-ethernet-connections-boot-utility-preboot-images-and-efi-drivers.html
+and include it in PlatformPkg.fdf.
 
 ### **Package Builds**
 

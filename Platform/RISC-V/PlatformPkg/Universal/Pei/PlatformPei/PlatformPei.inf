@@ -27,30 +27,24 @@
   Fv.c
   MemDetect.c
   Platform.c
+  Platform.h
 
 [Packages]
   MdeModulePkg/MdeModulePkg.dec
   MdePkg/MdePkg.dec
   Platform/RISC-V/PlatformPkg/RiscVPlatformPkg.dec
-  Platform/SiFive/U5SeriesPkg/U5SeriesPkg.dec
   Silicon/RISC-V/ProcessorPkg/RiscVProcessorPkg.dec
-  Silicon/SiFive/SiFive.dec
-  UefiCpuPkg/UefiCpuPkg.dec
 
 [Guids]
   gEfiMemoryTypeInformationGuid
-  gSiFiveU5SeriesPlatformsPkgTokenSpaceGuid
 
 [LibraryClasses]
   DebugLib
   HobLib
   IoLib
-  PciLib
-  PeiResourcePublicationLib
-  PeiServicesLib
-  PeiServicesTablePointerLib
-  PeimEntryPoint
   PcdLib
+  PeimEntryPoint
+  PeiResourcePublicationLib
   RiscVCoreplexInfoLib
 
 [Pcd]
@@ -64,8 +58,6 @@
   gUefiRiscVPlatformPkgTokenSpaceGuid.PcdRiscVDxeFvSize
   gUefiRiscVPlatformPkgTokenSpaceGuid.PcdTemporaryRamBase
   gUefiRiscVPlatformPkgTokenSpaceGuid.PcdTemporaryRamSize
-  gSiFiveU5SeriesPlatformsPkgTokenSpaceGuid.PcdNumberofU5Cores
-  gSiFiveU5SeriesPlatformsPkgTokenSpaceGuid.PcdE5MCSupported
 
 [Ppis]
   gEfiPeiMasterBootModePpiGuid

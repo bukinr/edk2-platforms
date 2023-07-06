@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2021 , Hewlett Packard Enterprise Development LP. All rights reserved.
- *
- * SPDX-License-Identifier: BSD-2-Clause
- *
- * Copyright (c) 2019 Western Digital Corporation or its affiliates.
- *
+  Copyright (c) 2021-2022 , Hewlett Packard Enterprise Development LP. All rights reserved.
+  Copyright (c) 2019 Western Digital Corporation or its affiliates.
+
+  SPDX-License-Identifier: BSD-2-Clause-Patent
+
  */
 
 #include <IndustryStandard/RiscVOpensbi.h>
@@ -67,7 +66,7 @@ skip_fw_init:
    * DTB for this processor. We allocate the
    * scratch buffer according to this number.
    */
-  la    a4, _pysical_hart_count
+  la    a4, _physical_hart_count
   sd    s7, (a4)
 
   li    s8, FixedPcdGet32 (PcdOpenSbiStackSize)
@@ -227,7 +226,7 @@ _start_warm:
   csrr  a0, CSR_MHARTID
   j _uninitialized_hart_wait
 4:
-  la    a5, _pysical_hart_count
+  la    a5, _physical_hart_count
   ld    s7, (a5)
   /* Find the scratch space for this hart
    *
@@ -294,7 +293,7 @@ _start_warm:
   .section .data, "aw"
 _boot_hart_done:
   RISCV_PTR 0
-_pysical_hart_count:
+_physical_hart_count:
   RISCV_PTR 0
 
   .align 3
@@ -323,7 +322,7 @@ _hartid_to_scratch:
   lw    s0, SBI_PLATFORM_HART_STACK_SIZE_OFFSET(s2)
 #endif
 
-  la    s1, _pysical_hart_count /* total HART count */
+  la    s1, _physical_hart_count /* total HART count */
   ld    s2, (s1)
   mul   s2, s2, s0
   li    s1, FixedPcdGet32 (PcdScratchRamBase)

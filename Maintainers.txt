@@ -68,7 +68,7 @@ F: */
 EDK II Platforms maintainers
 ----------------------------
 F: *
-M: Leif Lindholm <leif@nuviainc.com>
+M: Leif Lindholm <quic_llindhol@quicinc.com>
 M: Michael D Kinney <michael.d.kinney@intel.com>
 
 Responsible Disclosure, Reporting Security Issues
@@ -81,7 +81,12 @@ EDK II Platforms Packages:
 96Boards
 F: Platform/96Boards/
 M: Ard Biesheuvel <ardb+tianocore@kernel.org>
-M: Leif Lindholm <leif@nuviainc.com>
+M: Leif Lindholm <quic_llindhol@quicinc.com>
+
+AMD
+F: Platform/AMD
+M: Abner Chang <abner.chang@amd.com>
+M: Abdul Lateef Attar <abdattar@amd.com>
 
 AMD Seattle
 F: Platform/AMD/OverdriveBoard/
@@ -89,7 +94,7 @@ F: Platform/LeMaker/CelloBoard/
 F: Platform/SoftIron/
 F: Silicon/AMD/Styx/
 M: Ard Biesheuvel <ardb+tianocore@kernel.org>
-M: Leif Lindholm <leif@nuviainc.com>
+M: Leif Lindholm <quic_llindhol@quicinc.com>
 
 Ampere Computing
 F: Platform/Ampere
@@ -98,7 +103,7 @@ R: Nhi Pham <nhi@os.amperecomputing.com>
 R: Vu Nguyen <vunguyen@os.amperecomputing.com>
 R: Thang Nguyen <thang@os.amperecomputing.com>
 R: Chuong Tran <chuong@os.amperecomputing.com>
-M: Leif Lindholm <leif@nuviainc.com>
+M: Leif Lindholm <quic_llindhol@quicinc.com>
 
 ARM
 F: Platform/ARM/
@@ -111,12 +116,7 @@ BeagleBoard:
 F: Platform/BeagleBoard/
 F: Silicon/TexasInstruments/
 R: Ard Biesheuvel <ardb+tianocore@kernel.org>
-M: Leif Lindholm <leif@nuviainc.com>
-
-Comcast
-F: Platform/Comcast/
-M: Ard Biesheuvel <ardb+tianocore@kernel.org>
-M: Leif Lindholm <leif@nuviainc.com>
+M: Leif Lindholm <quic_llindhol@quicinc.com>
 
 OptionRomPkg
 F: Drivers/OptionRomPkg/
@@ -130,24 +130,27 @@ M: Ilias Apalodimas <ilias.apalodimas@linaro.org>
 
 DisplayLink
 F: Drivers/DisplayLink/
-M: Leif Lindholm <leif@nuviainc.com>
+M: Leif Lindholm <quic_llindhol@quicinc.com>
 M: Ard Biesheuvel <ardb+tianocore@kernel.org>
 R: Andy Hayes <andy.hayes@displaylink.com>
 
 HiSilicon
 F: Platform/Hisilicon/
 F: Silicon/Hisilicon/
-M: Leif Lindholm <leif@nuviainc.com>
+M: Leif Lindholm <quic_llindhol@quicinc.com>
 R: Ard Biesheuvel <ardb+tianocore@kernel.org>
 R: Wenyi Xie <xiewenyi2@huawei.com>
 
 Features/Ext4Pkg
 F: Features/Ext4Pkg/
 M: Pedro Falcato <pedro.falcato@gmail.com>
+R: Marvin Häuser <mhaeuser@posteo.de>
 
 Features/Intel
 F: Features/Intel/
 M: Sai Chaganty <rangasai.v.chaganty@intel.com>
+M: Isaac Oram <isaac.w.oram@intel.com>
+M: Nate DeSimone <nathaniel.l.desimone@intel.com>
 R: Liming Gao <gaoliming@byosoft.com.cn>
 
 Features/Intel/Debugging
@@ -166,6 +169,19 @@ F: Features/Intel/UserInterface/
 M: Dandan Bi <dandan.bi@intel.com>
 R: Liming Gao <gaoliming@byosoft.com.cn>
 
+Features/ManageabilityPkg
+F: Features/ManageabilityPkg/
+M: Abner Chang <abner.chang@amd.com>
+M: Isaac Oram <isaac.w.oram@intel.com>
+R: Abdul Lateef Attar <AbdulLateef.Attar@amd.com>
+R: Nickle Wang <nicklew@nvidia.com>
+
+Platform/Intel
+F: Platform/Intel/
+M: Sai Chaganty <rangasai.v.chaganty@intel.com>
+M: Isaac Oram <isaac.w.oram@intel.com>
+M: Nate DeSimone <nathaniel.l.desimone@intel.com>
+
 Platform/Intel/QuarkPlatformPkg
 F: Platform/Intel/QuarkPlatformPkg/
 M: Michael D Kinney <michael.d.kinney@intel.com>
@@ -181,6 +197,7 @@ R: Nate DeSimone <nathaniel.l.desimone@intel.com>
 Platform/Intel/BoardModulePkg
 F: Platform/Intel/BoardModulePkg/
 M: Eric Dong <eric.dong@intel.com>
+M: Isaac Oram <isaac.w.oram@intel.com>
 R: Liming Gao <gaoliming@byosoft.com.cn>
 
 Platform/Intel/KabylakeOpenBoardPkg
@@ -200,6 +217,7 @@ Platform/Intel/MinPlatformPkg
 F: Platform/Intel/MinPlatformPkg/
 M: Chasel Chiu <chasel.chiu@intel.com>
 M: Nate DeSimone <nathaniel.l.desimone@intel.com>
+M: Isaac Oram <isaac.w.oram@intel.com>
 R: Liming Gao <gaoliming@byosoft.com.cn>
 R: Eric Dong <eric.dong@intel.com>
 
@@ -245,20 +263,25 @@ R: Yuwei Chen <yuwei.chen@intel.com>
 
 Platform/RISC-V/PlatformPkg
 F: Platform/RISC-V/PlatformPkg/
-M: Abner Chang <abner.chang@hpe.com>
-R: Daniel Schaefer <daniel.schaefer@hpe.com>
-R: Gilbert Chen <gilbert.chen@hpe.com>
+M: Sunil V L <sunilvl@ventanamicro.com>
+R: Daniel Schaefer <git@danielschaefer.me>
 
 Platform/SiFive/U5Series
 F:Platform/SiFive/U5Series/
-M: Abner Chang <abner.chang@hpe.com>
-R: Gilbert Chen <gilbert.chen@hpe.com>
-R: Daniel Schaefer <daniel.schaefer@hpe.com>
+M: Daniel Schaefer <git@danielschaefer.me>
+
+Silicon/Intel
+F: Silicon/Intel/
+M: Rangasai V Chaganty <rangasai.v.chaganty@intel.com>
+M: Isaac Oram <isaac.w.oram@intel.com>
+M: Nate DeSimone <nathaniel.l.desimone@intel.com>
 
 Silicon/Intel/IntelSiliconPkg
 F: Silicon/Intel/IntelSiliconPkg/
 M: Ray Ni <ray.ni@intel.com>
 M: Rangasai V Chaganty <rangasai.v.chaganty@intel.com>
+M: Isaac Oram <isaac.w.oram@intel.com>
+R: Ashraf Ali S <ashraf.ali.s@intel.com>
 
 Silicon/Intel/QuarkSocPkg
 F: Silicon/Intel/QuarkSocPkg/
@@ -313,40 +336,51 @@ M: Bob Feng <bob.c.feng@intel.com>
 M: Liming Gao <gaoliming@byosoft.com.cn>
 R: Yuwei Chen <yuwei.chen@intel.com>
 
+Loongson platforms
+F: Platform/Loongson/
+M: Bibo Mao <maobibo@loongson.cn> 
+M: Xianglai li <lixianglai@loongson.cn>
+M: Chao Li <lichao@loongson.cn>
+ 
 Marvell platforms and silicon
 F: Platform/Marvell/
 F: Platform/SolidRun/Armada80x0McBin/
 F: Silicon/Marvell/
 R: Marcin Wojtas <mw@semihalf.com>
-M: Leif Lindholm <leif@nuviainc.com>
+M: Leif Lindholm <quic_llindhol@quicinc.com>
 
 Miscellaneous drivers
 F: Silicon/Atmel/
 F: Silicon/Openmoko/
 F: Silicon/Synopsys/DesignWare/
 R: Ard Biesheuvel <ardb+tianocore@kernel.org>
-M: Leif Lindholm <leif@nuviainc.com>
+M: Leif Lindholm <quic_llindhol@quicinc.com>
 
 NXP platforms and silicon
 F: Platform/NXP/
 F: Silicon/NXP/
-M: Leif Lindholm <leif@nuviainc.com>
+M: Leif Lindholm <quic_llindhol@quicinc.com>
 R: Meenakshi Aggarwal <meenakshi.aggarwal@nxp.com>
+
+QEMU EDK II Minimum Platform Specification implementation
+F: Platform/Qemu/QemuOpenBoardPkg/
+M: Isaac Oram <isaac.w.oram@intel.com>
+M: Pedro Falcato <pedro.falcato@gmail.com>
+R: Theo Jehl <theojehl76@gmail.com>
 
 QEMU sbsa-ref platform
 F: Platform/Qemu/SbsaQemu/
 F: Silicon/Qemu/SbsaQemu/
 M: Ard Biesheuvel <ardb+tianocore@kernel.org>
-M: Leif Lindholm <leif@nuviainc.com>
-R: Graeme Gregory <graeme@nuviainc.com>
-R: Radoslaw Biernacki <rad@semihalf.com>
+M: Leif Lindholm <quic_llindhol@quicinc.com>
+R: Graeme Gregory <graeme@xora.org.uk>
 
 Raspberry Pi platforms and silicon
 F: Platform/RaspberryPi/
 F: Silicon/Broadcom/
 M: Ard Biesheuvel <ardb+tianocore@kernel.org>
-M: Leif Lindholm <leif@nuviainc.com>
-R: Pete Batard <pete@akeo.ie>
+M: Leif Lindholm <quic_llindhol@quicinc.com>
+R: Jeremy Linton <jeremy.linton@arm.com>
 
 RPMB driver for OP-TEE
 F: Drivers/OpTee/OpteeRpmbPkg/
@@ -358,25 +392,22 @@ F: Platform/Socionext/
 F: Silicon/NXP/Library/Pcf8563RealTimeClockLib/
 F: Silicon/Socionext/
 M: Ard Biesheuvel <ardb+tianocore@kernel.org>
-M: Leif Lindholm <leif@nuviainc.com>
+M: Leif Lindholm <quic_llindhol@quicinc.com>
 R: Masami Hiramatsu <masami.hiramatsu@linaro.org>
 
 Silicon/RISC-V/ProcessorPkg
 F: Silicon/RISC-V/ProcessorPkg/
-M: Abner Chang <abner.chang@hpe.com>
-M: Daniel Schaefer <daniel.schaefer@hpe.com>
-R: Gilbert Chen <gilbert.chen@hpe.com>
+M: Sunil V L <sunilvl@ventanamicro.com>
+R: Daniel Schaefer <git@danielschaefer.me>
 
 Silicon/SiFive
 F: Silicon/SiFive/
-M: Abner Chang <abner.chang@hpe.com>
-M: Gilbert Chen <gilbert.chen@hpe.com>
-R: Daniel Schaefer <daniel.schaefer@hpe.com>
+M: Daniel Schaefer <git@danielschaefer.me>
 
 Phytium platforms and silicon
 F: Platform/Phytium/
 F: Silicon/silicon/
-M: Leif Lindholm <leif@nuviainc.com>
+M: Leif Lindholm <quic_llindhol@quicinc.com>
 R: Peng Xie <xiepeng@phytium.com.cn>
 R: Ling Jia <jialing@phytium.com.cn>
 R: Yiqi Shu <shuyiqi@phytium.com.cn>

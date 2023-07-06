@@ -1,7 +1,7 @@
 ## @file
 #  The main build description file for the Aspire VN7-572G board.
 #
-# Copyright (c) 2017 - 2021, Intel Corporation. All rights reserved.<BR>
+# Copyright (c) 2017 - 2022, Intel Corporation. All rights reserved.<BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -184,6 +184,8 @@
   GpioExpanderLib|$(PLATFORM_BOARD_PACKAGE)/Library/BaseGpioExpanderLib/BaseGpioExpanderLib.inf
   I2cAccessLib|$(PLATFORM_BOARD_PACKAGE)/Library/PeiI2cAccessLib/PeiI2cAccessLib.inf
   PlatformSecLib|$(PLATFORM_PACKAGE)/FspWrapper/Library/SecFspWrapperPlatformSecLib/SecFspWrapperPlatformSecLib.inf
+  HdmiDebugGpioInitLib|$(PLATFORM_BOARD_PACKAGE)/Library/HdmiDebugGpioInitLib/HdmiDebugGpioInitLib.inf
+  HdmiDebugPchDetectionLib|$(PLATFORM_BOARD_PACKAGE)/Library/HdmiDebugPchDetectionLib/HdmiDebugPchDetectionLib.inf
 
   # Thunderbolt
 !if gKabylakeOpenBoardPkgTokenSpaceGuid.PcdTbtEnable == TRUE
@@ -208,8 +210,12 @@
   # Platform Package
   #######################################
   TestPointCheckLib|$(PLATFORM_PACKAGE)/Test/Library/TestPointCheckLib/SecTestPointCheckLib.inf
-  SecBoardInitLib|$(PLATFORM_PACKAGE)/PlatformInit/Library/SecBoardInitLibNull/SecBoardInitLibNull.inf
-  SiliconPolicyUpdateLib|MinPlatformPkg/PlatformInit/Library/SiliconPolicyUpdateLibNull/SiliconPolicyUpdateLibNull.inf
+  SiliconPolicyUpdateLib|$(PLATFORM_PACKAGE)/PlatformInit/Library/SiliconPolicyUpdateLibNull/SiliconPolicyUpdateLibNull.inf
+
+  #######################################
+  # Board-specific
+  #######################################
+  SecBoardInitLib|$(PLATFORM_BOARD_PACKAGE)/Library/SecBoardInitLib/SecBoardInitLib.inf
 
 [LibraryClasses.common.PEI_CORE]
   #######################################
@@ -233,6 +239,7 @@
   # Silicon Package
   #######################################
   ReportCpuHobLib|IntelSiliconPkg/Library/ReportCpuHobLib/ReportCpuHobLib.inf
+  SmmAccessLib|IntelSiliconPkg/Feature/SmmAccess/Library/PeiSmmAccessLibSmramc/PeiSmmAccessLib.inf
 
   #######################################
   # Platform Package
@@ -656,6 +663,26 @@
         NULL|$(PROJECT)/Library/BoardAcpiLib/DxeMultiBoardAcpiSupportLib.inf
       !endif
   }
+
+!if gS3FeaturePkgTokenSpaceGuid.PcdS3FeatureEnable == TRUE
+  MdeModulePkg/Universal/Acpi/BootScriptExecutorDxe/BootScriptExecutorDxe.inf {
+    <LibraryClasses>
+      # On S3 resume, RSC is in end-of-BS state
+      # - Moreover: Library cannot effectively use some end-of-BS events
+      DebugLib|MdePkg/Library/BaseDebugLibSerialPort/BaseDebugLibSerialPort.inf
+      SerialPortLib|MdePkg/Library/BaseSerialPortLibNull/BaseSerialPortLibNull.inf
+      # Reverse-ranked priority list
+# TODO: Requires testing
+# - Strongly suspect DebugLibSerialPort constructor presents PeiDxeSerialPortLibMem dependency on services as a bug
+!if FALSE  # $(USE_MEMORY_LOGGING) == TRUE
+      SerialPortLib|MdeModulePkg/Library/PeiDxeSerialPortLibMem/DxeSerialPortLibMem.inf
+!endif
+      # Also, can debug CpuExceptionHandlerLib
+!if $(USE_HDMI_DEBUG_PORT) == TRUE
+      SerialPortLib|$(PLATFORM_BOARD_PACKAGE)/Library/I2cHdmiDebugSerialPortLib/BootScriptExecutorDxeI2cHdmiDebugSerialPortLib.inf
+!endif
+  }
+!endif
 
 !endif
 

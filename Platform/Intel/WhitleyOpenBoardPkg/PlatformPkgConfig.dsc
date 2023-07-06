@@ -11,19 +11,16 @@
 # TRUE is ENABLE. FALSE is DISABLE.
 #
 
+[Defines]
 DEFINE CRB_FLAG_ENABLE                       = TRUE
-DEFINE DEBUG_FLAGS_ENABLE                    = FALSE
-
-DEFINE PERFORMANCE_ENABLE                    = TRUE
+!if $(TARGET) == "RELEASE"
+  DEFINE DEBUG_FLAGS_ENABLE                    = FALSE
+!else
+  DEFINE DEBUG_FLAGS_ENABLE                    = TRUE
+!endif
 
 DEFINE SERVER_BIOS_ENABLE                    = TRUE
 DEFINE PCH_SERVER_BIOS_ENABLE                = TRUE
-
-!if $(CPUTARGET) == "CPX"
-  DEFINE CPU_SKX_ONLY_SUPPORT                = TRUE
-!else
-  DEFINE CPU_SKX_ONLY_SUPPORT                 = FALSE
-!endif
 
 !if $(CPUTARGET) == "CPX"
   DEFINE CPU_CPX_SUPPORT                     = TRUE

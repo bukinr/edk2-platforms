@@ -32,13 +32,13 @@ CheckDrhd (
   INTN                                  DmarLen;
   EFI_ACPI_DMAR_DRHD_HEADER             *Drhd;
   UINT32                                Reg32;
-    
+
   //
   // Sub table
   //
   DmarLen  = Dmar->Header.Length - sizeof(EFI_ACPI_DMAR_HEADER);
   DmarStructHeader = (EFI_ACPI_DMAR_STRUCTURE_HEADER *)(Dmar + 1);
-  while (DmarLen > 0) {
+  while (DmarLen >= sizeof (*DmarStructHeader)) {
     switch (DmarStructHeader->Type) {
     case EFI_ACPI_DMAR_TYPE_DRHD:
       Drhd = (EFI_ACPI_DMAR_DRHD_HEADER *)DmarStructHeader;
@@ -56,8 +56,8 @@ CheckDrhd (
     default:
       break;
     }
-    DmarStructHeader = (EFI_ACPI_DMAR_STRUCTURE_HEADER *)((UINT8 *)DmarStructHeader + DmarStructHeader->Length);
     DmarLen         -= DmarStructHeader->Length;
+    DmarStructHeader = (EFI_ACPI_DMAR_STRUCTURE_HEADER *)((UINT8 *)DmarStructHeader + DmarStructHeader->Length);
   }
 
   return EFI_SUCCESS;
@@ -73,7 +73,7 @@ TestPointVtdEngine (
 
   Status = EFI_SUCCESS;
 
-  Dmar = TestPointGetAcpi (EFI_ACPI_4_0_DMA_REMAPPING_TABLE_SIGNATURE);
+  Dmar = TestPointGetAcpi (EFI_ACPI_6_5_DMA_REMAPPING_TABLE_SIGNATURE);
   if (Dmar == NULL) {
     DEBUG ((DEBUG_ERROR, "No DMAR table\n"));
     Status = EFI_INVALID_PARAMETER;

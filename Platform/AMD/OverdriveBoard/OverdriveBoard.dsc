@@ -125,6 +125,8 @@ DEFINE X64EMU_ENABLE  = FALSE
   OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLib.inf
   RngLib|MdePkg/Library/DxeRngLib/DxeRngLib.inf
   TlsLib|CryptoPkg/Library/TlsLib/TlsLib.inf
+  VariableFlashInfoLib|MdeModulePkg/Library/BaseVariableFlashInfoLib/BaseVariableFlashInfoLib.inf
+  VariablePolicyHelperLib|MdeModulePkg/Library/VariablePolicyHelperLib/VariablePolicyHelperLib.inf
   VariablePolicyLib|MdeModulePkg/Library/VariablePolicyLib/VariablePolicyLib.inf
 
   UefiBootManagerLib|MdeModulePkg/Library/UefiBootManagerLib/UefiBootManagerLib.inf
@@ -209,7 +211,6 @@ DEFINE X64EMU_ENABLE  = FALSE
   PerformanceLib|MdeModulePkg/Library/DxePerformanceLib/DxePerformanceLib.inf
   MemoryAllocationLib|MdePkg/Library/UefiMemoryAllocationLib/UefiMemoryAllocationLib.inf
   NonDiscoverableDeviceRegistrationLib|MdeModulePkg/Library/NonDiscoverableDeviceRegistrationLib/NonDiscoverableDeviceRegistrationLib.inf
-  VariablePolicyHelperLib|MdeModulePkg/Library/VariablePolicyHelperLib/VariablePolicyHelperLib.inf
 
 [LibraryClasses.common.DXE_RUNTIME_DRIVER]
   HobLib|MdePkg/Library/DxeHobLib/DxeHobLib.inf
@@ -219,7 +220,6 @@ DEFINE X64EMU_ENABLE  = FALSE
   DebugLib|MdePkg/Library/DxeRuntimeDebugLibSerialPort/DxeRuntimeDebugLibSerialPort.inf
 !endif
   VariablePolicyLib|MdeModulePkg/Library/VariablePolicyLib/VariablePolicyLibRuntimeDxe.inf
-  VariablePolicyHelperLib|MdeModulePkg/Library/VariablePolicyHelperLib/VariablePolicyHelperLib.inf
 
 [LibraryClasses.common.UEFI_APPLICATION]
   PerformanceLib|MdeModulePkg/Library/DxePerformanceLib/DxePerformanceLib.inf
@@ -250,7 +250,6 @@ DEFINE X64EMU_ENABLE  = FALSE
 ###################################################################################################
 
 [BuildOptions]
-  RVCT:RELEASE_*_*_CC_FLAGS  = -DMDEPKG_NDEBUG
   GCC:RELEASE_*_*_CC_FLAGS  = -DMDEPKG_NDEBUG
 
 [BuildOptions.common.EDKII.DXE_RUNTIME_DRIVER]
@@ -451,6 +450,8 @@ DEFINE X64EMU_ENABLE  = FALSE
   gAmdModulePkgTokenSpaceGuid.PcdPort1PhyMode|0
   gAmdModulePkgTokenSpaceGuid.PcdPort0NetSpeed|1
   gAmdModulePkgTokenSpaceGuid.PcdPort1NetSpeed|1
+
+  gEfiMdeModulePkgTokenSpaceGuid.PcdPcieResizableBarSupport|TRUE
 
 [PcdsDynamicDefault.common]
   gAmdStyxTokenSpaceGuid.PcdEthMacA|{0x2,0xA1,0xA2,0xA3,0xA4,0xA5}

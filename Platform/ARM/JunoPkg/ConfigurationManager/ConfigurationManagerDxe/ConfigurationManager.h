@@ -90,6 +90,21 @@ extern CHAR8  ssdtpci_aml_code[];
     (WritePolicy << 4)                                                  \
   )
 
+/** PCI space codes.
+*/
+#define PCI_SS_CONFIG   0
+#define PCI_SS_IO       1
+#define PCI_SS_M32      2
+#define PCI_SS_M64      3
+
+/** Count of PCI address-range mapping struct.
+*/
+#define PCI_ADDRESS_MAP_COUNT       3
+
+/** Count of PCI device legacy interrupt mapping struct.
+*/
+#define PCI_INTERRUPT_MAP_COUNT     4
+
 /** A function that prepares Configuration Manager Objects for returning.
 
   @param [in]  This        Pointer to the Configuration Manager Protocol.
@@ -115,7 +130,7 @@ typedef EFI_STATUS (*CM_OBJECT_HANDLER_PROC) (
 
 /** The number of ACPI tables to install
 */
-#define PLAT_ACPI_TABLE_COUNT   10
+#define PLAT_ACPI_TABLE_COUNT   11
 
 /** The number of platform generic timer blocks
 */
@@ -172,6 +187,15 @@ typedef EFI_STATUS (*CM_OBJECT_HANDLER_PROC) (
 */
 #define LITTLE_CORE_RESOURCE_COUNT  2
 
+/** The number of Lpi states for the platform:
+    - two for the cores
+    - one for the clusters
+*/
+#define CORES_LPI_STATE_COUNT           2
+#define CLUSTERS_LPI_STATE_COUNT        1
+#define LPI_STATE_COUNT                 (CORES_LPI_STATE_COUNT +              \
+                                         CLUSTERS_LPI_STATE_COUNT)
+
 /** A structure describing the platform configuration
     manager repository information
 */
@@ -217,6 +241,18 @@ typedef struct PlatformRepositoryInfo {
   /// PCI configuration space information
   CM_ARM_PCI_CONFIG_SPACE_INFO          PciConfigInfo;
 
+  // PCI address-range mapping references
+  CM_ARM_OBJ_REF                        PciAddressMapRef[PCI_ADDRESS_MAP_COUNT];
+
+  // PCI address-range mapping information
+  CM_ARM_PCI_ADDRESS_MAP_INFO           PciAddressMapInfo[PCI_ADDRESS_MAP_COUNT];
+
+  // PCI device legacy interrupts mapping references
+  CM_ARM_OBJ_REF                        PciInterruptMapRef[PCI_INTERRUPT_MAP_COUNT];
+
+  // PCI device legacy interrupts mapping information
+  CM_ARM_PCI_INTERRUPT_MAP_INFO         PciInterruptMapInfo[PCI_INTERRUPT_MAP_COUNT];
+
   /// GIC MSI Frame information
   CM_ARM_GIC_MSI_FRAME_INFO             GicMsiFrameInfo;
 
@@ -237,6 +273,15 @@ typedef struct PlatformRepositoryInfo {
 
   // 'LITTLE' core private resources
   CM_ARM_OBJ_REF                        LittleCoreResources[LITTLE_CORE_RESOURCE_COUNT];
+
+  // Low Power Idle state information (LPI) for all cores/clusters
+  CM_ARM_LPI_INFO                       LpiInfo[LPI_STATE_COUNT];
+
+  // Clusters Low Power Idle state references (LPI)
+  CM_ARM_OBJ_REF                        ClustersLpiRef[CLUSTERS_LPI_STATE_COUNT];
+
+  // Cores Low Power Idle state references (LPI)
+  CM_ARM_OBJ_REF                        CoresLpiRef[CORES_LPI_STATE_COUNT];
 
   /// Juno Board Revision
   UINT32                                JunoRevision;

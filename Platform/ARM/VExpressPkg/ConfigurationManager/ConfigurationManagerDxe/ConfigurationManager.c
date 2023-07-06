@@ -82,7 +82,7 @@ EDKII_PLATFORM_REPOSITORY_INFO VExpressPlatRepositoryInfo = {
     // IORT Table - FVP RevC
     {
       EFI_ACPI_6_3_IO_REMAPPING_TABLE_SIGNATURE,
-      EFI_ACPI_IO_REMAPPING_TABLE_REVISION,
+      EFI_ACPI_IO_REMAPPING_TABLE_REVISION_00,
       CREATE_STD_ACPI_TABLE_GEN_ID (EStdAcpiTableIdIort),
       NULL
     },
@@ -312,7 +312,9 @@ EDKII_PLATFORM_REPOSITORY_INFO VExpressPlatRepositoryInfo = {
     // ATS attributes
     EFI_ACPI_IORT_ROOT_COMPLEX_ATS_UNSUPPORTED,
     // PCI segment number
-    0
+    0,
+    // Memory Address Size Limit
+    64
   },
 
   // Array of Device ID mappings

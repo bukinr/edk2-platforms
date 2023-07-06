@@ -249,7 +249,6 @@ Returns:
 --*/
 {
   UINT8                           Index;
-  UINTN                           LpcBaseAddress;
   UINT8                           MaxSataPorts;
   UINT8                           BmcRootPort;
   UINT8                           *SmBusReservedTable;
@@ -265,7 +264,7 @@ Returns:
 
   DEBUG((DEBUG_INFO, "platform common UpdatePeiPchPolicy entry\n"));
 
-  Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, &DynamicSiLibraryPpi);
+  Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, (VOID **) &DynamicSiLibraryPpi);
   if (EFI_ERROR (Status)) {
     ASSERT_EFI_ERROR (Status);
     return Status;
@@ -273,12 +272,6 @@ Returns:
 
   SetupVariables = PcdGetPtr(PcdSetup);
   PchRcVariables = PcdGetPtr(PcdPchSetup);
-
-  LpcBaseAddress = DynamicSiLibraryPpi->MmPciBase (
-                    DEFAULT_PCI_BUS_NUMBER_PCH,
-                    PCI_DEVICE_NUMBER_PCH_LPC,
-                    PCI_FUNCTION_NUMBER_PCH_LPC
-                    );
 
   PchPolicy->Port80Route          = PchRcVariables->IchPort80Route;
 
@@ -560,7 +553,7 @@ Returns:
   //
   // Update SPI policies
   //
-  PchPolicy->SpiConfig.ShowSpiController = TRUE;
+  PchPolicy->SpiConfig.ShowSpiController = FALSE;
 
   PchPolicy->PmConfig.PmcReadDisable = TRUE;
 

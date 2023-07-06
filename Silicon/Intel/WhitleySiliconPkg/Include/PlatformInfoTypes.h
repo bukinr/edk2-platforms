@@ -2,6 +2,7 @@
 
   @copyright
   Copyright 2020 - 2021 Intel Corporation. <BR>
+  Copyright (c) 2021 - 2022, American Megatrends International LLC. <BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
@@ -40,10 +41,10 @@ typedef enum {
   TypeWilsonCityModular,
   TypeCoyotePass,
   TypeIdaville,
-  TypeMoroCityRP,
-  TypeBrightonCityRp,
+  TypeMoroCityRP = 0x0E,  //maps to PcdDefaultBoardId
+  TypeBrightonCityRp = 0x0F,  //maps to PcdDefaultBoardId value
   TypeJacobsville,
-  TypeSnrSvp,
+  TypeSnrSvp = 0x11,  //maps to PcdDefaultBoardId
   TypeSnrSvpSodimm,
   TypeJacobsvilleMDV,
   TypeFrostCreekRP,
@@ -63,13 +64,23 @@ typedef enum {
   TypeArcherCityXPV,
   TypeBigPineKey,
   TypeExperWorkStationRP,
-  EndOfEfiPlatformTypeEnum
+  TypeAmericanPass,
+  EndOfEfiPlatformTypeEnum,
+  //
+  // Vendor board range currently starts at 0x80
+  //
+  TypeBoardPortTemplate = 0x80,               // 0x80
+  TypeJunctionCity,
+  TypeAowanda,
+  EndOfVendorPlatformTypeEnum
 } EFI_PLATFORM_TYPE;
 
 #define TypePlatformUnknown       0xFF
 #define TypePlatformMin           StartOfEfiPlatformTypeEnum + 1
 #define TypePlatformMax           EndOfEfiPlatformTypeEnum - 1
 #define TypePlatformDefault       TypeWilsonPointRP
+#define TypePlatformVendorMin     0x80
+#define TypePlatformVendorMax     EndOfVendorPlatformTypeEnum - 1
 
 //
 // CPU type: Standard (no MCP), -F, etc

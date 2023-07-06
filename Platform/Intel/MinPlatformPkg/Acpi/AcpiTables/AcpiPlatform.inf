@@ -62,12 +62,19 @@
   gMinPlatformPkgTokenSpaceGuid.PcdMaxCpuSocketCount
 
   gMinPlatformPkgTokenSpaceGuid.PcdFadtPreferredPmProfile
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiGpe1Base
   gMinPlatformPkgTokenSpaceGuid.PcdFadtIaPcBootArch
   gMinPlatformPkgTokenSpaceGuid.PcdFadtFlags
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtDutyOffset
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtDutyWidth
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtMajorVersion
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtMinorVersion
 
   gPcAtChipsetPkgTokenSpaceGuid.PcdHpetBaseAddress
   gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress
   gMinPlatformPkgTokenSpaceGuid.PcdPciExpressRegionLength
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtIaPcBootArch
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtSmiCmd
   gMinPlatformPkgTokenSpaceGuid.PcdAcpiEnableSwSmi
   gMinPlatformPkgTokenSpaceGuid.PcdAcpiDisableSwSmi
   gMinPlatformPkgTokenSpaceGuid.PcdAcpiPm1AEventBlockAddress
@@ -77,7 +84,31 @@
   gMinPlatformPkgTokenSpaceGuid.PcdAcpiPm2ControlBlockAddress
   gMinPlatformPkgTokenSpaceGuid.PcdAcpiPmTimerBlockAddress
   gMinPlatformPkgTokenSpaceGuid.PcdAcpiGpe0BlockAddress
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiGpe0BlockLength
   gMinPlatformPkgTokenSpaceGuid.PcdAcpiGpe1BlockAddress
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiGpe1BlockLength
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiResetRegisterAccessSize
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXPm1aEvtBlkAccessSize
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXPm1bEvtBlkAccessSize
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXPm1aCntBlkAccessSize
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXPm1bCntBlkAccessSize
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXPm2CntBlkAccessSize
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXPmTmrBlkAccessSize
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXGpe0BlkAccessSize
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXGpe1BlkAccessSize
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXGpe1BlkRegisterBitWidth
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepControlRegisterAddressSpaceId
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepControlRegisterBitWidth
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepControlRegisterBitOffset
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepControlRegisterAccessSize
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepControlRegisterAddress
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepStatusRegisterAddressSpaceId
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepStatusRegisterBitWidth
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepStatusRegisterBitOffset
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepStatusRegisterAccessSize
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepStatusRegisterAddress
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiS4BiosReq
+
 
   gMinPlatformPkgTokenSpaceGuid.PcdLocalApicAddress
   gMinPlatformPkgTokenSpaceGuid.PcdIoApicAddress
@@ -97,6 +128,7 @@
   gEfiGlobalVariableGuid                        ## CONSUMES
   gEfiHobListGuid                               ## CONSUMES
   gEfiEndOfDxeEventGroupGuid                    ## CONSUMES
+  gEfiAcpiTableGuid                             ## CONSUMES
 
 [Depex]
   gEfiAcpiTableProtocolGuid           AND
@@ -104,5 +136,3 @@
   gEfiPciRootBridgeIoProtocolGuid     AND
   gEfiVariableArchProtocolGuid        AND
   gEfiVariableWriteArchProtocolGuid
-
-

@@ -24,6 +24,29 @@
   PEI_ARCH                       = IA32
   DXE_ARCH                       = X64
 
+[Packages]
+  MinPlatformPkg/MinPlatformPkg.dec
+
+#
+# MinPlatform common include for required feature PCD
+# These PCD must be set before the core include files, CoreCommonLib,
+# CorePeiLib, and CoreDxeLib.
+#
+!include MinPlatformPkg/Include/Dsc/MinPlatformFeaturesPcd.dsc.inc
+
+#
+# Include common libraries
+#
+!include MinPlatformPkg/Include/Dsc/CoreCommonLib.dsc
+!include MinPlatformPkg/Include/Dsc/CorePeiLib.dsc
+!include MinPlatformPkg/Include/Dsc/CoreDxeLib.dsc
+
+[LibraryClasses]
+  PlatformHookLib|MdeModulePkg/Library/BasePlatformHookLibNull/BasePlatformHookLibNull.inf
+
+[LibraryClasses.common.PEIM]
+  SmmAccessLib|IntelSiliconPkg/Feature/SmmAccess/Library/PeiSmmAccessLib/PeiSmmAccessLib.inf
+
 #
 # This package always builds the feature.
 #

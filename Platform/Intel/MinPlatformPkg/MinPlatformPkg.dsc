@@ -20,7 +20,7 @@
   DSC_SPECIFICATION                   = 0x00010005
   OUTPUT_DIRECTORY                    = Build/MinPlatformPkg
   SUPPORTED_ARCHITECTURES             = IA32|X64
-  BUILD_TARGETS                       = DEBUG|RELEASE
+  BUILD_TARGETS                       = NOOPT|DEBUG|RELEASE
   SKUID_IDENTIFIER                    = DEFAULT
 
 ################################################################################
@@ -38,14 +38,12 @@
 #
 ################################################################################
 
-[PcdsFeatureFlag]
-  # configuration
-    gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly|FALSE
-    gMinPlatformPkgTokenSpaceGuid.PcdUefiSecureBootEnable|FALSE
-    gMinPlatformPkgTokenSpaceGuid.PcdTpm2Enable|FALSE
-    gMinPlatformPkgTokenSpaceGuid.PcdPerformanceEnable|FALSE
-    gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable|FALSE
-    gMinPlatformPkgTokenSpaceGuid.PcdSerialTerminalEnable|FALSE
+#
+# MinPlatform common include for required feature PCD
+# These PCD must be set before the core include files, CoreCommonLib,
+# CorePeiLib, and CoreDxeLib.
+#
+!include MinPlatformPkg/Include/Dsc/MinPlatformFeaturesPcd.dsc.inc
 
 ################################################################################
 #
@@ -103,6 +101,7 @@
   #
   # DXE phase common
   #
+  CompressLib|MinPlatformPkg/Library/CompressLib/CompressLib.inf
   FspWrapperPlatformLib|MinPlatformPkg/FspWrapper/Library/DxeFspWrapperPlatformLib/DxeFspWrapperPlatformLib.inf
   TestPointCheckLib|MinPlatformPkg/Test/Library/TestPointCheckLib/DxeTestPointCheckLib.inf
   TestPointLib|MinPlatformPkg/Test/Library/TestPointLib/DxeTestPointLib.inf
@@ -211,6 +210,13 @@
   MinPlatformPkg/Library/BaseVariableReadLibNull/BaseVariableReadLibNull.inf
   MinPlatformPkg/Library/SmmVariableReadLib/StandaloneMmVariableReadLib.inf
   MinPlatformPkg/Library/SmmVariableWriteLib/StandaloneMmVariableWriteLib.inf
+  MinPlatformPkg/Library/PeiVariableReadLib/PeiVariableReadLib.inf
+  MinPlatformPkg/Library/DxeRuntimeVariableReadLib/DxeRuntimeVariableReadLib.inf
+  MinPlatformPkg/Library/DxeRuntimeVariableWriteLib/DxeRuntimeVariableWriteLib.inf
+  MinPlatformPkg/Library/SmmVariableReadLib/TraditionalMmVariableReadLib.inf
+  MinPlatformPkg/Library/SmmVariableWriteLib/TraditionalMmVariableWriteLib.inf
+  MinPlatformPkg/Library/BaseLargeVariableLib/BaseLargeVariableReadLib.inf
+  MinPlatformPkg/Library/BaseLargeVariableLib/BaseLargeVariableWriteLib.inf
 
 [BuildOptions]
   *_*_*_CC_FLAGS = -D DISABLE_NEW_DEPRECATED_INTERFACES

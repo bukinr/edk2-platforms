@@ -1,7 +1,7 @@
 /** @file
   Raw filesystem data structures
 
-  Copyright (c) 2021 Pedro Falcato All rights reserved.
+  Copyright (c) 2021 - 2023 Pedro Falcato All rights reserved.
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
   Layout of an EXT2/3/4 filesystem:
@@ -130,16 +130,16 @@
 
 #define EXT4_FEATURE_RO_COMPAT_SPARSE_SUPER   0x0001
 #define EXT4_FEATURE_RO_COMPAT_LARGE_FILE     0x0002
-#define EXT4_FEATURE_RO_COMPAT_BTREE_DIR      0x0004     // Unused
+#define EXT4_FEATURE_RO_COMPAT_BTREE_DIR      0x0004// Unused
 #define EXT4_FEATURE_RO_COMPAT_HUGE_FILE      0x0008
 #define EXT4_FEATURE_RO_COMPAT_GDT_CSUM       0x0010
 #define EXT4_FEATURE_RO_COMPAT_DIR_NLINK      0x0020
 #define EXT4_FEATURE_RO_COMPAT_EXTRA_ISIZE    0x0040
-#define EXT4_FEATURE_RO_COMPAT_HAS_SNAPSHOT   0x0080     // Not implemented in ext4
+#define EXT4_FEATURE_RO_COMPAT_HAS_SNAPSHOT   0x0080// Not implemented in ext4
 #define EXT4_FEATURE_RO_COMPAT_QUOTA          0x0100
 #define EXT4_FEATURE_RO_COMPAT_BIGALLOC       0x0200
 #define EXT4_FEATURE_RO_COMPAT_METADATA_CSUM  0x0400
-#define EXT4_FEATURE_RO_COMPAT_REPLICA        0x0800     // Not used
+#define EXT4_FEATURE_RO_COMPAT_REPLICA        0x0800// Not used
 
 // We explicitly don't recognise this, so we get read only.
 #define EXT4_FEATURE_RO_COMPAT_READONLY  0x1000
@@ -149,7 +149,7 @@
  * Absolutely needed features:
  *    1) Every incompat, because we might want to mount root filesystems
  *    2) Relevant RO_COMPATs(I'm not sure of what to do wrt quota, project)
-**/
+ **/
 
 #define EXT4_INO_TYPE_FIFO       0x1000
 #define EXT4_INO_TYPE_CHARDEV    0x2000
@@ -171,7 +171,7 @@
 #define EXT4_DIRTY_FL         0x00000100
 #define EXT4_COMPRBLK_FL      0x00000200
 #define EXT4_NOCOMPR_FL       0x00000400
-#define EXT4_ECOMPR_FL        0x00000800
+#define EXT4_ENCRYPT_FL       0x00000800
 #define EXT4_BTREE_FL         0x00001000
 #define EXT4_INDEX_FL         0x00002000
 #define EXT4_JOURNAL_DATA_FL  0x00004000
@@ -259,7 +259,7 @@ typedef struct {
   UINT64    s_mmp_block;
   UINT32    s_raid_stride_width;
   UINT8     s_log_groups_per_flex;
-  UINT8     s_checksum_type;   // Only valid value is 1 - CRC32C
+  UINT8     s_checksum_type; // Only valid value is 1 - CRC32C
   UINT16    s_reserved_pad;
   UINT64    s_kbytes_written;
 
@@ -283,7 +283,7 @@ typedef struct {
   UINT32    s_usr_quota_inum;
   UINT32    s_grp_quota_inum;
   UINT32    s_overhead_blocks;
-  UINT32    s_backup_bgs[2];    // sparse_super2
+  UINT32    s_backup_bgs[2]; // sparse_super2
   UINT8     s_encrypt_algos[4];
   UINT8     s_encrypt_pw_salt[16];
   UINT32    s_lpf_ino;
@@ -293,7 +293,10 @@ typedef struct {
   UINT32    s_checksum;
 } EXT4_SUPERBLOCK;
 
-STATIC_ASSERT (sizeof (EXT4_SUPERBLOCK) == 1024, "ext4 superblock struct has incorrect size");
+STATIC_ASSERT (
+  sizeof (EXT4_SUPERBLOCK) == 1024,
+  "ext4 superblock struct has incorrect size"
+  );
 
 typedef struct {
   UINT32    bg_block_bitmap_lo;
@@ -329,13 +332,14 @@ STATIC_ASSERT (
   "ext4 block group descriptor struct has incorrect size"
   );
 
-#define EXT4_DBLOCKS     12
-#define EXT4_IND_BLOCK   12
-#define EXT4_DIND_BLOCK  13
-#define EXT4_TIND_BLOCK  14
-#define EXT4_NR_BLOCKS   15
+#define EXT4_DBLOCKS                12
+#define EXT4_IND_BLOCK              12
+#define EXT4_DIND_BLOCK             13
+#define EXT4_TIND_BLOCK             14
+#define EXT4_NR_BLOCKS              15
+#define EXT4_FAST_SYMLINK_MAX_SIZE  EXT4_NR_BLOCKS * sizeof(UINT32)
 
-#define EXT4_GOOD_OLD_INODE_SIZE  128
+#define EXT4_GOOD_OLD_INODE_SIZE  128U
 
 typedef struct _Ext4_I_OSD2_Linux {
   UINT16    l_i_blocks_high;
@@ -355,7 +359,8 @@ typedef struct _Ext4_I_OSD2_Hurd {
 } EXT4_OSD2_HURD;
 
 typedef union {
-  // Note: Toolchain-specific defines (such as "linux") stops us from using simpler names down here.
+  // Note: Toolchain-specific defines (such as "linux") stops us from using
+  // simpler names down here.
   EXT4_OSD2_LINUX    data_linux;
   EXT4_OSD2_HURD     data_hurd;
 } EXT4_OSD2;
@@ -392,12 +397,29 @@ typedef struct _Ext4Inode {
   UINT32       i_projid;
 } EXT4_INODE;
 
+#define EXT4_NAME_MAX  255
+
 typedef struct {
+  // offset 0x0: inode number (if 0, unused entry, should skip.)
   UINT32    inode;
+  // offset 0x4: Directory entry's length.
+  //             Note: rec_len >= name_len + EXT4_MIN_DIR_ENTRY_LEN and rec_len % 4 == 0.
   UINT16    rec_len;
+  // offset 0x6: Directory entry's name's length
   UINT8     name_len;
+  // offset 0x7: Directory entry's file type indicator
   UINT8     file_type;
-  CHAR8     name[255];
+  // offset 0x8: name[name_len]: Variable length character array; not null-terminated.
+  CHAR8     name[EXT4_NAME_MAX];
+  // Further notes on names:
+  // 1) We use EXT4_NAME_MAX here instead of flexible arrays for ease of use around the driver.
+  //
+  // 2) ext4 directories are defined, as the documentation puts it, as:
+  // "a directory is more or less a flat file that maps an arbitrary byte string
+  // (usually ASCII) to an inode number on the filesystem". So, they are not
+  // necessarily encoded with ASCII, UTF-8, or any of the sort. We must treat it
+  // as a bag of bytes. When interacting with EFI interfaces themselves (which expect UCS-2)
+  // we skip any directory entry that is not valid UTF-8.
 } EXT4_DIR_ENTRY;
 
 #define EXT4_MIN_DIR_ENTRY_LEN  8
@@ -418,7 +440,8 @@ typedef struct {
 typedef struct {
   // This index covers logical blocks from 'ei_block'
   UINT32    ei_block;
-  // Block of the next level of the extent tree, similarly split in a high and low portion.
+  // Block of the next level of the extent tree, similarly split in a high and
+  // low portion.
   UINT32    ei_leaf_lo;
   UINT16    ei_leaf_hi;
 
@@ -451,15 +474,28 @@ typedef struct {
 /**
  * EXT4 has this feature called uninitialized extents:
  * An extent has a maximum of 32768 blocks (2^15 or 1 << 15).
- * When we find an extent with > 32768 blocks, this extent is called uninitialized.
- * Long story short, it's an extent that behaves as a file hole but has blocks already allocated.
+ * When we find an extent with > 32768 blocks, this extent is called
+ * uninitialized. Long story short, it's an extent that behaves as a file hole
+ * but has blocks already allocated.
  */
 #define EXT4_EXTENT_MAX_INITIALIZED  (1 << 15)
 
 typedef UINT64  EXT4_BLOCK_NR;
+typedef UINT32  EXT2_BLOCK_NR;
 typedef UINT32  EXT4_INO_NR;
 
-// 2 is always the root inode number in ext4
-#define EXT4_ROOT_INODE_NR  2
+/* Special inode numbers */
+#define EXT4_ROOT_INODE_NR         2
+#define EXT4_USR_QUOTA_INODE_NR    3
+#define EXT4_GRP_QUOTA_INODE_NR    4
+#define EXT4_BOOT_LOADER_INODE_NR  5
+#define EXT4_UNDEL_DIR_INODE_NR    6
+#define EXT4_RESIZE_INODE_NR       7
+#define EXT4_JOURNAL_INODE_NR      8
+
+/* First non-reserved inode for old ext4 filesystems */
+#define EXT4_GOOD_OLD_FIRST_INODE_NR  11
+
+#define EXT4_BLOCK_FILE_HOLE  0
 
 #endif

@@ -575,11 +575,19 @@ Pp2SnpStart (
   )
 {
   PP2DXE_CONTEXT *Pp2Context;
-  UINT32 State = This->Mode->State;
   EFI_TPL SavedTpl;
+  UINT32 State;
+
+  /* Check Snp Instance. */
+  if (This == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
 
   SavedTpl = gBS->RaiseTPL (TPL_CALLBACK);
+
   Pp2Context = INSTANCE_FROM_SNP(This);
+  State = This->Mode->State;
 
   if (State != EfiSimpleNetworkStopped) {
     switch (State) {
@@ -604,9 +612,18 @@ Pp2SnpStop (
   )
 {
   EFI_TPL SavedTpl;
+  PP2DXE_CONTEXT *Pp2Context;
+  UINT32 State;
+
+  // Check Snp Instance
+  if (This == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
   SavedTpl = gBS->RaiseTPL (TPL_CALLBACK);
-  PP2DXE_CONTEXT *Pp2Context = INSTANCE_FROM_SNP(This);
-  UINT32 State = This->Mode->State;
+
+  Pp2Context = INSTANCE_FROM_SNP(This);
+  State = This->Mode->State;
 
   if (State != EfiSimpleNetworkStarted && State != EfiSimpleNetworkInitialized) {
     switch (State) {
@@ -630,17 +647,42 @@ Pp2SnpReset (
   IN BOOLEAN                     ExtendedVerification
   )
 {
+  PP2DXE_CONTEXT *Pp2Context;
+
+  /* Check This Instance. */
+  if (This == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  Pp2Context = INSTANCE_FROM_SNP (This);
+
+  /* Check that driver was started and initialized. */
+  if (This->Mode->State != EfiSimpleNetworkInitialized) {
+    switch (This->Mode->State) {
+    case EfiSimpleNetworkStopped:
+      DEBUG ((DEBUG_WARN, "Pp2Dxe%d: not started\n", Pp2Context->Instance));
+      return EFI_NOT_STARTED;
+    case EfiSimpleNetworkStarted:
+      DEBUG ((DEBUG_WARN, "Pp2Dxe%d: not initialized\n", Pp2Context->Instance));
+      return EFI_DEVICE_ERROR;
+    default:
+      DEBUG ((DEBUG_WARN,
+        "Pp2Dxe%d: wrong state: %u\n",
+        Pp2Context->Instance,
+        This->Mode->State));
+      return EFI_DEVICE_ERROR;
+    }
+  }
+
   return EFI_SUCCESS;
 }
 
+STATIC
 VOID
-EFIAPI
 Pp2DxeHalt (
-  IN EFI_EVENT Event,
-  IN VOID *Context
+  IN PP2DXE_CONTEXT *Pp2Context
   )
 {
-  PP2DXE_CONTEXT *Pp2Context = Context;
   PP2DXE_PORT *Port = &Pp2Context->Port;
   MVPP2_SHARED *Mvpp2Shared = Pp2Context->Port.Priv;
   INTN Index;
@@ -661,29 +703,57 @@ Pp2DxeHalt (
   MvGop110PortDisable(Port);
 }
 
+VOID
+EFIAPI
+Pp2DxeHaltEvent (
+  IN EFI_EVENT Event,
+  IN VOID *Context
+  )
+{
+  PP2DXE_CONTEXT *Pp2Context = Context;
+
+  Pp2DxeHalt (Pp2Context);
+}
+
 EFI_STATUS
 EFIAPI
 Pp2SnpShutdown (
   IN EFI_SIMPLE_NETWORK_PROTOCOL *This
   )
 {
+  PP2DXE_CONTEXT *Pp2Context;
   EFI_TPL SavedTpl;
-  SavedTpl = gBS->RaiseTPL (TPL_CALLBACK);
-  PP2DXE_CONTEXT *Pp2Context = INSTANCE_FROM_SNP(This);
-  UINT32 State = This->Mode->State;
 
-  if (State != EfiSimpleNetworkInitialized) {
-    switch (State) {
+  /* Check Snp Instance. */
+  if (This == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  SavedTpl = gBS->RaiseTPL (TPL_CALLBACK);
+
+  Pp2Context = INSTANCE_FROM_SNP (This);
+
+  /* Check whether the driver was started and initialized. */
+  if (This->Mode->State != EfiSimpleNetworkInitialized) {
+    switch (This->Mode->State) {
     case EfiSimpleNetworkStopped:
-      DEBUG((DEBUG_WARN, "Pp2Dxe%d: not started\n", Pp2Context->Instance));
+      DEBUG ((DEBUG_WARN, "Pp2Dxe%d: not started\n", Pp2Context->Instance));
       ReturnUnlock (SavedTpl, EFI_NOT_STARTED);
     case EfiSimpleNetworkStarted:
-    /* Fall through */
+      DEBUG ((DEBUG_WARN, "Pp2Dxe%d: not initialized\n", Pp2Context->Instance));
+      ReturnUnlock (SavedTpl, EFI_DEVICE_ERROR);
     default:
-      DEBUG((DEBUG_ERROR, "Pp2Dxe%d: wrong state\n", Pp2Context->Instance));
+      DEBUG ((DEBUG_WARN,
+        "Pp2Dxe%d: wrong state: %u\n",
+        Pp2Context->Instance,
+        This->Mode->State));
       ReturnUnlock (SavedTpl, EFI_DEVICE_ERROR);
     }
   }
+
+  Pp2DxeHalt (Pp2Context);
+
+  This->Mode->State = EfiSimpleNetworkStarted;
 
   ReturnUnlock (SavedTpl, EFI_SUCCESS);
 }
@@ -699,7 +769,67 @@ Pp2SnpReceiveFilters (
   IN EFI_MAC_ADDRESS             *MCastFilter OPTIONAL
   )
 {
-  return EFI_SUCCESS;
+  PP2DXE_CONTEXT *Pp2Context;
+  EFI_TPL SavedTpl;
+  UINTN Count;
+
+  /* Check Snp Instance. */
+  if (This == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  SavedTpl = gBS->RaiseTPL (TPL_CALLBACK);
+
+  Pp2Context = INSTANCE_FROM_SNP(This);
+
+  /* Check whether the driver was started and initialized. */
+  if (This->Mode->State != EfiSimpleNetworkInitialized) {
+    switch (This->Mode->State) {
+    case EfiSimpleNetworkStopped:
+      DEBUG ((DEBUG_WARN, "Pp2Dxe%d: not started\n", Pp2Context->Instance));
+      ReturnUnlock (SavedTpl, EFI_NOT_STARTED);
+    case EfiSimpleNetworkStarted:
+      DEBUG ((DEBUG_WARN, "Pp2Dxe%d: not initialized\n", Pp2Context->Instance));
+      ReturnUnlock (SavedTpl, EFI_DEVICE_ERROR);
+    default:
+      DEBUG ((DEBUG_WARN,
+        "Pp2Dxe%d: wrong state: %u\n",
+        Pp2Context->Instance,
+        This->Mode->State));
+      ReturnUnlock (SavedTpl, EFI_DEVICE_ERROR);
+    }
+  }
+
+  if (((Enable | Disable) & ~This->Mode->ReceiveFilterMask) != 0) {
+    ReturnUnlock (SavedTpl, EFI_INVALID_PARAMETER);
+  }
+
+  if (!ResetMCastFilter &&
+      (Disable & EFI_SIMPLE_NETWORK_RECEIVE_MULTICAST) == 0 &&
+      (Enable & EFI_SIMPLE_NETWORK_RECEIVE_MULTICAST) != 0) {
+    if (MCastFilterCnt == 0 ||
+        MCastFilterCnt > This->Mode->MaxMCastFilterCount ||
+        MCastFilter == NULL) {
+      ReturnUnlock (SavedTpl, EFI_INVALID_PARAMETER);
+    }
+
+    for (Count = 0; Count < MCastFilterCnt; Count++) {
+      if ((MCastFilter[Count].Addr[0] & 1) == 0) {
+        ReturnUnlock (SavedTpl, EFI_INVALID_PARAMETER);
+      }
+      CopyMem (&This->Mode->MCastFilter[Count],
+        &MCastFilter[Count],
+        sizeof (EFI_MAC_ADDRESS));
+    }
+    This->Mode->MCastFilterCount = MCastFilterCnt;
+  } else if (ResetMCastFilter) {
+    This->Mode->MCastFilterCount = 0;
+  }
+
+  This->Mode->ReceiveFilterSetting |= Enable;
+  This->Mode->ReceiveFilterSetting &= ~Disable;
+
+  ReturnUnlock (SavedTpl, EFI_SUCCESS);
 }
 
 EFI_STATUS
@@ -786,12 +916,85 @@ EFI_STATUS
 EFIAPI
 Pp2SnpIpToMac (
   IN EFI_SIMPLE_NETWORK_PROTOCOL *This,
-  IN BOOLEAN                     IPv6,
-  IN EFI_IP_ADDRESS              *IP,
-  OUT EFI_MAC_ADDRESS            *MAC
+  IN BOOLEAN                     IsIpv6,
+  IN EFI_IP_ADDRESS              *Ip,
+  OUT EFI_MAC_ADDRESS            *McastMac
   )
 {
-  return EFI_UNSUPPORTED;
+  PP2DXE_CONTEXT *Pp2Context;
+  EFI_TPL SavedTpl;
+
+  /* Check Snp Instance. */
+  if (This == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  SavedTpl = gBS->RaiseTPL (TPL_CALLBACK);
+
+  Pp2Context = INSTANCE_FROM_SNP (This);
+
+  /* Check that driver was started and initialised. */
+  if (This->Mode->State != EfiSimpleNetworkInitialized) {
+    switch (This->Mode->State) {
+    case EfiSimpleNetworkStopped:
+      DEBUG ((DEBUG_WARN, "Pp2Dxe%d: not started\n", Pp2Context->Instance));
+      ReturnUnlock (SavedTpl, EFI_NOT_STARTED);
+    case EfiSimpleNetworkStarted:
+      DEBUG ((DEBUG_WARN, "Pp2Dxe%d: not initialized\n", Pp2Context->Instance));
+      ReturnUnlock (SavedTpl, EFI_DEVICE_ERROR);
+    default:
+      DEBUG ((DEBUG_WARN,
+        "Pp2Dxe%d: wrong state: %u\n",
+        Pp2Context->Instance,
+        This->Mode->State));
+      ReturnUnlock (SavedTpl, EFI_DEVICE_ERROR);
+    }
+  }
+
+  /* Check parameters. */
+  if ((McastMac == NULL) || (Ip == NULL)) {
+    ReturnUnlock (SavedTpl, EFI_INVALID_PARAMETER);
+  }
+
+  /* Make sure MAC address is empty. */
+  ZeroMem (McastMac, sizeof(EFI_MAC_ADDRESS));
+
+  /* If we need ipv4 address. */
+  if (!IsIpv6) {
+    /*
+     * Most significant 25 bits of a multicast HW address are set.
+     * 01-00-5E is the IPv4 Ethernet Multicast Address (see RFC 1112).
+     */
+    McastMac->Addr[0] = 0x01;
+    McastMac->Addr[1] = 0x00;
+    McastMac->Addr[2] = 0x5E;
+
+    /*
+     * Lower 23 bits from ipv4 address
+     * Clear the most significant bit (25th bit of MAC must be 0).
+     */
+    McastMac->Addr[3] = Ip->v4.Addr[1] & 0x7F;
+    McastMac->Addr[4] = Ip->v4.Addr[2];
+    McastMac->Addr[5] = Ip->v4.Addr[3];
+  } else {
+    /*
+     * Most significant 16 bits of multicast v6 HW address are set
+     * 33-33 is the IPv6 Ethernet Multicast Address (see RFC 2464).
+     */
+    McastMac->Addr[0] = 0x33;
+    McastMac->Addr[1] = 0x33;
+
+    /* Lower four octets are taken from ipv6 address. */
+    McastMac->Addr[2] = Ip->v6.Addr[8];
+    McastMac->Addr[3] = Ip->v6.Addr[9];
+    McastMac->Addr[4] = Ip->v6.Addr[10];
+    McastMac->Addr[5] = Ip->v6.Addr[11];
+  }
+
+  /* Restore TPL and return. */
+  gBS->RestoreTPL (SavedTpl);
+
+  return EFI_SUCCESS;
 }
 
 EFI_STATUS
@@ -815,15 +1018,42 @@ Pp2SnpGetStatus (
   OUT VOID                       **TxBuf OPTIONAL
   )
 {
-  PP2DXE_CONTEXT *Pp2Context = INSTANCE_FROM_SNP(Snp);
-  PP2DXE_PORT *Port = &Pp2Context->Port;
+  PP2DXE_CONTEXT *Pp2Context;
+  PP2DXE_PORT *Port;
   BOOLEAN LinkUp;
   EFI_TPL SavedTpl;
 
+  /* Check Snp Instance. */
+  if (Snp == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
   SavedTpl = gBS->RaiseTPL (TPL_CALLBACK);
+
+  Pp2Context = INSTANCE_FROM_SNP (Snp);
+
+  /* Check whether the driver was started and initialized. */
+  if (Snp->Mode->State != EfiSimpleNetworkInitialized) {
+    switch (Snp->Mode->State) {
+    case EfiSimpleNetworkStopped:
+      DEBUG ((DEBUG_WARN, "Pp2Dxe%d: not started\n", Pp2Context->Instance));
+      ReturnUnlock (SavedTpl, EFI_NOT_STARTED);
+    case EfiSimpleNetworkStarted:
+      DEBUG ((DEBUG_WARN, "Pp2Dxe%d: not initialized\n", Pp2Context->Instance));
+      ReturnUnlock (SavedTpl, EFI_DEVICE_ERROR);
+    default:
+      DEBUG ((DEBUG_WARN,
+        "Pp2Dxe%d: wrong state: %u\n",
+        Pp2Context->Instance,
+        Snp->Mode->State));
+      ReturnUnlock (SavedTpl, EFI_DEVICE_ERROR);
+    }
+  }
 
   if (!Pp2Context->Initialized)
     ReturnUnlock(SavedTpl, EFI_NOT_READY);
+
+  Port = &Pp2Context->Port;
 
   LinkUp = Port->AlwaysUp ? TRUE : MvGop110PortIsLinkUp(Port);
 
@@ -871,9 +1101,15 @@ Pp2SnpTransmit (
   }
 
   if (HeaderSize != 0) {
-    ASSERT (HeaderSize == This->Mode->MediaHeaderSize);
-    ASSERT (EtherTypePtr != NULL);
-    ASSERT (DestAddr != NULL);
+    if (HeaderSize != This->Mode->MediaHeaderSize ||
+        EtherTypePtr == NULL ||
+        DestAddr == NULL) {
+      return EFI_INVALID_PARAMETER;
+    }
+  }
+
+  if (BufferSize < This->Mode->MediaHeaderSize) {
+      return EFI_BUFFER_TOO_SMALL;
   }
 
   SavedTpl = gBS->RaiseTPL (TPL_CALLBACK);
@@ -897,8 +1133,6 @@ Pp2SnpTransmit (
     ReturnUnlock(SavedTpl, EFI_NOT_READY);
   }
 
-  EtherType = HTONS (*EtherTypePtr);
-
   /* Fetch next descriptor */
   TxDesc = Mvpp2TxqNextDescGet(AggrTxq);
 
@@ -914,6 +1148,8 @@ Pp2SnpTransmit (
       CopyMem(DataPtr + NET_ETHER_ADDR_LEN, SrcAddr, NET_ETHER_ADDR_LEN);
     else
       CopyMem(DataPtr + NET_ETHER_ADDR_LEN, &This->Mode->CurrentAddress, NET_ETHER_ADDR_LEN);
+
+    EtherType = HTONS (*EtherTypePtr);
 
     CopyMem(DataPtr + NET_ETHER_ADDR_LEN * 2, &EtherType, 2);
   }
@@ -978,23 +1214,50 @@ Pp2SnpReceive (
   )
 {
   INTN ReceivedPackets;
-  PP2DXE_CONTEXT *Pp2Context = INSTANCE_FROM_SNP(This);
-  PP2DXE_PORT *Port = &Pp2Context->Port;
-  MVPP2_SHARED *Mvpp2Shared = Pp2Context->Port.Priv;
+  PP2DXE_CONTEXT *Pp2Context;
+  PP2DXE_PORT *Port;
   UINTN PhysAddr, VirtAddr;
-  EFI_STATUS Status = EFI_SUCCESS;
+  EFI_STATUS Status;
   EFI_TPL SavedTpl;
   UINT32 StatusReg;
   INTN PoolId;
   UINTN PktLength;
   UINT8 *DataPtr;
   MVPP2_RX_DESC *RxDesc;
-  MVPP2_RX_QUEUE *Rxq = &Port->Rxqs[0];
+  MVPP2_RX_QUEUE *Rxq;
 
-  ASSERT (Port != NULL);
-  ASSERT (Rxq != NULL);
+  /* Check input parameters. */
+  if (This == NULL || Buffer == NULL || BufferSize == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
 
   SavedTpl = gBS->RaiseTPL (TPL_CALLBACK);
+
+  Pp2Context = INSTANCE_FROM_SNP (This);
+
+  /* Check whether the driver was started and initialized. */
+  if (This->Mode->State != EfiSimpleNetworkInitialized) {
+    switch (This->Mode->State) {
+    case EfiSimpleNetworkStopped:
+      DEBUG ((DEBUG_WARN, "Pp2Dxe%d: not started\n", Pp2Context->Instance));
+      ReturnUnlock (SavedTpl, EFI_NOT_STARTED);
+    case EfiSimpleNetworkStarted:
+      DEBUG ((DEBUG_WARN, "Pp2Dxe%d: not initialized\n", Pp2Context->Instance));
+      ReturnUnlock (SavedTpl, EFI_DEVICE_ERROR);
+    default:
+      DEBUG ((DEBUG_WARN,
+        "Pp2Dxe%d: wrong state: %u\n",
+        Pp2Context->Instance,
+        This->Mode->State));
+      ReturnUnlock (SavedTpl, EFI_DEVICE_ERROR);
+    }
+  }
+
+  Port = &Pp2Context->Port;
+  ASSERT (Port != NULL);
+  Rxq = &Port->Rxqs[0];
+  ASSERT (Rxq != NULL);
+
   ReceivedPackets = Mvpp2RxqReceived(Port, Rxq->Id);
 
   if (ReceivedPackets == 0) {
@@ -1049,10 +1312,12 @@ Pp2SnpReceive (
     *EtherType = NTOHS (*(UINT16 *)(&DataPtr[12]));
   }
 
+  Status = EFI_SUCCESS;
+
 drop:
   /* Refill: pass packet back to BM */
   PoolId = (StatusReg & MVPP2_RXD_BM_POOL_ID_MASK) >> MVPP2_RXD_BM_POOL_ID_OFFS;
-  Mvpp2BmPoolPut(Mvpp2Shared, PoolId, PhysAddr, VirtAddr);
+  Mvpp2BmPoolPut (Pp2Context->Port.Priv, PoolId, PhysAddr, VirtAddr);
 
   /* Update counters with 1 packet received and 1 packet refilled */
   Mvpp2RxqStatusUpdate(Port, Rxq->Id, 1, 1);
@@ -1458,7 +1723,7 @@ Pp2DxeInitialiseController (
     Status = gBS->CreateEvent (
                  EVT_SIGNAL_EXIT_BOOT_SERVICES,
                  TPL_NOTIFY,
-                 Pp2DxeHalt,
+                 Pp2DxeHaltEvent,
                  Pp2Context,
                  &Pp2Context->EfiExitBootServicesEvent
                );

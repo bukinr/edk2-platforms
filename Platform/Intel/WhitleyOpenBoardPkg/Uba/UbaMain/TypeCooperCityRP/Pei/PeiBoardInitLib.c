@@ -22,6 +22,12 @@
 #include <Library/PchMultiPchBase.h>
 #include <Ppi/DynamicSiLibraryPpi.h>
 
+STATIC CHAR8 *PlatformCapabilitiesStr[] = {
+  "Unknown",    // PLATFORM_CAPABILITY_UNDEFINED
+  "2-Socket",   // PLATFORM_CAPABILITY_2_SOCKET
+  "4-Socket",   // PLATFORM_CAPABILITY_4_SOCKET
+  "8-Socket"    // PLATFORM_CAPABILITY_8_SOCKET
+};
 
 /**
 
@@ -141,13 +147,13 @@ TypeCooperCityRPPeiBoardInitLibConstructor (
               &gUbaConfigDatabasePpiGuid,
               0,
               NULL,
-              &UbaConfigPpi
+              (VOID **) &UbaConfigPpi
               );
     if (EFI_ERROR(Status)) {
       return Status;
     }
 
-    Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, &DynamicSiLibraryPpi);
+    Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, (VOID **) &DynamicSiLibraryPpi);
     if (EFI_ERROR (Status)) {
       ASSERT_EFI_ERROR (Status);
       return Status;

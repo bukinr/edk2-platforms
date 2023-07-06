@@ -12,50 +12,78 @@
 ##
 
 #
-# Debug Advanced Features
+# Debugging features
 #
 !if gAcpiDebugFeaturePkgTokenSpaceGuid.PcdAcpiDebugFeatureEnable == TRUE
-  !include Debugging/AcpiDebugFeaturePkg/Include/PostMemory.fdf
+  !include AcpiDebugFeaturePkg/Include/PostMemory.fdf
 !endif
+
+!if gBeepDebugFeaturePkgTokenSpaceGuid.PcdBeepDebugFeatureEnable == TRUE
+  !include BeepDebugFeaturePkg/Include/PostMemory.fdf
+!endif
+
+!if gPostCodeDebugFeaturePkgTokenSpaceGuid.PcdPostCodeDebugFeatureEnable == TRUE
+  !include PostCodeDebugFeaturePkg/Include/PostMemory.fdf
+!endif
+
 !if gUsb3DebugFeaturePkgTokenSpaceGuid.PcdUsb3DebugFeatureEnable == TRUE
-  !include Debugging/Usb3DebugFeaturePkg/Include/PostMemory.fdf
+  !include Usb3DebugFeaturePkg/Include/PostMemory.fdf
 !endif
 
 #
-# Network Advanced Features
+# Network features
 #
 !if gNetworkFeaturePkgTokenSpaceGuid.PcdNetworkFeatureEnable == TRUE
-  !include Network/NetworkFeaturePkg/Include/PostMemory.fdf
+  !include NetworkFeaturePkg/Include/PostMemory.fdf
 !endif
 
 #
-# Out-of-Band Management Advanced Features
+# OutOfBandManagement features
 #
 !if gIpmiFeaturePkgTokenSpaceGuid.PcdIpmiFeatureEnable == TRUE
-  !include OutOfBandManagement/IpmiFeaturePkg/Include/PostMemory.fdf
+  !include IpmiFeaturePkg/Include/PostMemory.fdf
+!endif
+
+!if gSpcrFeaturePkgTokenSpaceGuid.PcdSpcrFeatureEnable == TRUE
+  !include SpcrFeaturePkg/Include/PostMemory.fdf
+!endif
+
+!if gAsfFeaturePkgTokenSpaceGuid.PcdAsfFeatureEnable == TRUE
+  !include AsfFeaturePkg/Include/PostMemory.fdf
 !endif
 
 #
-# Power Management Advanced Features
+# PowerManagement features
 #
 !if gS3FeaturePkgTokenSpaceGuid.PcdS3FeatureEnable == TRUE
-  !include PowerManagement/S3FeaturePkg/Include/PostMemory.fdf
+  !include S3FeaturePkg/Include/PostMemory.fdf
 !endif
 
 #
-# System Information Advanced Features
+# SystemInformation features
 #
 !if gSmbiosFeaturePkgTokenSpaceGuid.PcdSmbiosFeatureEnable == TRUE
-  !include SystemInformation/SmbiosFeaturePkg/Include/PostMemory.fdf
+  !include SmbiosFeaturePkg/Include/PostMemory.fdf
 !endif
 
 #
-# User Interface Advanced Features
+# UserInterface features
 #
-!if gUserAuthFeaturePkgTokenSpaceGuid.PcdUserAuthenticationFeatureEnable == TRUE
-  !include UserInterface/UserAuthFeaturePkg/Include/PostMemory.fdf
-!endif
-
 !if gLogoFeaturePkgTokenSpaceGuid.PcdLogoFeatureEnable == TRUE
   !include LogoFeaturePkg/Include/PostMemory.fdf
+!endif
+
+!if gUserAuthFeaturePkgTokenSpaceGuid.PcdUserAuthenticationFeatureEnable == TRUE
+  !include UserAuthFeaturePkg/Include/PostMemory.fdf
+!endif
+
+!if gVirtualKeyboardFeaturePkgTokenSpaceGuid.PcdVirtualKeyboardFeatureEnable == TRUE
+  !include VirtualKeyboardFeaturePkg/Include/PostMemory.fdf
+!endif
+
+#
+# Individual features
+#
+!if gPlatformPayloadFeaturePkgTokenSpaceGuid.PcdPlatformPayloadFeatureEnable == TRUE
+  !include PlatformPayloadFeaturePkg/Include/PostMemory.fdf
 !endif

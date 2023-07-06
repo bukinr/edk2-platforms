@@ -1,7 +1,7 @@
 /** @file
   Directory related routines
 
-  Copyright (c) 2021 Pedro Falcato All rights reserved.
+  Copyright (c) 2021 - 2023 Pedro Falcato All rights reserved.
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
@@ -16,8 +16,9 @@
    @param[in]      Entry   Pointer to a EXT4_DIR_ENTRY.
    @param[out]      Ucs2FileName   Pointer to an array of CHAR16's, of size EXT4_NAME_MAX + 1.
 
-   @retval EFI_SUCCESS   The filename was succesfully retrieved and converted to UCS2.
-   @retval !EFI_SUCCESS  Failure.
+   @retval EFI_SUCCESS              The filename was successfully retrieved and converted to UCS2.
+   @retval EFI_INVALID_PARAMETER    The filename is not valid UTF-8.
+   @retval !EFI_SUCCESS             Failure.
 **/
 EFI_STATUS
 Ext4GetUcs2DirentName (
@@ -27,9 +28,16 @@ Ext4GetUcs2DirentName (
 {
   CHAR8       Utf8NameBuf[EXT4_NAME_MAX + 1];
   UINT16      *Str;
+  UINT8       Index;
   EFI_STATUS  Status;
 
-  CopyMem (Utf8NameBuf, Entry->name, Entry->name_len);
+  for (Index = 0; Index < Entry->name_len; ++Index) {
+    if (Entry->name[Index] == '\0') {
+      return EFI_INVALID_PARAMETER;
+    }
+
+    Utf8NameBuf[Index] = Entry->name[Index];
+  }
 
   Utf8NameBuf[Entry->name_len] = '\0';
 
@@ -74,7 +82,7 @@ Ext4ValidDirent (
   }
 
   // Dirent sizes need to be 4 byte aligned
-  if (Dirent->rec_len % 4) {
+  if ((Dirent->rec_len % 4) != 0) {
     return FALSE;
   }
 
@@ -112,8 +120,7 @@ Ext4RetrieveDirent (
   UINTN           ToCopy;
   UINTN           BlockOffset;
 
-  Status = EFI_NOT_FOUND;
-  Buf    = AllocatePool (Partition->BlockSize);
+  Buf = AllocatePool (Partition->BlockSize);
 
   if (Buf == NULL) {
     return EFI_OUT_OF_RESOURCES;
@@ -121,13 +128,14 @@ Ext4RetrieveDirent (
 
   Off = 0;
 
-  Inode = Directory->Inode;
+  Inode      = Directory->Inode;
   DirInoSize = EXT4_INODE_SIZE (Inode);
 
   DivU64x32Remainder (DirInoSize, Partition->BlockSize, &BlockRemainder);
   if (BlockRemainder != 0) {
     // Directory inodes need to have block aligned sizes
-    return EFI_VOLUME_CORRUPTED;
+    Status = EFI_VOLUME_CORRUPTED;
+    goto Out;
   }
 
   while (Off < DirInoSize) {
@@ -136,39 +144,27 @@ Ext4RetrieveDirent (
     Status = Ext4Read (Partition, Directory, Buf, Off, &Length);
 
     if (Status != EFI_SUCCESS) {
-      FreePool (Buf);
-      return Status;
+      goto Out;
     }
 
     for (BlockOffset = 0; BlockOffset < Partition->BlockSize; ) {
-      Entry = (EXT4_DIR_ENTRY *)(Buf + BlockOffset);
+      Entry          = (EXT4_DIR_ENTRY *)(Buf + BlockOffset);
       RemainingBlock = Partition->BlockSize - BlockOffset;
       // Check if the minimum directory entry fits inside [BlockOffset, EndOfBlock]
       if (RemainingBlock < EXT4_MIN_DIR_ENTRY_LEN) {
-        FreePool (Buf);
-        return EFI_VOLUME_CORRUPTED;
+        Status = EFI_VOLUME_CORRUPTED;
+        goto Out;
       }
 
       if (!Ext4ValidDirent (Entry)) {
-        FreePool (Buf);
-        return EFI_VOLUME_CORRUPTED;
+        Status = EFI_VOLUME_CORRUPTED;
+        goto Out;
       }
 
-      if (Entry->name_len > RemainingBlock || Entry->rec_len > RemainingBlock) {
+      if ((Entry->name_len > RemainingBlock) || (Entry->rec_len > RemainingBlock)) {
         // Corrupted filesystem
-        FreePool (Buf);
-        return EFI_VOLUME_CORRUPTED;
-      }
-
-      // Ignore names bigger than our limit.
-
-      /* Note: I think having a limit is sane because:
-        1) It's nicer to work with.
-        2) Linux and a number of BSDs also have a filename limit of 255.
-      */
-      if (Entry->name_len > EXT4_NAME_MAX) {
-        BlockOffset += Entry->rec_len;
-        continue;
+        Status = EFI_VOLUME_CORRUPTED;
+        goto Out;
       }
 
       // Unused entry
@@ -185,19 +181,26 @@ Ext4RetrieveDirent (
        * need to form valid ASCII/UTF-8 sequences.
        */
       if (EFI_ERROR (Status)) {
-        // If we error out, skip this entry
-        // I'm not sure if this is correct behaviour, but I don't think there's a precedent here.
-        BlockOffset += Entry->rec_len;
-        continue;
+        if (Status == EFI_INVALID_PARAMETER) {
+          // If we error out due to a bad UTF-8 sequence (see Ext4GetUcs2DirentName), skip this entry.
+          // I'm not sure if this is correct behaviour, but I don't think there's a precedent here.
+          BlockOffset += Entry->rec_len;
+          continue;
+        }
+
+        // Other sorts of errors should just error out.
+        FreePool (Buf);
+        return Status;
       }
 
-      if (Entry->name_len == StrLen (Name) &&
-          !Ext4StrCmpInsensitive (DirentUcs2Name, (CHAR16 *)Name)) {
+      if ((Entry->name_len == StrLen (Name)) &&
+          !Ext4StrCmpInsensitive (DirentUcs2Name, (CHAR16 *)Name))
+      {
         ToCopy = MIN (Entry->rec_len, sizeof (EXT4_DIR_ENTRY));
 
         CopyMem (Result, Entry, ToCopy);
-        FreePool (Buf);
-        return EFI_SUCCESS;
+        Status = EFI_SUCCESS;
+        goto Out;
       }
 
       BlockOffset += Entry->rec_len;
@@ -206,8 +209,11 @@ Ext4RetrieveDirent (
     Off += Partition->BlockSize;
   }
 
+  Status = EFI_NOT_FOUND;
+
+Out:
   FreePool (Buf);
-  return EFI_NOT_FOUND;
+  return Status;
 }
 
 /**
@@ -258,13 +264,18 @@ Ext4OpenDirent (
     // Using the parent's parent's dentry
     File->Dentry = Directory->Dentry->Parent;
 
-    ASSERT (File->Dentry != NULL);
+    if (!File->Dentry) {
+      // Someone tried .. on root, so direct them to /
+      // This is an illegal EFI Open() but is possible to hit from a variety of internal code
+      File->Dentry = Directory->Dentry;
+    }
 
     Ext4RefDentry (File->Dentry);
   } else {
     File->Dentry = Ext4CreateDentry (FileName, Directory->Dentry);
 
-    if (!File->Dentry) {
+    if (File->Dentry == NULL) {
+      Status = EFI_OUT_OF_RESOURCES;
       goto Error;
     }
   }
@@ -446,6 +457,7 @@ Ext4ReadDir (
   EXT4_FILE       *TempFile;
   BOOLEAN         ShouldSkip;
   BOOLEAN         IsDotOrDotDot;
+  CHAR16          DirentUcs2Name[EXT4_NAME_MAX + 1];
 
   DirIno     = File->Inode;
   Status     = EFI_SUCCESS;
@@ -501,16 +513,33 @@ Ext4ReadDir (
     // or a checksum at the end of the directory block.
     // memcmp (and CompareMem) return 0 when the passed length is 0.
 
-    IsDotOrDotDot = Entry.name_len != 0 &&
-                    (CompareMem (Entry.name, ".", Entry.name_len) == 0 ||
-                     CompareMem (Entry.name, "..", Entry.name_len) == 0);
+    // We must bound name_len as > 0 and <= 2 to avoid any out-of-bounds accesses or bad detection of
+    // "." and "..".
+    IsDotOrDotDot = Entry.name_len > 0 && Entry.name_len <= 2 &&
+                    CompareMem (Entry.name, "..", Entry.name_len) == 0;
 
-    // When inode = 0, it's unused.
-    ShouldSkip = Entry.inode == 0 || IsDotOrDotDot;
+    // When inode = 0, it's unused. When name_len == 0, it's a nameless entry
+    // (which we should not expose to ReadDir).
+    ShouldSkip = Entry.inode == 0 || Entry.name_len == 0 || IsDotOrDotDot;
 
     if (ShouldSkip) {
       Offset += Entry.rec_len;
       continue;
+    }
+
+    // Test if the dirent is valid utf-8. This is already done inside Ext4OpenDirent but EFI_INVALID_PARAMETER
+    // has the danger of its meaning being overloaded in many places, so we can't skip according to that.
+    // So test outside of it, explicitly.
+    Status = Ext4GetUcs2DirentName (&Entry, DirentUcs2Name);
+
+    if (EFI_ERROR (Status)) {
+      if (Status == EFI_INVALID_PARAMETER) {
+        // Bad UTF-8, skip.
+        Offset += Entry.rec_len;
+        continue;
+      }
+
+      goto Out;
     }
 
     Status = Ext4OpenDirent (Partition, EFI_FILE_MODE_READ, &TempFile, &Entry, File);
@@ -547,20 +576,8 @@ Ext4RemoveDentry (
   IN OUT EXT4_DENTRY  *ToBeRemoved
   )
 {
-  EXT4_DENTRY  *D;
-  LIST_ENTRY   *Entry;
-  LIST_ENTRY   *NextEntry;
-
-  BASE_LIST_FOR_EACH_SAFE (Entry, NextEntry, &Parent->Children) {
-    D = EXT4_DENTRY_FROM_DENTRY_LIST (Entry);
-
-    if (D == ToBeRemoved) {
-      RemoveEntryList (Entry);
-      return;
-    }
-  }
-
-  DEBUG ((DEBUG_ERROR, "[ext4] Ext4RemoveDentry did not find the asked-for dentry\n"));
+  ASSERT (IsNodeInList (&ToBeRemoved->ListNode, &Parent->Children));
+  RemoveEntryList (&ToBeRemoved->ListNode);
 }
 
 /**
@@ -595,7 +612,7 @@ Ext4AddDentry (
 **/
 EXT4_DENTRY *
 Ext4CreateDentry (
-  IN CONST CHAR16              *Name,
+  IN CONST CHAR16     *Name,
   IN OUT EXT4_DENTRY  *Parent  OPTIONAL
   )
 {

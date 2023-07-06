@@ -13,44 +13,44 @@
 
 VOID
 AddIoMemoryBaseSizeHob (
-  EFI_PHYSICAL_ADDRESS        MemoryBase,
-  UINT64                      MemorySize
+  EFI_PHYSICAL_ADDRESS  MemoryBase,
+  UINT64                MemorySize
   );
 
 VOID
 AddIoMemoryRangeHob (
-  EFI_PHYSICAL_ADDRESS        MemoryBase,
-  EFI_PHYSICAL_ADDRESS        MemoryLimit
+  EFI_PHYSICAL_ADDRESS  MemoryBase,
+  EFI_PHYSICAL_ADDRESS  MemoryLimit
   );
 
 VOID
 AddMemoryBaseSizeHob (
-  EFI_PHYSICAL_ADDRESS        MemoryBase,
-  UINT64                      MemorySize
+  EFI_PHYSICAL_ADDRESS  MemoryBase,
+  UINT64                MemorySize
   );
 
 VOID
 AddMemoryRangeHob (
-  EFI_PHYSICAL_ADDRESS        MemoryBase,
-  EFI_PHYSICAL_ADDRESS        MemoryLimit
+  EFI_PHYSICAL_ADDRESS  MemoryBase,
+  EFI_PHYSICAL_ADDRESS  MemoryLimit
   );
 
 VOID
 AddUntestedMemoryBaseSizeHob (
-  EFI_PHYSICAL_ADDRESS        MemoryBase,
-  UINT64                      MemorySize
+  EFI_PHYSICAL_ADDRESS  MemoryBase,
+  UINT64                MemorySize
   );
 
 VOID
 AddReservedMemoryBaseSizeHob (
-  EFI_PHYSICAL_ADDRESS        MemoryBase,
-  UINT64                      MemorySize
+  EFI_PHYSICAL_ADDRESS  MemoryBase,
+  UINT64                MemorySize
   );
 
 VOID
 AddUntestedMemoryRangeHob (
-  EFI_PHYSICAL_ADDRESS        MemoryBase,
-  EFI_PHYSICAL_ADDRESS        MemoryLimit
+  EFI_PHYSICAL_ADDRESS  MemoryBase,
+  EFI_PHYSICAL_ADDRESS  MemoryLimit
   );
 
 VOID
@@ -80,6 +80,17 @@ PeiFvInitialization (
 
 EFI_STATUS
 InitializeXen (
+  VOID
+  );
+
+/**
+  Build processor and platform information for the U5 platform
+
+  @return EFI_SUCCESS     Status.
+
+**/
+EFI_STATUS
+BuildRiscVSmbiosHobs (
   VOID
   );
 

@@ -15,7 +15,34 @@
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiLib.h>
 
+#include <Platform/MemoryMap.h>
+
 #include "NorFlash.h"
+
+#define FW_CODE_REGION_BASE SYNQUACER_SPI_NOR_BASE
+#define FW_CODE_REGION_SIZE (FW_ENV_REGION_BASE - FW_CODE_REGION_BASE)
+
+#define FW_ENV_REGION_BASE  FixedPcdGet32 (PcdFlashNvStorageVariableBase)
+#define FW_ENV_REGION_SIZE  (FixedPcdGet32 (PcdFlashNvStorageVariableSize) + \
+                             FixedPcdGet32 (PcdFlashNvStorageFtwWorkingSize) + \
+                             FixedPcdGet32 (PcdFlashNvStorageFtwSpareSize))
+
+STATIC NOR_FLASH_DESCRIPTION mNorFlashDevices[] = {
+  {
+    // UEFI code region
+    SYNQUACER_SPI_NOR_BASE,                             // device base
+    FW_CODE_REGION_BASE,                                // region base
+    FW_CODE_REGION_SIZE,                                // region size
+    SIZE_64KB,                                          // block size
+  },
+  {
+    // Environment variable region
+    SYNQUACER_SPI_NOR_BASE,                             // device base
+    FW_ENV_REGION_BASE,                                 // region base
+    FW_ENV_REGION_SIZE,                                 // region size
+    SIZE_64KB,                                          // block size
+  },
+};
 
 STATIC CONST UINT16 mFip006NullCmdSeq[] = {
   CSDC (CSDC_END, CSDC_CONT_NON_CONTINUOUS, CSDC_TRP_MBM, CSDC_DEC_DECODE),
@@ -51,12 +78,10 @@ STATIC CONST CSDC_DEFINITION mN25qCSDCDefTable[] = {
   { SPINOR_OP_READ_4B,  TRUE,  TRUE,  FALSE, FALSE, CS_CFG_MBM_SINGLE,
                         CSDC_TRP_SINGLE },
   // Write Operations
-  { SPINOR_OP_PP,       TRUE,  FALSE, FALSE, TRUE,  CS_CFG_MBM_SINGLE,
-                        CSDC_TRP_SINGLE },
-  { SPINOR_OP_PP_1_1_4, TRUE,  FALSE, FALSE, TRUE,  CS_CFG_MBM_QUAD,
+  { SPINOR_OP_PP_4B,    TRUE,  TRUE,  FALSE, TRUE,  CS_CFG_MBM_SINGLE,
                         CSDC_TRP_SINGLE },
   // Erase Operations
-  { SPINOR_OP_SE,       FALSE, FALSE, FALSE, TRUE,  CS_CFG_MBM_SINGLE,
+  { SPINOR_OP_BE_4B,    FALSE, FALSE, FALSE, TRUE,  CS_CFG_MBM_SINGLE,
                         CSDC_TRP_SINGLE },
 };
 
@@ -446,9 +471,8 @@ NorFlashEraseSingleBlock (
   BlockAddress -= Instance->RegionBaseAddress;
   BlockAddress += Instance->OffsetLba * Instance->BlockSize;
 
-  NorFlashSetHostCSDC (Instance, TRUE, mFip006NullCmdSeq);
-  MmioWrite32 (Instance->DeviceBaseAddress,
-               SwapBytes32 (BlockAddress & 0x00FFFFFF) | SPINOR_OP_SE);
+  NorFlashSetHostCommand (Instance, SPINOR_OP_BE_4B);
+  MmioWrite32 (Instance->DeviceBaseAddress, SwapBytes32 (BlockAddress));
   NorFlashWaitProgramErase (Instance);
   NorFlashSetHostCSDC (Instance, TRUE, mFip006NullCmdSeq);
 
@@ -515,7 +539,7 @@ NorFlashWriteSingleWord (
   if (EFI_ERROR (NorFlashEnableWrite (Instance))) {
     return EFI_DEVICE_ERROR;
   }
-  NorFlashSetHostCommand (Instance, SPINOR_OP_PP);
+  NorFlashSetHostCommand (Instance, SPINOR_OP_PP_4B);
   MmioWrite32 (WordAddress, WriteData);
   NorFlashWaitProgramErase (Instance);
 
@@ -996,5 +1020,22 @@ NorFlashReadID (
   JedecId[1] = MmioRead8 (Instance->DeviceBaseAddress + 1);
   JedecId[2] = MmioRead8 (Instance->DeviceBaseAddress + 2);
   NorFlashSetHostCommand (Instance, SPINOR_OP_READ_4B);
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+NorFlashPlatformGetDevices (
+  OUT NOR_FLASH_DESCRIPTION   **NorFlashDevices,
+  OUT UINT32                  *Count
+  )
+{
+  if (NorFlashDevices == NULL ||
+      Count == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  *Count = ARRAY_SIZE (mNorFlashDevices);
+  *NorFlashDevices = mNorFlashDevices;
+
   return EFI_SUCCESS;
 }

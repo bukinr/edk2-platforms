@@ -206,7 +206,7 @@ PlatformCpuPolicyEntryPoint (
   CPU_VAR_DATA                     *CpuVarDataPtr = NULL;
   DYNAMIC_SI_LIBARY_PROTOCOL       *DynamicSiLibraryProtocol = NULL;
 
-  Status = gBS->LocateProtocol (&gDynamicSiLibraryProtocolGuid, NULL, &DynamicSiLibraryProtocol);
+  Status = gBS->LocateProtocol (&gDynamicSiLibraryProtocolGuid, NULL, (VOID **) &DynamicSiLibraryProtocol);
   if (EFI_ERROR (Status)) {
     ASSERT_EFI_ERROR (Status);
     return Status;
@@ -364,7 +364,7 @@ PlatformCpuPolicyEntryPoint (
   mCpuPolicyConfiguration.Policy.CpuExpandedIioLlcWaysBitMask = SetupData.SocketConfig.SocketProcessorCoreConfiguration.ExpandedIioLlcWaysMask;
   mCpuPolicyConfiguration.Policy.CpuRemoteWaysBitMask         = SetupData.SocketConfig.SocketProcessorCoreConfiguration.RemoteWaysMask;
   mCpuPolicyConfiguration.Policy.CpuRrqCountThreshold         = mIioUds->PlatformData.RemoteRequestThreshold;
-  mCpuPolicyConfiguration.Policy.CpuCrashLogGprs = (SetupData.SocketConfig.SocketProcessorCoreConfiguration.CpuCrashLogGprs > 0) ? TRUE : FALSE;
+  mCpuPolicyConfiguration.Policy.CpuCrashDataGprs = (SetupData.SocketConfig.SocketProcessorCoreConfiguration.CpuCrashDataGprs > 0) ? TRUE : FALSE;
 
   //CSR SAPM CTL
   for( socket = 0; socket < MAX_SOCKET; socket++) {
@@ -666,7 +666,7 @@ PlatformCpuPolicyEntryPoint (
   Status = gBS->LocateProtocol (
                   &gEfiPlatformTypeProtocolGuid,
                   NULL,
-                  &PlatformType
+                  (VOID **) &PlatformType
                   );
   ASSERT_EFI_ERROR (Status);
 

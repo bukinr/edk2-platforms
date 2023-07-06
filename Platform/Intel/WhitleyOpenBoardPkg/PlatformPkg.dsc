@@ -3,6 +3,7 @@
 #
 # @copyright
 # Copyright 2008 - 2021 Intel Corporation. <BR>
+# Copyright (c) 2021, American Megatrends International LLC. <BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 ##
@@ -37,6 +38,31 @@
 !else
   DEFINE IIO_INSTANCE           = UnknownCpu
 !endif
+
+#
+# MinPlatform common include for required feature PCD
+# These PCD must be set before the core include files, CoreCommonLib,
+# CorePeiLib, and CoreDxeLib.
+# Optional MinPlatformPkg features should be enabled after this
+#
+!include MinPlatformPkg/Include/Dsc/MinPlatformFeaturesPcd.dsc.inc
+
+#
+# AdvancedFeature common include for feature enable/disable PCD
+#
+#
+!include AdvancedFeaturePkg/Include/AdvancedFeaturesPcd.dsc
+
+#
+# PCD required by advanced features
+#
+[PcdsFixedAtBuild]
+  gUsb3DebugFeaturePkgTokenSpaceGuid.PcdUsb3DebugPortLibInstance|1
+
+#
+# Include AdvancedFeatures
+#
+!include AdvancedFeaturePkg/Include/AdvancedFeatures.dsc
 
   #
   # Platform On/Off features are defined here
@@ -79,22 +105,16 @@
 # Pcd Section - list of all EDK II PCD Entries defined by this Platform
 #
 ################################################################################
+
 [PcdsFeatureFlag]
   #
-  # MinPlatform control flags
-  #
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterDebugInit     |FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterMemInit       |FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly        |FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdUefiSecureBootEnable   |FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdTpm2Enable             |FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable|TRUE
-  gMinPlatformPkgTokenSpaceGuid.PcdPerformanceEnable      |FALSE
-
   # don't degrade 64bit MMIO space to 32-bit
+  #
   gEfiMdeModulePkgTokenSpaceGuid.PcdPciDegradeResourceForOptionRom|FALSE
 
+  #
   # Server doesn't support capsule update on Reset.
+  #
   gEfiMdeModulePkgTokenSpaceGuid.PcdSupportUpdateCapsuleReset|FALSE
   gUefiCpuPkgTokenSpaceGuid.PcdCpuSmmEnableBspElection|TRUE
   gUefiCpuPkgTokenSpaceGuid.PcdCpuHotPlugSupport|FALSE
@@ -126,7 +146,7 @@
   ## This PCD specifies whether FPGA routine will be active
   gSocketPkgFpgaGuid.PcdSktFpgaActive|TRUE
 
-!if $(CPU_SKX_ONLY_SUPPORT) == TRUE
+!if $(CPUTARGET) == "CPX"
   gEfiCpRcPkgTokenSpaceGuid.PerBitMargin|FALSE
   gEfiCpRcPkgTokenSpaceGuid.PcdSeparateCwlAdj|TRUE
 !endif
@@ -300,7 +320,7 @@
   # Disable Fast Warm Boot for Whitley Openboard Package
   gEfiCpRcPkgTokenSpaceGuid.PcdMrcFastBootDefault|FALSE
 
-!if $(CPU_SKX_ONLY_SUPPORT) == FALSE
+!if $(CPUTARGET) == "ICX"
   gCpuUncoreTokenSpaceGuid.PcdWaSerializationEn|FALSE
   gEfiCpRcPkgTokenSpaceGuid.PcdMrcCmdVrefCenteringTrainingEnable|FALSE
 !endif
@@ -354,9 +374,6 @@
   gMinPlatformPkgTokenSpaceGuid.PcdPcIoApicAddressBase|0xFEC01000
   gMinPlatformPkgTokenSpaceGuid.PcdPcIoApicInterruptBase|24
 
-  gMinPlatformPkgTokenSpaceGuid.PcdFadtPreferredPmProfile|0x04
-  gMinPlatformPkgTokenSpaceGuid.PcdFadtIaPcBootArch|0x0000
-  gMinPlatformPkgTokenSpaceGuid.PcdFadtFlags|0x000004A5
   gMinPlatformPkgTokenSpaceGuid.PcdLocalApicAddress|0xFEE00000
   gMinPlatformPkgTokenSpaceGuid.PcdIoApicAddress|0xFEC00000
   gMinPlatformPkgTokenSpaceGuid.PcdIoApicId|0x08
@@ -383,7 +400,7 @@
   #
 
   gEfiMdePkgTokenSpaceGuid.PcdReportStatusCodePropertyMask|0x07         # Enable status codes for debug, progress, and errors
-  gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x80000042           # Displayed messages:  Error, Info, warn
+  gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x80000047           # Displayed messages:  Error, Info, warn
 
   gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress|0x80000000
   gUefiCpuPkgTokenSpaceGuid.PcdCpuNumberOfReservedVariableMtrrs|0
@@ -453,6 +470,8 @@
   gEfiSecurityPkgTokenSpaceGuid.PcdTpmInitializationPolicy|0
   gEfiSecurityPkgTokenSpaceGuid.PcdTpm2InitializationPolicy|1
   gEfiSecurityPkgTokenSpaceGuid.PcdTpm2SelfTestPolicy|0
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpm2AcpiTableRev|4
+  gEfiSecurityPkgTokenSpaceGuid.PcdTcg2PhysicalPresenceFlags|0x600C0
 
   gCpuPkgTokenSpaceGuid.PcdCpuSmmUseDelayIndication|FALSE
   gCpuPkgTokenSpaceGuid.PcdCpuSmmUseBlockIndication|FALSE
@@ -464,6 +483,10 @@
   gPlatformTokenSpaceGuid.PcdBootDeviceListScanCode|0x0011
   gPlatformTokenSpaceGuid.PcdBootMenuFile|{ 0xdc, 0x5b, 0xc2, 0xee, 0xf2, 0x67, 0x95, 0x4d, 0xb1, 0xd5, 0xf8, 0x1b, 0x20, 0x39, 0xd1, 0x1d }
   gMinPlatformPkgTokenSpaceGuid.PcdPcIoApicEnable|0x0
+
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtPreferredPmProfile|0x04
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtIaPcBootArch|0x0000
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtFlags|0x000004A5
 
 [PcdsDynamicExDefault.X64]
   gEfiMdePkgTokenSpaceGuid.PcdUartDefaultBaudRate|115200
@@ -484,6 +507,20 @@
   !include $(RP_PKG)/StructurePcdCpx.dsc
 !else
   !include $(RP_PKG)/StructurePcd.dsc
+!endif
+
+[PcdsFeatureFlag]
+!if $(gMinPlatformPkgTokenSpaceGuid.PcdBootStage) >= 5
+  gMinPlatformPkgTokenSpaceGuid.PcdTpm2Enable           |TRUE
+  gMinPlatformPkgTokenSpaceGuid.PcdUefiSecureBootEnable |TRUE
+!else
+  gMinPlatformPkgTokenSpaceGuid.PcdTpm2Enable           |FALSE
+  gMinPlatformPkgTokenSpaceGuid.PcdUefiSecureBootEnable |FALSE
+!endif
+
+[Defines]
+!if gMinPlatformPkgTokenSpaceGuid.PcdUefiSecureBootEnable == TRUE
+  DEFINE SECURE_BOOT_ENABLE = TRUE
 !endif
 
 ################################################################################
@@ -558,7 +595,11 @@
   AslUpdateLib|$(PLATFORM_PKG)/Acpi/Library/DxeAslUpdateLib/DxeAslUpdateLib.inf
   PciSegmentInfoLib|$(PLATFORM_PKG)/Pci/Library/PciSegmentInfoLibSimple/PciSegmentInfoLibSimple.inf
   PlatformOpromPolicyLib|$(RP_PKG)/Library/PlatformOpromPolicyLibNull/PlatformOpromPolicyLibNull.inf
-  VmgExitLib|UefiCpuPkg/Library/VmgExitLibNull/VmgExitLibNull.inf
+  CcExitLib|UefiCpuPkg/Library/CcExitLibNull/CcExitLibNull.inf
+  CrcLib|WhitleyOpenBoardPkg/Library/BaseCrcLib/BaseCrcLib.inf
+  PlatformSpecificAcpiTableLib|WhitleyOpenBoardPkg/Library/PlatformSpecificAcpiTableLibNull/PlatformSpecificAcpiTableLibNull.inf
+  BuildAcpiTablesLib|WhitleyOpenBoardPkg/Library/BuildAcpiTablesLib/DxeBuildAcpiTablesLib.inf
+  AcpiPlatformTableLib|WhitleyOpenBoardPkg/Library/AcpiPlatformTableLib/AcpiPlatformLib.inf
 
 [LibraryClasses.Common.SEC, LibraryClasses.Common.PEI_CORE, LibraryClasses.Common.PEIM]
   FspWrapperApiLib|IntelFsp2WrapperPkg/Library/BaseFspWrapperApiLib/BaseFspWrapperApiLib.inf
@@ -605,10 +646,12 @@
   ReportCpuHobLib|MinPlatformPkg/PlatformInit/Library/ReportCpuHobLib/ReportCpuHobLib.inf
   SetCacheMtrrLib|$(RP_PKG)/Library/SetCacheMtrrLib/SetCacheMtrrLib.inf
 
+  ResetSystemLib|MdeModulePkg/Library/PeiResetSystemLib/PeiResetSystemLib.inf
+
 [LibraryClasses.common.DXE_CORE, LibraryClasses.common.DXE_SMM_DRIVER, LibraryClasses.common.SMM_CORE, LibraryClasses.common.DXE_DRIVER, LibraryClasses.common.DXE_RUNTIME_DRIVER, LibraryClasses.common.UEFI_DRIVER, LibraryClasses.common.UEFI_APPLICATION]
   DevicePathLib|MdePkg/Library/UefiDevicePathLib/UefiDevicePathLib.inf
 
-  Tcg2PhysicalPresenceLib|$(RP_PKG)/Library/Tcg2PhysicalPresenceLibNull/DxeTcg2PhysicalPresenceLib.inf
+  Tcg2PhysicalPresenceLib|SecurityPkg/Library/DxeTcg2PhysicalPresenceLib/DxeTcg2PhysicalPresenceLib.inf
   TcgPhysicalPresenceLib|SecurityPkg/Library/DxeTcgPhysicalPresenceLib/DxeTcgPhysicalPresenceLib.inf
 
   BiosIdLib|BoardModulePkg/Library/BiosIdLib/DxeBiosIdLib.inf
@@ -631,6 +674,7 @@
   TestPointLib|MinPlatformPkg/Test/Library/TestPointLib/SmmTestPointLib.inf
   MmServicesTableLib|MdePkg/Library/MmServicesTableLib/MmServicesTableLib.inf
   BoardAcpiEnableLib|$(RP_PKG)/Library/BoardAcpiLib/SmmBoardAcpiEnableLib.inf
+  Tcg2PhysicalPresenceLib|SecurityPkg/Library/SmmTcg2PhysicalPresenceLib/SmmTcg2PhysicalPresenceLib.inf
 
 [LibraryClasses.Common.SMM_CORE]
   S3BootScriptLib|MdePkg/Library/BaseS3BootScriptLibNull/BaseS3BootScriptLibNull.inf
@@ -694,13 +738,13 @@
 
   UefiCpuPkg/Universal/Acpi/S3Resume2Pei/S3Resume2Pei.inf {
     <LibraryClasses>
-    !if $(PERFORMANCE_ENABLE) == TRUE
+    !if gMinPlatformPkgTokenSpaceGuid.PcdPerformanceEnable == TRUE
       TimerLib|UefiCpuPkg/Library/SecPeiDxeTimerLibUefiCpu/SecPeiDxeTimerLibUefiCpu.inf
     !endif
   }
 
 [Components.X64]
-  !include WhitleyOpenBoardPkg/Include/Dsc/CoreDxeInclude.dsc
+  !include MinPlatformPkg/Include/Dsc/CoreDxeInclude.dsc
 
   $(RP_PKG)/Platform/Dxe/PlatformType/PlatformType.inf
 
@@ -743,6 +787,10 @@
 
   $(RP_PKG)/Features/Pci/Dxe/PciPlatform/PciPlatform.inf
 
+!if $(CPUTARGET) == "ICX"
+  $(RP_PKG)/Features/Acpi/AcpiPlatform/AcpiPlatform.inf
+  $(RP_PKG)/Features/Acpi/AcpiTables/AcpiTables10nm.inf
+!endif
   $(RP_PKG)/Features/AcpiVtd/AcpiVtd.inf
 
   $(PLATFORM_PKG)/Acpi/AcpiSmm/AcpiSmm.inf
@@ -786,7 +834,7 @@
   DEFINE CPU_CPX_SUPPORT                     = FALSE
 !endif
 [PcdsFixedAtBuild]
-!if ($(CPU_SKX_ONLY_SUPPORT) == TRUE)
+!if $(CPUTARGET) == "CPX"
   gSiPkgTokenSpaceGuid.PcdPostedCsrAccessSupported         |FALSE
 !endif
 [LibraryClasses.common.DXE_DRIVER, LibraryClasses.common.UEFI_DRIVER, LibraryClasses.common.UEFI_APPLICATION]
@@ -804,151 +852,4 @@
 #                        module style (EDK or EDKII) specified in [Components] section.
 #
 ###################################################################################################
-[BuildOptions.Common.EDKII]
-# Append build options for EDK and EDKII drivers (= is Append, == is Replace)
-!if $(CRB_FLAG_ENABLE) == TRUE
-  DEFINE CRB_EDKII_BUILD_OPTIONS = -D CRB_FLAG
-!else
-  DEFINE CRB_EDKII_BUILD_OPTIONS =
-!endif
-
-!if $(DEBUG_FLAGS_ENABLE) == TRUE
-  DEFINE EDKII_DEBUG_BUILD_OPTIONS = -D DEBUG_CODE_BLOCK=1 -D PLATFORM_VARIABLE_ATTRIBUTES=0x3
-!else
-  DEFINE EDKII_DEBUG_BUILD_OPTIONS = -D SILENT_MODE -D PLATFORM_VARIABLE_ATTRIBUTES=0x3
-!endif
-
-!if $(SPARING_SCRATCHPAD_ENABLE) == TRUE
-  DEFINE SPARING_SCRATCHPAD_OPTION = -D SPARING_SCRATCHPAD_SUPPORT
-!else
-  DEFINE SPARING_SCRATCHPAD_OPTIONS =
-!endif
-
-!if $(SCRATCHPAD_DEBUG) == TRUE
-  DEFINE SCRATCHPAD_DEBUG_OPTION = -D SCRATCHPAD_DEBUG
-!else
-  DEFINE SCRATCHPAD_DEBUG_OPTION =
-!endif
-
-!if $(PCH_SERVER_BIOS_ENABLE) == TRUE
-  DEFINE PCH_BUILD_OPTION = -DPCH_SERVER_BIOS_FLAG=1
-!else
-  DEFINE PCH_BUILD_OPTION =
-!endif
-
-!if $(SERVER_BIOS_ENABLE) == TRUE
-  DEFINE SERVER_BUILD_OPTION = -DSERVER_BIOS_FLAG=1
-!else
-  DEFINE SERVER_BUILD_OPTION =
-!endif
-
-DEFINE SC_PATH = -D SC_PATH="Pch/SouthClusterLbg"
-
-DEFINE ME_PATH = -D ME_PATH="Me/MeSps.4"
-
-DEFINE IE_PATH = -D IE_PATH="Ie/v1"
-
-DEFINE NVDIMM_OPTIONS =
-
-!if $(CPUTARGET) == "ICX"
-  DEFINE CPU_TYPE_OPTIONS  = -D ICX_HOST -D A0_HOST -D B0_HOST
-!elseif $(CPUTARGET) == "CPX"
-  DEFINE CPU_TYPE_OPTIONS  = -D SKX_HOST -D CLX_HOST -D CPX_HOST -D A0_HOST -D B0_HOST
-!endif
-
-DEFINE MAX_SOCKET_CORE_THREAD_OPTIONS = -D MAX_SOCKET=$(MAX_SOCKET) -D MAX_CORE=$(MAX_CORE) -D MAX_THREAD=$(MAX_THREAD)
-
-DEFINE MRC_OPTIONS = -D LRDIMM_SUPPORT -D DDRT_SUPPORT
-
-!if $(CPU_SKX_ONLY_SUPPORT) == FALSE
-  DEFINE MAX_IMC_CH_OPTIONS = -D MAX_IMC=4 -D MAX_MC_CH=2
-!else
-  DEFINE MAX_IMC_CH_OPTIONS = -D MAX_IMC=2 -D MAX_MC_CH=3
-!endif
-
-DEFINE MAX_SAD_RULE_OPTION = -D MAX_SAD_RULES=24 -D MAX_DRAM_CLUSTERS=1
-
-DEFINE LT_BUILD_OPTIONS = -D LT_FLAG
-
-DEFINE FSP_BUILD_OPTIONS = -D FSP_DISPATCH_MODE_ENABLE=1
-
-#
-# MAX_KTI_PORTS needs to be updated based on the silicon type
-#
-!if $(CPUTARGET) == "CPX"
-  DEFINE KTI_OPTIONS = -D MAX_KTI_PORTS=6
-!else
-  DEFINE KTI_OPTIONS = -D MAX_KTI_PORTS=3
-!endif
-
-DEFINE IIO_STACK_OPTIONS = -D MAX_IIO_STACK=6 -D MAX_LOGIC_IIO_STACK=8
-
-DEFINE PCH_BIOS_BUILD_OPTIONS = $(PCH_BUILD_OPTION) $(SC_PATH) $(SERVER_BUILD_OPTION)
-
-DEFINE EDKII_DSC_FEATURE_BUILD_OPTIONS = $(CRB_EDKII_BUILD_OPTIONS) $(EDKII_DEBUG_BUILD_OPTIONS) $(PCH_BIOS_BUILD_OPTIONS) $(PCH_PKG_OPTIONS) $(MAX_SOCKET_CORE_THREAD_OPTIONS) $(MAX_IMC_CH_OPTIONS) $(MAX_SAD_RULE_OPTION) $(KTI_OPTIONS) $(IIO_STACK_OPTIONS) $(LT_BUILD_OPTIONS) $(SECURITY_OPTIONS) $(SPARING_SCRATCHPAD_OPTION) $(SCRATCHPAD_DEBUG_OPTION) $(NVDIMM_OPTIONS) -D EFI_PCI_IOV_SUPPORT -D WHEA_SUPPORT $(CPU_TYPE_OPTIONS) -D MMCFG_BASE_ADDRESS=0x80000000 -D DISABLE_NEW_DEPRECATED_INTERFACES $(MRC_OPTIONS) $(FSP_BUILD_OPTIONS)
-
-DEFINE IE_OPTIONS = $(IE_PATH) -DIE_SUPPORT=0
-
-!if $(LINUX_GCC_BUILD) == TRUE
-  DEFINE EDK2_LINUX_BUILD_OPTIONS = -D EDK2_CTE_BUILD
-!else
-  DEFINE EDK2_LINUX_BUILD_OPTIONS =
-!endif
-
-DEFINE EDKII_DSC_FEATURE_BUILD_OPTIONS = $(EDKII_DSC_FEATURE_BUILD_OPTIONS) $(EDK2_LINUX_BUILD_OPTIONS) $(IE_OPTIONS)
-
-DEFINE ME_OPTIONS = -DSPS_VERSION=4 $(ME_PATH)
-
-DEFINE ASPEED_ENABLE_BUILD_OPTIONS = -D ASPEED_ENABLE -D ESPI_ENABLE
-
-DEFINE EDKII_DSC_FEATURE_BUILD_OPTIONS = $(EDKII_DSC_FEATURE_BUILD_OPTIONS) $(ME_OPTIONS) $(ASPEED_ENABLE_BUILD_OPTIONS)
-
-  MSFT:*_*_*_CC_FLAGS= $(EDKII_DSC_FEATURE_BUILD_OPTIONS) /wd4819
-  GCC:*_*_*_CC_FLAGS= $(EDKII_DSC_FEATURE_BUILD_OPTIONS)
-  *_*_*_VFRPP_FLAGS = $(EDKII_DSC_FEATURE_BUILD_OPTIONS)
-  *_*_*_APP_FLAGS   = $(EDKII_DSC_FEATURE_BUILD_OPTIONS)
-  *_*_*_PP_FLAGS    = $(EDKII_DSC_FEATURE_BUILD_OPTIONS)
-  *_*_*_ASLPP_FLAGS = $(EDKII_DSC_FEATURE_BUILD_OPTIONS)
-  *_*_*_ASLCC_FLAGS = $(EDKII_DSC_FEATURE_BUILD_OPTIONS)
-
-
-#
-# Enable source level debugging for RELEASE build
-#
-!if $(TARGET) == "RELEASE"
-  DEFINE EDKII_RELEASE_SRCDBG_ASM_BUILD_OPTIONS   =
-  DEFINE EDKII_RELEASE_SRCDBG_CC_BUILD_OPTIONS    =
-  DEFINE EDKII_RELEASE_SRCDBG_DLINK_BUILD_OPTIONS =
-
-  MSFT:*_*_*_ASM_FLAGS   = $(EDKII_RELEASE_SRCDBG_ASM_BUILD_OPTIONS) /Zi
-  MSFT:*_*_*_CC_FLAGS    = $(EDKII_RELEASE_SRCDBG_CC_BUILD_OPTIONS) /Z7
-  MSFT:*_*_*_DLINK_FLAGS = $(EDKII_RELEASE_SRCDBG_DLINK_BUILD_OPTIONS) /DEBUG
-  GCC:*_*_*_ASM_FLAGS    = $(EDKII_RELEASE_SRCDBG_ASM_BUILD_OPTIONS)
-  GCC:*_*_*_CC_FLAGS     = $(EDKII_RELEASE_SRCDBG_CC_BUILD_OPTIONS)
-  GCC:*_*_*_DLINK_FLAGS  = $(EDKII_RELEASE_SRCDBG_DLINK_BUILD_OPTIONS)
-!endif
-
-#
-# Override ASL Compiler parameters in tools_def.template.
-#
-  MSFT:*_*_*_ASL_PATH == $(WORKSPACE)/../FDBin/Tools/IaslCompiler/6.3/iasl.exe
-  GCC:*_*_*_ASL_PATH == $(WORKSPACE)/../FDBin/Tools/IaslCompiler/6.3/iasl
-  *_*_*_ASL_FLAGS == -vr -we -oi
-#
-# Override the VFR compile flags to speed the build time
-#
-
-*_*_*_VFR_FLAGS                     ==  -n
-
-#
-# add to the build options for DXE/SMM drivers to remove the log message:
-# !!!!!!!!  InsertImageRecord - Section Alignment(0x20) is not 4K  !!!!!!!!
-#
-[BuildOptions.common.EDKII.DXE_RUNTIME_DRIVER, BuildOptions.common.EDKII.DXE_SMM_DRIVER, BuildOptions.common.EDKII.SMM_CORE]
-   MSFT:*_*_*_DLINK_FLAGS = /ALIGN:4096
-
-[BuildOptions]
-  GCC:*_GCC5_*_CC_FLAGS = -Wno-overflow -Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-but-set-variable -Wno-incompatible-pointer-types -mabi=ms
-  GCC:*_GCC5_IA32_DLINK_FLAGS = -z common-page-size=0x20 -z muldefs
-  GCC:*_GCC5_X64_DLINK_FLAGS  = -z common-page-size=0x20 -z muldefs
-  MSFT:*_*_*_CC_FLAGS = /FAsc
+!include $(RP_PKG)/Include/Dsc/BuildOptions.dsc

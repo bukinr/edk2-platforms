@@ -3,6 +3,7 @@
 
   @copyright
   Copyright 1999 - 2021 Intel Corporation.
+  Copyright (c) 2021, American Megatrends International LLC. <BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
@@ -82,7 +83,7 @@ GpioConfigForBoardId (
   PadConfig.LockConfig       = mBoardAndRevIdConfig.LockConfig;
   PadConfig.OtherSettings    = mBoardAndRevIdConfig.OtherSettings;
 
-  Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, &DynamicSiLibraryPpi);
+  Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, (VOID **) &DynamicSiLibraryPpi);
   if (EFI_ERROR (Status)) {
     ASSERT_EFI_ERROR (Status);
     return;
@@ -115,7 +116,7 @@ GpioConfigForBoardRevId (
   PadConfig.LockConfig       = mBoardAndRevIdConfig.LockConfig;
   PadConfig.OtherSettings    = mBoardAndRevIdConfig.OtherSettings;
 
-  Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, &DynamicSiLibraryPpi);
+  Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, (VOID **) &DynamicSiLibraryPpi);
   if (EFI_ERROR (Status)) {
     ASSERT_EFI_ERROR (Status);
     return;
@@ -149,7 +150,7 @@ GpioGetBoardId (
     return EFI_UNSUPPORTED;
   }
 
-  Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, &DynamicSiLibraryPpi);
+  Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, (VOID **) &DynamicSiLibraryPpi);
   if (EFI_ERROR (Status)) {
     ASSERT_EFI_ERROR (Status);
     return Status;
@@ -197,7 +198,7 @@ GpioGetBoardRevId (
     return EFI_UNSUPPORTED;
   }
 
-  Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, &DynamicSiLibraryPpi);
+  Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, (VOID **) &DynamicSiLibraryPpi);
   if (EFI_ERROR (Status)) {
     ASSERT_EFI_ERROR (Status);
     return Status;
@@ -388,7 +389,7 @@ PdrGetPlatformInfo (
                     &gPchSpiPpiGuid,
                     0,
                     NULL,
-                    &SpiPpi
+                    (VOID** ) &SpiPpi
                     );
 
   if (EFI_ERROR (Status)) {
@@ -412,7 +413,8 @@ PdrGetPlatformInfo (
     return Status;
   }
 
-  if ((PlatformInfoHob->BoardId >= TypePlatformMin) && (PlatformInfoHob->BoardId <= TypePlatformMax)) {
+  if (((PlatformInfoHob->BoardId >= TypePlatformMin) && (PlatformInfoHob->BoardId <= TypePlatformMax)) ||
+      ((PlatformInfoHob->BoardId >= TypePlatformVendorMin) && (PlatformInfoHob->BoardId <= TypePlatformVendorMax))) {
     //
     // Valid Platform Identified
     //
@@ -454,7 +456,7 @@ GatherQATInfo(OUT EFI_PLATFORM_INFO   *PlatformInfoHob)
   PadConfig.LockConfig       = GpioPadConfigLock;
   PadConfig.OtherSettings    = 00;
 
-  Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, &DynamicSiLibraryPpi);
+  Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, (VOID **) &DynamicSiLibraryPpi);
   if (EFI_ERROR (Status)) {
     ASSERT_EFI_ERROR (Status);
     return;
@@ -494,6 +496,18 @@ GetPlatformInfo (
   ASSERT (PciCfgPpi != NULL);
 
   PlatformInfoHob->BoardId = TypeNeonCityEPRP;
+
+  //
+  //Check if BoardId is fixed during build time.
+  //
+  BoardId = FixedPcdGet8 (PcdBoardId);
+  if (BoardId != 0) {
+    PlatformInfoHob->BoardId = (UINT8)BoardId;
+    PlatformInfoHob->TypeRevisionId = FixedPcdGet8 (PcdBoardRevId);
+    DEBUG((DEBUG_INFO, "Board ID = %2x  Board Rev = %x \n", PlatformInfoHob->BoardId, PlatformInfoHob->TypeRevisionId));
+    return EFI_SUCCESS;
+  }
+
   DEBUG ((DEBUG_INFO, "Use GPIO to read Board ID\n"));
 
   Status = GpioGetBoardId (&BoardId);
@@ -623,7 +637,6 @@ PlatformInfoInit (
   EFI_PEI_READ_ONLY_VARIABLE2_PPI       *PeiVariable;
   EFI_PLATFORM_INFO       PlatformInfoHob;
   EFI_PLATFORM_INFO       tempPlatformInfoHob;
-  UINT8                   ChipId;
   UINT32                  Delay;
   UINT32                  CpuType;
   UINT8                   CpuStepping;
@@ -639,11 +652,11 @@ PlatformInfoInit (
   //
   // Locate Variable PPI
   //
-  Status = PeiServicesLocatePpi (&gEfiPeiReadOnlyVariable2PpiGuid, 0, NULL, &PeiVariable);
+  Status = PeiServicesLocatePpi (&gEfiPeiReadOnlyVariable2PpiGuid, 0, NULL, (VOID **) &PeiVariable);
 
   (*PeiServices)->SetMem (&PlatformInfoHob, sizeof (PlatformInfoHob), 0);
 
-  Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, &DynamicSiLibraryPpi);
+  Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, (VOID **) &DynamicSiLibraryPpi);
   if (EFI_ERROR (Status)) {
     ASSERT_EFI_ERROR (Status);
     return Status;
@@ -659,7 +672,7 @@ PlatformInfoInit (
   for (Delay = 0; Delay < 40; Delay++) IoRead8  (0x61);
   IoWrite8 (PILOTIV_SIO_INDEX_PORT, PILOTIV_CHIP_ID_REG);
   for (Delay = 0; Delay < 40; Delay++) IoRead8  (0x61);
-  ChipId = IoRead8  (PILOTIV_SIO_DATA_PORT);
+  IoRead8  (PILOTIV_SIO_DATA_PORT);
   for (Delay = 0; Delay < 40; Delay++) IoRead8  (0x61);
   IoWrite8 (PILOTIV_SIO_INDEX_PORT, PILOTIV_SIO_LOCK);
   for (Delay = 0; Delay < 40; Delay++) IoRead8  (0x61);

@@ -47,13 +47,11 @@ PlatformCmosGetNmiState (
   VOID
  )
 {
-  volatile UINT32           Data32;
   BOOLEAN                   Nmi;
-  Data32                    = 0;
   EFI_STATUS                Status = EFI_SUCCESS;
   DYNAMIC_SI_LIBARY_PPI     *DynamicSiLibraryPpi = NULL;
 
-  Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, &DynamicSiLibraryPpi);
+  Status = PeiServicesLocatePpi (&gDynamicSiLibraryPpiGuid, 0, NULL, (VOID **) &DynamicSiLibraryPpi);
   if (EFI_ERROR (Status)) {
     ASSERT_EFI_ERROR (Status);
     return FALSE;
