@@ -59,7 +59,7 @@ UpdateFspmUpdData (
   ASSERT (GuidHob != NULL);
   PlatformInfo  = GET_GUID_HOB_DATA(GuidHob);
 
-  Status = PeiServicesLocatePpi (&gUpiSiPolicyPpiGuid, 0, NULL, &UpiPolicyPpi);
+  Status = PeiServicesLocatePpi (&gUpiSiPolicyPpiGuid, 0, NULL, (VOID **) &UpiPolicyPpi);
   ASSERT_EFI_ERROR(Status);
 
   Upi = &UpiPolicyPpi->Upi;
@@ -190,7 +190,7 @@ GetS3MemoryInfo (
 VOID
 EFIAPI
 CallFspWrapperResetSystem (
-  IN UINT32    FspStatusResetType
+  IN EFI_STATUS    FspStatusResetType
   )
 {
   //

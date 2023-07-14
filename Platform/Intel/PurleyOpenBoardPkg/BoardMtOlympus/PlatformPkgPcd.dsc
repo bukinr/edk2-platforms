@@ -61,42 +61,18 @@
   ######################################
   # Platform Configuration
   ######################################
-  gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterDebugInit|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterMemInit|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdPerformanceEnable|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdTpm2Enable|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdUefiSecureBootEnable|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdSerialTerminalEnable|FALSE
+  #
+  # MinPlatform common include for required feature PCD
+  # These PCD must be set before the core include files, CoreCommonLib,
+  # CorePeiLib, and CoreDxeLib.
+  # Optional MinPlatformPkg features should be enabled after this
+  #
+  !include MinPlatformPkg/Include/Dsc/MinPlatformFeaturesPcd.dsc.inc
 
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 1
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterDebugInit|TRUE
-!endif
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 2
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterDebugInit|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterMemInit|TRUE
-!endif
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 3
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterMemInit|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly|TRUE
-!endif
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 4
-  gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly|FALSE
-!endif
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 5
-  gMinPlatformPkgTokenSpaceGuid.PcdUefiSecureBootEnable|TRUE
-  gMinPlatformPkgTokenSpaceGuid.PcdTpm2Enable|TRUE
-!endif
-
-!if $(TARGET) == DEBUG
-  gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable|TRUE
-!else
-  gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable|FALSE
-!endif
+  #
+  # Commonly used MinPlatform feature configuration logic that maps functionity to stage
+  #
+  !include BoardModulePkg/Include/Dsc/CommonStageConfig.dsc.inc
 
 [PcdsFeatureFlag.X64]
   gUefiCpuPkgTokenSpaceGuid.PcdCpuSmmStackGuard|FALSE
@@ -254,10 +230,6 @@
   gEfiCpuTokenSpaceGuid.PcdCpuSmmCodeAccessCheckEnable |TRUE
   gUefiCpuPkgTokenSpaceGuid.PcdCpuSmmCodeAccessCheckEnable |TRUE
 
-  gMinPlatformPkgTokenSpaceGuid.PcdFadtPreferredPmProfile|0x04
-  gMinPlatformPkgTokenSpaceGuid.PcdFadtIaPcBootArch|0x0000
-  gMinPlatformPkgTokenSpaceGuid.PcdFadtFlags|0x000004A5
-
   gMinPlatformPkgTokenSpaceGuid.PcdAcpiEnableSwSmi|0xA0
   gMinPlatformPkgTokenSpaceGuid.PcdAcpiDisableSwSmi|0xA1
 
@@ -281,10 +253,6 @@
 
 [PcdsPatchableInModule.common]
   gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x80000042
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable == TRUE
-  gEfiMdeModulePkgTokenSpaceGuid.PcdSmiHandlerProfilePropertyMask|0x1
-!endif
 
   gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress|0x80000000
   gMinPlatformPkgTokenSpaceGuid.PcdPciExpressRegionLength|0x10000000
@@ -371,6 +339,10 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiDefaultOemTableId|0x2046573030363253
 
   gMinPlatformPkgTokenSpaceGuid.PcdPcIoApicEnable|0x0
+
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtPreferredPmProfile|0x04
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtIaPcBootArch|0x0000
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtFlags|0x000004A5
 
 [PcdsDynamicExDefault.X64]
 

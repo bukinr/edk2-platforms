@@ -1,7 +1,7 @@
 ## @file
 #  The main build description file for the KabylakeRvp3 board.
 #
-# Copyright (c) 2017 - 2021, Intel Corporation. All rights reserved.<BR>
+# Copyright (c) 2017 - 2022, Intel Corporation. All rights reserved.<BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -171,6 +171,8 @@
   GpioExpanderLib|$(PLATFORM_BOARD_PACKAGE)/Library/BaseGpioExpanderLib/BaseGpioExpanderLib.inf
   I2cAccessLib|$(PLATFORM_BOARD_PACKAGE)/Library/PeiI2cAccessLib/PeiI2cAccessLib.inf
   PlatformSecLib|$(PLATFORM_PACKAGE)/FspWrapper/Library/SecFspWrapperPlatformSecLib/SecFspWrapperPlatformSecLib.inf
+  HdmiDebugGpioInitLib|$(PLATFORM_BOARD_PACKAGE)/Library/HdmiDebugGpioInitLib/HdmiDebugGpioInitLib.inf
+  HdmiDebugPchDetectionLib|$(PLATFORM_BOARD_PACKAGE)/Library/HdmiDebugPchDetectionLib/HdmiDebugPchDetectionLib.inf
 
   # Thunderbolt
 !if gKabylakeOpenBoardPkgTokenSpaceGuid.PcdTbtEnable == TRUE
@@ -188,14 +190,19 @@
   # Platform Package
   #######################################
   TestPointCheckLib|$(PLATFORM_PACKAGE)/Test/Library/TestPointCheckLib/SecTestPointCheckLib.inf
-  SecBoardInitLib|$(PLATFORM_PACKAGE)/PlatformInit/Library/SecBoardInitLibNull/SecBoardInitLibNull.inf
-  SiliconPolicyUpdateLib|MinPlatformPkg/PlatformInit/Library/SiliconPolicyUpdateLibNull/SiliconPolicyUpdateLibNull.inf
+  SiliconPolicyUpdateLib|$(PLATFORM_PACKAGE)/PlatformInit/Library/SiliconPolicyUpdateLibNull/SiliconPolicyUpdateLibNull.inf
+
+  #######################################
+  # Board-specific
+  #######################################
+  SecBoardInitLib|$(PLATFORM_BOARD_PACKAGE)/Library/SecBoardInitLib/SecBoardInitLib.inf
 
 [LibraryClasses.common.PEIM]
   #######################################
   # Silicon Package
   #######################################
   ReportCpuHobLib|IntelSiliconPkg/Library/ReportCpuHobLib/ReportCpuHobLib.inf
+  SmmAccessLib|IntelSiliconPkg/Feature/SmmAccess/Library/PeiSmmAccessLibSmramc/PeiSmmAccessLib.inf
 
   #######################################
   # Platform Package
@@ -499,6 +506,17 @@
         NULL|$(PROJECT)/Library/BoardAcpiLib/DxeMultiBoardAcpiSupportLib.inf
       !endif
   }
+
+!if gS3FeaturePkgTokenSpaceGuid.PcdS3FeatureEnable == TRUE
+  MdeModulePkg/Universal/Acpi/BootScriptExecutorDxe/BootScriptExecutorDxe.inf {
+    <LibraryClasses>
+      # On S3 resume, RSC is in end-of-BS state
+      # - Moreover: Libraries cannot effectively use some end-of-BS events
+      DebugLib|MdePkg/Library/BaseDebugLibSerialPort/BaseDebugLibSerialPort.inf
+      SerialPortLib|MdePkg/Library/BaseSerialPortLibNull/BaseSerialPortLibNull.inf
+      # TODO: Insert a reverse-ranked priority list of compatible libraries here
+  }
+!endif
 
 !endif
 

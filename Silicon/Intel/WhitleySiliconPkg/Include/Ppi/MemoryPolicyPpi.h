@@ -999,7 +999,7 @@ struct memSetup {
   /// @brief
   /// Pirnt length of SPD data.<BR>
   /// @details
-  ///   0 - AUTO(512 for DDR4, 1024 for DDR5).<BR>
+  ///   0 - AUTO(512 for DDR4).<BR>
   ///   256.<BR>
   ///   512.<BR>
   ///
@@ -1905,6 +1905,7 @@ struct memSetup {
   /// 1 = High<BR>
   /// 2 = Low<BR>
   UINT8   PanicWm;
+  UINT8   pTRR;
 
   /// @brief
   /// Enable/Disable LRDIMM DB DFE.<BR>
@@ -1922,6 +1923,15 @@ struct memSetup {
   /// 1 - enable.<BR>
   //
   UINT8                 VirtualNumaEnable;
+
+  ///
+  /// @brief
+  /// Enable/Disable patrol scrub when entering the ADR.<BR>
+  /// @details
+  /// 0 - disable.<BR>
+  /// 1 - enable.<BR>
+  //
+  UINT8                 AdrPatrolScrubDisable;
 
   ///
   /// @brief

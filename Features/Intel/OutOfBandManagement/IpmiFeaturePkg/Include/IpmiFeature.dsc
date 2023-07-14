@@ -34,55 +34,16 @@
 !include MdePkg/MdeLibs.dsc.inc
 
 [LibraryClasses]
-  #######################################
-  # Edk2 Packages
-  #######################################
-  BaseLib|MdePkg/Library/BaseLib/BaseLib.inf
-  BaseMemoryLib|MdePkg/Library/BaseMemoryLibRepStr/BaseMemoryLibRepStr.inf
-  DebugLib|MdePkg/Library/BaseDebugLibNull/BaseDebugLibNull.inf
   IpmiLib|MdeModulePkg/Library/BaseIpmiLibNull/BaseIpmiLibNull.inf
-  PrintLib|MdePkg/Library/BasePrintLib/BasePrintLib.inf
-  TimerLib|MdePkg/Library/BaseTimerLibNullTemplate/BaseTimerLibNullTemplate.inf
 
-  #####################################
-  # IPMI Feature Package
-  #####################################
-  IpmiCommandLib|OutOfBandManagement/IpmiFeaturePkg/Library/IpmiCommandLib/IpmiCommandLib.inf
-  IpmiPlatformHookLib|OutOfBandManagement/IpmiFeaturePkg/Library/IpmiPlatformHookLibNull/IpmiPlatformHookLibNull.inf
+  IpmiCommandLib|IpmiFeaturePkg/Library/IpmiCommandLib/IpmiCommandLib.inf
+  IpmiPlatformHookLib|IpmiFeaturePkg/Library/IpmiPlatformHookLibNull/IpmiPlatformHookLibNull.inf
 
 [LibraryClasses.common.PEI_CORE,LibraryClasses.common.PEIM]
-  #######################################
-  # Edk2 Packages
-  #######################################
-  HobLib|MdePkg/Library/PeiHobLib/PeiHobLib.inf
-  MemoryAllocationLib|MdePkg/Library/PeiMemoryAllocationLib/PeiMemoryAllocationLib.inf
-  PcdLib|MdePkg/Library/PeiPcdLib/PeiPcdLib.inf
-  PeimEntryPoint|MdePkg/Library/PeimEntryPoint/PeimEntryPoint.inf
-  PeiServicesLib|MdePkg/Library/PeiServicesLib/PeiServicesLib.inf
-  PeiServicesTablePointerLib|MdePkg/Library/PeiServicesTablePointerLibIdt/PeiServicesTablePointerLibIdt.inf
-  ReportStatusCodeLib|MdeModulePkg/Library/PeiReportStatusCodeLib/PeiReportStatusCodeLib.inf
-
-  #####################################
-  # IPMI Feature Package
-  #####################################
-  IpmiBaseLib|OutOfBandManagement/IpmiFeaturePkg/Library/PeiIpmiBaseLib/PeiIpmiBaseLib.inf
+  IpmiBaseLib|IpmiFeaturePkg/Library/PeiIpmiBaseLib/PeiIpmiBaseLib.inf
 
 [LibraryClasses.common.DXE_DRIVER,LibraryClasses.common.UEFI_DRIVER]
-  #######################################
-  # Edk2 Packages
-  #######################################
-  DevicePathLib|MdePkg/Library/UefiDevicePathLib/UefiDevicePathLib.inf
-  MemoryAllocationLib|MdePkg/Library/UefiMemoryAllocationLib/UefiMemoryAllocationLib.inf
-  PcdLib|MdePkg/Library/DxePcdLib/DxePcdLib.inf
-  UefiBootServicesTableLib|MdePkg/Library/UefiBootServicesTableLib/UefiBootServicesTableLib.inf
-  UefiDriverEntryPoint|MdePkg/Library/UefiDriverEntryPoint/UefiDriverEntryPoint.inf
-  UefiLib|MdePkg/Library/UefiLib/UefiLib.inf
-  UefiRuntimeServicesTableLib|MdePkg/Library/UefiRuntimeServicesTableLib/UefiRuntimeServicesTableLib.inf
-
-  #####################################
-  # IPMI Feature Package
-  #####################################
-  IpmiBaseLib|OutOfBandManagement/IpmiFeaturePkg/Library/IpmiBaseLib/IpmiBaseLib.inf
+  IpmiBaseLib|IpmiFeaturePkg/Library/IpmiBaseLib/IpmiBaseLib.inf
 
 ################################################################################
 #
@@ -112,14 +73,14 @@
   # Add library instances here that are not included in package components and should be tested
   # in the package build.
 
-  OutOfBandManagement/IpmiFeaturePkg/Library/IpmiPlatformHookLibNull/IpmiPlatformHookLibNull.inf
+  IpmiFeaturePkg/Library/IpmiPlatformHookLibNull/IpmiPlatformHookLibNull.inf
 
   #
   # Add components here that should be included in the package build.
   #
-  OutOfBandManagement/IpmiFeaturePkg/GenericIpmi/Pei/PeiGenericIpmi.inf
-  OutOfBandManagement/IpmiFeaturePkg/Frb/FrbPei.inf
-  OutOfBandManagement/IpmiFeaturePkg/IpmiInit/PeiIpmiInit.inf
+  IpmiFeaturePkg/GenericIpmi/Pei/PeiGenericIpmi.inf
+  IpmiFeaturePkg/Frb/FrbPei.inf
+  IpmiFeaturePkg/IpmiInit/PeiIpmiInit.inf
 
 #
 # Feature DXE Components
@@ -135,32 +96,17 @@
   # Add library instances here that are not included in package components and should be tested
   # in the package build.
 
-  OutOfBandManagement/IpmiFeaturePkg/Library/IpmiPlatformHookLibNull/IpmiPlatformHookLibNull.inf
+  IpmiFeaturePkg/Library/IpmiPlatformHookLibNull/IpmiPlatformHookLibNull.inf
 
   #
   # Add components here that should be included in the package build.
   #
-  OutOfBandManagement/IpmiFeaturePkg/GenericIpmi/Dxe/GenericIpmi.inf
-  OutOfBandManagement/IpmiFeaturePkg/Library/SmmIpmiBaseLib/SmmIpmiBaseLib.inf
-  OutOfBandManagement/IpmiFeaturePkg/BmcAcpi/BmcAcpi.inf
-  OutOfBandManagement/IpmiFeaturePkg/BmcElog/BmcElog.inf
-  OutOfBandManagement/IpmiFeaturePkg/Frb/FrbDxe.inf
-  OutOfBandManagement/IpmiFeaturePkg/IpmiFru/IpmiFru.inf
-  OutOfBandManagement/IpmiFeaturePkg/IpmiInit/DxeIpmiInit.inf
-  OutOfBandManagement/IpmiFeaturePkg/OsWdt/OsWdt.inf
-  OutOfBandManagement/IpmiFeaturePkg/SolStatus/SolStatus.inf
-
-###################################################################################################
-#
-# BuildOptions Section - Define the module specific tool chain flags that should be used as
-#                        the default flags for a module. These flags are appended to any
-#                        standard flags that are defined by the build process. They can be
-#                        applied for any modules or only those modules with the specific
-#                        module style (EDK or EDKII) specified in [Components] section.
-#
-#                        For advanced features, it is recommended to enable [BuildOptions] in
-#                        the applicable INF file so it does not affect the whole board package
-#                        build when this DSC file is active.
-#
-###################################################################################################
-[BuildOptions]
+  IpmiFeaturePkg/GenericIpmi/Dxe/GenericIpmi.inf
+  IpmiFeaturePkg/Library/SmmIpmiBaseLib/SmmIpmiBaseLib.inf
+  IpmiFeaturePkg/BmcAcpi/BmcAcpi.inf
+  IpmiFeaturePkg/BmcElog/BmcElog.inf
+  IpmiFeaturePkg/Frb/FrbDxe.inf
+  IpmiFeaturePkg/IpmiFru/IpmiFru.inf
+  IpmiFeaturePkg/IpmiInit/DxeIpmiInit.inf
+  IpmiFeaturePkg/OsWdt/OsWdt.inf
+  IpmiFeaturePkg/SolStatus/SolStatus.inf

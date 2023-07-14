@@ -27,7 +27,7 @@ Flash1 contains EFI code and EFI variables.
 
 Create a directory $WORKSPACE that would hold source code of the components.
 
-  1. [qemu](https://github.com/qemu/qemu.git)
+  1. [qemu](https://gitlab.com/qemu-project/qemu.git)
   2. [edk2](https://github.com/tianocore/edk2)
   3. [edk2-platforms](https://github.com/tianocore/edk2-platforms)
   4. [edk2-non-osi](https://github.com/tianocore/edk2-non-osi)
@@ -56,7 +56,7 @@ Create a directory $WORKSPACE that would hold source code of the components.
 
 2. Compile TF-A
 
-  This step is only needed if users want to compile a custom ATF binary.
+  This step is only needed if users want to compile a custom TF-A binary.
   Else, the edk2-non-osi directory contains prebuilt bl1.bin and fip.bin
   binaries which will be automatically used in the build process.
 
@@ -65,14 +65,14 @@ Create a directory $WORKSPACE that would hold source code of the components.
   `bl1.bin` and `fip.bin`. Follow the instructions below to get those artifacts.
 
   ```
-  cd $WORKSPACE/atf
-  make PLAT=sbsa all fip
+  cd $WORKSPACE/trusted-firmware-a
+  make PLAT=qemu_sbsa all fip
   ```
   Then copy `bl1.bin` and `fip.bin` to the the edk2-non-osi directory:
 
   ```
-  cp build/sbsa/release/bl1.bin $WORKSPACE/edk2-non-osi/Platform/Qemu/Sbsa/
-  cp build/sbsa/release/fip.bin $WORKSPACE/edk2-non-osi/Platform/Qemu/Sbsa/
+  cp build/qemu_sbsa/release/bl1.bin $WORKSPACE/edk2-non-osi/Platform/Qemu/Sbsa/
+  cp build/qemu_sbsa/release/fip.bin $WORKSPACE/edk2-non-osi/Platform/Qemu/Sbsa/
   ```
 
 3. Compile UEFI for QEMU Sbsa platform

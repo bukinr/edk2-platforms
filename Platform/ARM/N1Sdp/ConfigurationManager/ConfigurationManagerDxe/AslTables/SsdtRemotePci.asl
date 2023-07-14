@@ -61,7 +61,7 @@
 */
 #define ROOT_PRT_ENTRY(Pin, Link)   PRT_ENTRY(0x0000FFFF, Pin, Link)  // Device 0 for Bridge.
 
-DefinitionBlock("SsdtRemotePci.aml", "SSDT", 1, "ARMLTD", "N1Sdp",
+DefinitionBlock("SsdtRemotePci.aml", "SSDT", 2, "ARMLTD", "N1Sdp",
                 EFI_ACPI_ARM_OEM_REVISION)
 {
   Scope (_SB) {
@@ -76,8 +76,8 @@ DefinitionBlock("SsdtRemotePci.aml", "SSDT", 1, "ARMLTD", "N1Sdp",
       Device(PCI2) {
       Name (_HID, EISAID("PNP0A08")) // PCI Express Root Bridge
       Name (_CID, EISAID("PNP0A03")) // Compatible PCI Root Bridge
-      Name (_SEG, 2)                 // PCI Segment Group number
-      Name (_BBN, Zero)              // PCI Base Bus Number
+      Name (_SEG, FixedPcdGet32 (PcdRemotePcieSegmentNumber)) // Segment Number
+      Name (_BBN, FixedPcdGet32 (PcdRemotePcieBusBaseNumber)) // BusBase Number
       Name (_CCA, 1)                 // Cache Coherency Attribute
 
       // Remote Root Complex 0

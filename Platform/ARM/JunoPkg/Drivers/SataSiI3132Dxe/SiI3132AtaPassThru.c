@@ -23,7 +23,8 @@ GetSataDevice (
   IN  SATA_SI3132_INSTANCE* SataInstance,
   IN  UINT16 Port,
   IN  UINT16 PortMultiplierPort
-) {
+  )
+{
   LIST_ENTRY              *List;
   SATA_SI3132_PORT        *SataPort;
   SATA_SI3132_DEVICE      *SataDevice;
@@ -260,7 +261,7 @@ SiI3132AtaPassThruCommand (
     // Clear Command Complete
     SATA_PORT_WRITE32 (SataPort->RegBase + SII3132_PORT_INTSTATUS_REG, SII3132_PORT_INT_CMDCOMPL << 16);
 
-    if (PciAllocMapping) {
+    if (PciAllocMapping != NULL) {
       Status = PciIo->Unmap (PciIo, PciAllocMapping);
       ASSERT (!EFI_ERROR (Status));
     }

@@ -1,7 +1,7 @@
 /** @file
   System 76 GalagoPro3 board pre-memory initialization.
 
-Copyright (c) 2019 - 2021, Intel Corporation. All rights reserved.<BR>
+Copyright (c) 2019 - 2022, Intel Corporation. All rights reserved.<BR>
 SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
@@ -14,6 +14,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Library/HobLib.h>
 #include <Library/PcdLib.h>
 #include <Library/PchCycleDecodingLib.h>
+#include <Library/PchPmcLib.h>
 #include <Library/PciLib.h>
 #include <Library/PcdLib.h>
 #include <Library/BaseMemoryLib.h>
@@ -167,9 +168,9 @@ SioInit (
 }
 
 /**
-  Configues the IC2 Controller on which GPIO Expander Communicates.
-  This Function is to enable the I2CGPIOExapanderLib to programm the Gpios
-  Complete intilization will be done in later Stage
+  Configures the IC2 Controller on which GPIO Expander Communicates.
+  This Function is to enable the I2CGPIOExapanderLib to program the Gpios
+  Complete initialization will be done in later Stage
 
 **/
 VOID
@@ -227,10 +228,6 @@ GalagoPro3BoardDebugInit (
   VOID
   )
 {
-  ///
-  /// Do Early PCH init
-  ///
-  EarlySiliconInit ();
   return EFI_SUCCESS;
 }
 
@@ -240,6 +237,29 @@ GalagoPro3BoardBootModeDetect (
   VOID
   )
 {
-  return BOOT_WITH_FULL_CONFIGURATION;
-}
+  EFI_BOOT_MODE  BootMode;
+  UINT32         SleepType;
 
+  DEBUG ((DEBUG_INFO, "Performing boot mode detection\n"));
+
+  // Known sane defaults
+  BootMode = BOOT_WITH_FULL_CONFIGURATION;
+
+  if (GetSleepTypeAfterWakeup (&SleepType)) {
+    switch (SleepType) {
+      case V_PCH_ACPI_PM1_CNT_S3:
+        BootMode = BOOT_ON_S3_RESUME;
+        break;
+      case V_PCH_ACPI_PM1_CNT_S4:
+        BootMode = BOOT_ON_S4_RESUME;
+        break;
+      case V_PCH_ACPI_PM1_CNT_S5:
+        BootMode = BOOT_ON_S5_RESUME;
+        break;
+    }
+  }
+
+  DEBUG ((DEBUG_INFO, "BootMode is 0x%x\n", BootMode));
+
+  return BootMode;
+}

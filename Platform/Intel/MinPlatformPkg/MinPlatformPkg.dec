@@ -7,6 +7,7 @@
 # for the build infrastructure.
 #
 # Copyright (c) 2017 - 2021, Intel Corporation. All rights reserved.<BR>
+# Copyright (C) 2023 Advanced Micro Devices, Inc. All rights reserved.<BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -112,9 +113,47 @@
   gMinPlatformPkgTokenSpaceGuid.PcdMaxCpuCoreCount|8|UINT32|0x90000022
   gMinPlatformPkgTokenSpaceGuid.PcdMaxCpuSocketCount|4|UINT32|0x90000023
 
-  gMinPlatformPkgTokenSpaceGuid.PcdFadtPreferredPmProfile|0x02|UINT8|0x90000025
-  gMinPlatformPkgTokenSpaceGuid.PcdFadtIaPcBootArch|0x0001|UINT16|0x90000026
-  gMinPlatformPkgTokenSpaceGuid.PcdFadtFlags|0x000086A5|UINT32|0x90000027
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtSmiCmd|0x000000B2|UINT32|0x9000002A
+
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiPm1AEventBlockAddress|0x1800|UINT16|0x00010035
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiPm1BEventBlockAddress|0x0000|UINT16|0x00010036
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiPm1AControlBlockAddress|0x1804|UINT16|0x0001037
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiPm1BControlBlockAddress|0x0000|UINT16|0x00010038
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiPm2ControlBlockAddress|0x1850|UINT16|0x00010039
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiPmTimerBlockAddress|0x1808|UINT16|0x0001003A
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiGpe0BlockAddress|0x1880|UINT16|0x0001003B
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiGpe0BlockLength|0x00|UINT8|0x0001003C
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiGpe1BlockAddress|0x0000|UINT16|0x0001003D
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiGpe1BlockLength|0x00|UINT8|0x0001003E
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiGpe1Base|0x00|UINT8|0x00010040
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiResetRegisterAccessSize|0x00|UINT8|0x00010042
+
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXPm1aEvtBlkAccessSize|0x00|UINT8|0x00010043
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXPm1bEvtBlkAccessSize|0x00|UINT8|0x00010044
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXPm1aCntBlkAccessSize|0x00|UINT8|0x00010045
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXPm1bCntBlkAccessSize|0x00|UINT8|0x00010046
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXPm2CntBlkAccessSize|0x00|UINT8|0x00010047
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXPmTmrBlkAccessSize|0x00|UINT8|0x00010048
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXGpe0BlkAccessSize|0x00|UINT8|0x00010049
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXGpe1BlkAccessSize|0x00|UINT8|0x0001004A
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiXGpe1BlkRegisterBitWidth|0x00|UINT8|0x00010056
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiS4BiosReq|0x0000|UINT8|0x00010055
+
+  #
+  # FADT Duty Offset - The zero-based index of where the processor's duty cycle
+  # setting is within the processor's P_CNT register.
+  #
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtDutyOffset|0x01|UINT8|0x90000028
+  #
+  # FADT Duty Width - The bit width of the processor's duty cycle setting value in the P_CNT
+  # register. Each processor's duty cycle setting allows the software to select a nominal
+  # processor frequency below its absolute frequency. A duty width value of zero indicates
+  # the processor continuously runs at its base frequency.
+  #
+  # For more details about how the frequency is calculated, refer to the Fixed ACPI Description
+  # Table (FADT) section of the ACPI Specification.
+  #
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtDutyWidth|0x00|UINT8|0x90000029
 
   gMinPlatformPkgTokenSpaceGuid.PcdPlatformEfiAcpiReclaimMemorySize|0x65|UINT32|0x20000500
   gMinPlatformPkgTokenSpaceGuid.PcdPlatformEfiAcpiNvsMemorySize|0x30|UINT32|0x20000501
@@ -181,9 +220,17 @@
   gMinPlatformPkgTokenSpaceGuid.PcdFlashFvPreMemoryBase|0x00000000|UINT32|0x20000004
   gMinPlatformPkgTokenSpaceGuid.PcdFlashFvPreMemorySize|0x00000000|UINT32|0x20000005
   gMinPlatformPkgTokenSpaceGuid.PcdFlashFvPreMemoryOffset|0x00000000|UINT32|0x20000006
+  gMinPlatformPkgTokenSpaceGuid.PcdFlashFvBspPreMemorySize|0x00000000|UINT32|0x20000030
+  gMinPlatformPkgTokenSpaceGuid.PcdFlashFvBspPreMemoryBase|0x00000000|UINT32|0x20000031
+  gMinPlatformPkgTokenSpaceGuid.PcdFlashFvBspPreMemoryOffset|0x00000000|UINT32|0x20000032
+
   gMinPlatformPkgTokenSpaceGuid.PcdFlashFvPostMemoryBase|0x00000000|UINT32|0x20000007
   gMinPlatformPkgTokenSpaceGuid.PcdFlashFvPostMemorySize|0x00000000|UINT32|0x20000008
   gMinPlatformPkgTokenSpaceGuid.PcdFlashFvPostMemoryOffset|0x00000000|UINT32|0x20000009
+  gMinPlatformPkgTokenSpaceGuid.PcdFlashFvBspSize|0x00000000|UINT32|0x20000033
+  gMinPlatformPkgTokenSpaceGuid.PcdFlashFvBspBase|0x00000000|UINT32|0x20000034
+  gMinPlatformPkgTokenSpaceGuid.PcdFlashFvBspOffset|0x00000000|UINT32|0x20000035
+
   gMinPlatformPkgTokenSpaceGuid.PcdFlashFvUefiBootBase|0x00000000|UINT32|0x2000000A
   gMinPlatformPkgTokenSpaceGuid.PcdFlashFvUefiBootSize|0x00000000|UINT32|0x2000000B
   gMinPlatformPkgTokenSpaceGuid.PcdFlashFvUefiBootOffset|0x00000000|UINT32|0x2000000C
@@ -220,8 +267,22 @@
   gMinPlatformPkgTokenSpaceGuid.PcdFlashFvFspUSize|0x00000000|UINT32|0x2000002B
   gMinPlatformPkgTokenSpaceGuid.PcdFlashFvFspUOffset|0x00000000|UINT32|0x2000002C
 
+  # GUID of Shell file to be loaded, default value is gUefiShellFileGuid define in ShellPkg.dec
+  gMinPlatformPkgTokenSpaceGuid.PcdShellFile|{GUID({0x7c04a583, 0x9e3e, 0x4f1c, {0xad, 0x65, 0xe0, 0x52, 0x68, 0xd0, 0xb4, 0xd1}})}|VOID*|0x20000230
+  gMinPlatformPkgTokenSpaceGuid.PcdShellFileDesc|L"Internal UEFI Shell 2.0"|VOID*|0x20000231
+
 [PcdsDynamic, PcdsDynamicEx]
   gMinPlatformPkgTokenSpaceGuid.PcdPcIoApicEnable|0x0|UINT32|0x90000019
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepControlRegisterAddressSpaceId|0x00|UINT8|0x0001004B
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepControlRegisterBitWidth|0x00|UINT8|0x0001004C
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepControlRegisterBitOffset|0x00|UINT8|0x0001004D
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepControlRegisterAccessSize|0x00|UINT8|0x0001004E
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepControlRegisterAddress|0x0000000000000000|UINT64|0x0001004F
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepStatusRegisterAddressSpaceId|0x00|UINT8|0x00010050
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepStatusRegisterBitWidth|0x00|UINT8|0x00010051
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepStatusRegisterBitOffset|0x00|UINT8|0x00010052
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepStatusRegisterAccessSize|0x00|UINT8|0x00010053
+  gMinPlatformPkgTokenSpaceGuid.PcdAcpiSleepStatusRegisterAddress|0x0000000000000000|UINT64|0x00010054
 
 [PcdsFixedAtBuild, PcdsPatchableInModule, PcdsDynamic, PcdsDynamicEx]
 
@@ -245,19 +306,16 @@
   gMinPlatformPkgTokenSpaceGuid.PcdPciSegmentCount             |0x1    |UINT8|0x4001004E
   gMinPlatformPkgTokenSpaceGuid.PcdRandomizePlatformHierarchy  |TRUE |BOOLEAN|0x4001004F
 
-  gMinPlatformPkgTokenSpaceGuid.PcdAcpiPm1AEventBlockAddress|0x1800|UINT16|0x00010035
-  gMinPlatformPkgTokenSpaceGuid.PcdAcpiPm1BEventBlockAddress|0x0000|UINT16|0x00010036
-  gMinPlatformPkgTokenSpaceGuid.PcdAcpiPm1AControlBlockAddress|0x1804|UINT16|0x0001037
-  gMinPlatformPkgTokenSpaceGuid.PcdAcpiPm1BControlBlockAddress|0x0000|UINT16|0x00010038
-  gMinPlatformPkgTokenSpaceGuid.PcdAcpiPm2ControlBlockAddress|0x1850|UINT16|0x00010039
-  gMinPlatformPkgTokenSpaceGuid.PcdAcpiPmTimerBlockAddress|0x1808|UINT16|0x0001003A
-  gMinPlatformPkgTokenSpaceGuid.PcdAcpiGpe0BlockAddress|0x1880|UINT16|0x0001003B
-  gMinPlatformPkgTokenSpaceGuid.PcdAcpiGpe1BlockAddress|0x0000|UINT16|0x0001003C
-
   gMinPlatformPkgTokenSpaceGuid.PcdPciExpressRegionLength|0x10000000|UINT32|0x0010004
   gMinPlatformPkgTokenSpaceGuid.PcdFspCpuPeiApWakeupBufferAddr|0x9f000|UINT32|0x30000008
 
   gMinPlatformPkgTokenSpaceGuid.PcdPlatformMemoryCheckLevel|0|UINT32|0x30000009
+
+  ## Controls whether the FSP NVS buffer is saved as compressed data.
+  # Data compression can significantly reduce variable storage usage for FSP NVS buffer data.
+  # Platforms that choose to compress the data will need to decompress the variable data upon
+  # extraction.
+  gMinPlatformPkgTokenSpaceGuid.PcdEnableCompressedFspNvsBuffer|FALSE|BOOLEAN|0x30000010
 
   ## This PCD is to control which device is the potential trusted console input device.<BR><BR>
   # For example:<BR>
@@ -289,6 +347,13 @@
   #   //Header<BR>
   #      0x7F, 0xFF, 0x04, 0x00}<BR>
   gMinPlatformPkgTokenSpaceGuid.PcdTrustedStorageDevicePath|{0x02, 0x01, 0x0C, 0x00, 0xd0, 0x41, 0x03, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x06, 0x00, 0x00, 0x17, 0x7F, 0xFF, 0x04, 0x00}|VOID*|0x3000010
+
+  ## ACPI
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtPreferredPmProfile|0x02|UINT8|0x90000025
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtIaPcBootArch|0x0001|UINT16|0x90000026
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtFlags|0x000086A5|UINT32|0x90000027
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtMajorVersion|0x06|UINT8|0x90000030
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtMinorVersion|0x05|UINT8|0x90000031
 
 [PcdsFixedAtBuild]
 
@@ -335,6 +400,5 @@
   gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly        |FALSE|BOOLEAN|0xF00000A3
   gMinPlatformPkgTokenSpaceGuid.PcdUefiSecureBootEnable   |FALSE|BOOLEAN|0xF00000A4
   gMinPlatformPkgTokenSpaceGuid.PcdTpm2Enable             |FALSE|BOOLEAN|0xF00000A5
-  gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable|FALSE|BOOLEAN|0xF00000A6
   gMinPlatformPkgTokenSpaceGuid.PcdPerformanceEnable      |FALSE|BOOLEAN|0xF00000A7
   gMinPlatformPkgTokenSpaceGuid.PcdSerialTerminalEnable   |FALSE|BOOLEAN|0xF00000B0

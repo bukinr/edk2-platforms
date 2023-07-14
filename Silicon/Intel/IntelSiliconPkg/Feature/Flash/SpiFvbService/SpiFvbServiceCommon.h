@@ -1,17 +1,19 @@
 /** @file
   Common source definitions used in serial flash drivers
 
-Copyright (c) 2017, Intel Corporation. All rights reserved.<BR>
-SPDX-License-Identifier: BSD-2-Clause-Patent
+  Copyright (c) 2017, Intel Corporation. All rights reserved.<BR>
+  Copyright (c) Microsoft Corporation.<BR>
+  SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
 
-#ifndef _SPI_FVB_SERVICE_COMMON_H
-#define _SPI_FVB_SERVICE_COMMON_H
+#ifndef SPI_FVB_SERVICE_COMMON_H_
+#define SPI_FVB_SERVICE_COMMON_H_
 
 #include <Guid/EventGroup.h>
 #include <Guid/FirmwareFileSystem2.h>
 #include <Guid/SystemNvDataGuid.h>
+#include <Pi/PiFirmwareVolume.h>
 #include <Protocol/DevicePath.h>
 #include <Protocol/FirmwareVolumeBlock.h>
 
@@ -24,6 +26,8 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Library/PcdLib.h>
 #include <Library/DevicePathLib.h>
 #include <Library/HobLib.h>
+#include <Library/VariableFlashInfoLib.h>
+#include <Library/SafeIntLib.h>
 
 #include <Library/SpiFlashCommonLib.h>
 
@@ -57,7 +61,7 @@ typedef struct {
 } FVB_GLOBAL;
 
 //
-// Fvb Protocol instance data
+// Firmware Volume Block (FVB) Protocol instance data
 //
 #define FVB_INSTANCE_FROM_THIS(a) CR(a, EFI_FVB_INSTANCE, FvbProtocol, FVB_INSTANCE_SIGNATURE)
 
@@ -77,7 +81,7 @@ typedef struct {
 } FV_INFO;
 
 //
-// Protocol APIs
+// Firmware Volume Block (FVB) Protocol APIs
 //
 EFI_STATUS
 EFIAPI
@@ -142,10 +146,38 @@ IsFvHeaderValid (
   IN CONST EFI_FIRMWARE_VOLUME_HEADER    *FwVolHeader
   );
 
+//
+// Module Local Functions
+//
+
+/**
+  Returns an empty firmware volume for the firmware volume at the given base address.
+
+  @param[in]    FvBaseAddress       The base address of the firmware volume requested.
+  @param[out]   FvbInfo             A pointer that will be set to a buffer for the firmware volume header
+                                    at the given base address.
+
+  @retval     EFI_SUCCESS           The firmware volume was returned successfully.
+  @retval     EFI_NOT_FOUND         The firmware volume was not found for the given base address.
+
+**/
 EFI_STATUS
-GetFvbInfo (
+GetGeneratedFvByAddress (
   IN  EFI_PHYSICAL_ADDRESS         FvBaseAddress,
   OUT EFI_FIRMWARE_VOLUME_HEADER   **FvbInfo
+  );
+
+/**
+  Get the total size of the firmware volume on flash used for variable store operations.
+
+  @param[out] BaseAddress         Base address of the variable store firmware volume.
+  @param[out] Length              Length in bytes of the firmware volume used for variable store operations.
+
+**/
+VOID
+GetVariableFvInfo (
+  OUT EFI_PHYSICAL_ADDRESS      *BaseAddress,
+  OUT UINT32                    *Length
   );
 
 extern FVB_GLOBAL                         mFvbModuleGlobal;
@@ -153,6 +185,5 @@ extern FV_MEMMAP_DEVICE_PATH              mFvMemmapDevicePathTemplate;
 extern FV_PIWG_DEVICE_PATH                mFvPIWGDevicePathTemplate;
 extern EFI_FIRMWARE_VOLUME_BLOCK_PROTOCOL mFvbProtocolTemplate;
 extern FV_INFO                            mPlatformFvBaseAddress[];
-extern FV_INFO                            mPlatformDefaultBaseAddress[];
 
 #endif

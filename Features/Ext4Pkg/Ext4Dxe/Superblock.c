@@ -1,7 +1,7 @@
 /** @file
   Superblock managing routines
 
-  Copyright (c) 2021 Pedro Falcato All rights reserved.
+  Copyright (c) 2021 - 2023 Pedro Falcato All rights reserved.
   SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
@@ -18,7 +18,7 @@ STATIC CONST UINT32  gSupportedIncompatFeat =
   EXT4_FEATURE_INCOMPAT_64BIT | EXT4_FEATURE_INCOMPAT_DIRDATA |
   EXT4_FEATURE_INCOMPAT_FLEX_BG | EXT4_FEATURE_INCOMPAT_FILETYPE |
   EXT4_FEATURE_INCOMPAT_EXTENTS | EXT4_FEATURE_INCOMPAT_LARGEDIR |
-  EXT4_FEATURE_INCOMPAT_MMP | EXT4_FEATURE_INCOMPAT_RECOVER;
+  EXT4_FEATURE_INCOMPAT_MMP | EXT4_FEATURE_INCOMPAT_RECOVER | EXT4_FEATURE_INCOMPAT_CSUM_SEED;
 
 // Future features that may be nice additions in the future:
 // 1) Btree support: Required for write support and would speed up lookups in large directories.
@@ -85,7 +85,7 @@ Ext4SuperblockValidate (
     return FALSE;
   }
 
-  if (Sb->s_rev_level != EXT4_DYNAMIC_REV && Sb->s_rev_level != EXT4_GOOD_OLD_REV) {
+  if ((Sb->s_rev_level != EXT4_DYNAMIC_REV) && (Sb->s_rev_level != EXT4_GOOD_OLD_REV)) {
     return FALSE;
   }
 
@@ -151,7 +151,7 @@ Ext4VerifySuperblockChecksum (
    Opens and parses the superblock.
 
    @param[out]     Partition Partition structure to fill with filesystem details.
-   @retval EFI_SUCCESS       Parsing was succesful and the partition is a
+   @retval EFI_SUCCESS       Parsing was successful and the partition is a
                              valid ext4 partition.
 **/
 EFI_STATUS
@@ -188,16 +188,22 @@ Ext4OpenSuperblock (
     Partition->FeaturesCompat   = Sb->s_feature_compat;
     Partition->FeaturesIncompat = Sb->s_feature_incompat;
     Partition->FeaturesRoCompat = Sb->s_feature_ro_compat;
-    Partition->InodeSize = Sb->s_inode_size;
+    Partition->InodeSize        = Sb->s_inode_size;
+
+    // Check for proper alignment of InodeSize and that InodeSize is indeed larger than
+    // the minimum size, 128 bytes.
+    if (((Partition->InodeSize % 4) != 0) || (Partition->InodeSize < EXT4_GOOD_OLD_INODE_SIZE)) {
+      return EFI_VOLUME_CORRUPTED;
+    }
   } else {
     // GOOD_OLD_REV
     Partition->FeaturesCompat = Partition->FeaturesIncompat = Partition->FeaturesRoCompat = 0;
-    Partition->InodeSize = EXT4_GOOD_OLD_INODE_SIZE;
+    Partition->InodeSize      = EXT4_GOOD_OLD_INODE_SIZE;
   }
 
   // Now, check for the feature set of the filesystem
   // It's essential to check for this to avoid filesystem corruption and to avoid
-  // accidentally opening an ext2/3/4 filesystem we don't understand, which would be disasterous.
+  // accidentally opening an ext2/3/4 filesystem we don't understand, which would be disastrous.
 
   if (Partition->FeaturesIncompat & ~gSupportedIncompatFeat) {
     DEBUG ((
@@ -208,23 +214,17 @@ Ext4OpenSuperblock (
     return EFI_UNSUPPORTED;
   }
 
-  // This should be removed once we add ext2/3 support in the future.
-  if ((Partition->FeaturesIncompat & EXT4_FEATURE_INCOMPAT_EXTENTS) == 0) {
-    return EFI_UNSUPPORTED;
-  }
-
   if (EXT4_HAS_INCOMPAT (Partition, EXT4_FEATURE_INCOMPAT_RECOVER)) {
     DEBUG ((DEBUG_WARN, "[ext4] Needs journal recovery, mounting read-only\n"));
     Partition->ReadOnly = TRUE;
   }
 
   // At the time of writing, it's the only supported checksum.
-  if (Partition->FeaturesCompat & EXT4_FEATURE_RO_COMPAT_METADATA_CSUM &&
-      Sb->s_checksum_type != EXT4_CHECKSUM_CRC32C) {
+  if (EXT4_HAS_METADATA_CSUM (Partition) && (Sb->s_checksum_type != EXT4_CHECKSUM_CRC32C)) {
     return EFI_UNSUPPORTED;
   }
 
-  if (Partition->FeaturesIncompat & EXT4_FEATURE_INCOMPAT_CSUM_SEED) {
+  if (EXT4_HAS_INCOMPAT (Partition, EXT4_FEATURE_INCOMPAT_CSUM_SEED)) {
     Partition->InitialSeed = Sb->s_checksum_seed;
   } else {
     Partition->InitialSeed = Ext4CalculateChecksum (Partition, Sb->s_uuid, 16, ~0U);
@@ -243,6 +243,16 @@ Ext4OpenSuperblock (
 
   DEBUG ((DEBUG_FS, "Read only = %u\n", Partition->ReadOnly));
 
+  if (Sb->s_inodes_per_group == 0) {
+    DEBUG ((DEBUG_ERROR, "[ext4] Inodes per group can not be zero\n"));
+    return EFI_VOLUME_CORRUPTED;
+  }
+
+  if (Sb->s_log_block_size > EXT4_LOG_BLOCK_SIZE_MAX) {
+    DEBUG ((DEBUG_ERROR, "[ext4] SuperBlock s_log_block_size %lu is too big\n", Sb->s_log_block_size));
+    return EFI_UNSUPPORTED;
+  }
+
   Partition->BlockSize = (UINT32)LShiftU64 (1024, Sb->s_log_block_size);
 
   // The size of a block group can also be calculated as 8 * Partition->BlockSize
@@ -250,7 +260,7 @@ Ext4OpenSuperblock (
     return EFI_UNSUPPORTED;
   }
 
-  Partition->NumberBlocks = EXT4_BLOCK_NR_FROM_HALFS (Partition, Sb->s_blocks_count, Sb->s_blocks_count_hi);
+  Partition->NumberBlocks      = EXT4_BLOCK_NR_FROM_HALFS (Partition, Sb->s_blocks_count, Sb->s_blocks_count_hi);
   Partition->NumberBlockGroups = DivU64x32 (Partition->NumberBlocks, Sb->s_blocks_per_group);
 
   DEBUG ((
@@ -261,14 +271,15 @@ Ext4OpenSuperblock (
     ));
 
   if (EXT4_IS_64_BIT (Partition)) {
+    // s_desc_size should be 4 byte aligned and
+    // 64 bit filesystems need DescSize to be 64 bytes
+    if (((Sb->s_desc_size % 4) != 0) || (Sb->s_desc_size < EXT4_64BIT_BLOCK_DESC_SIZE)) {
+      return EFI_VOLUME_CORRUPTED;
+    }
+
     Partition->DescSize = Sb->s_desc_size;
   } else {
     Partition->DescSize = EXT4_OLD_BLOCK_DESC_SIZE;
-  }
-
-  if (Partition->DescSize < EXT4_64BIT_BLOCK_DESC_SIZE && EXT4_IS_64_BIT (Partition)) {
-    // 64 bit filesystems need DescSize to be 64 bytes
-    return EFI_VOLUME_CORRUPTED;
   }
 
   if (!Ext4VerifySuperblockChecksum (Partition, Sb)) {
@@ -309,7 +320,7 @@ Ext4OpenSuperblock (
     return EFI_OUT_OF_RESOURCES;
   }
 
-  // Note that the cast below is completely safe, because EXT4_FILE is a specialisation of EFI_FILE_PROTOCOL
+  // Note that the cast below is completely safe, because EXT4_FILE is a specialization of EFI_FILE_PROTOCOL
   Status = Ext4OpenVolume (&Partition->Interface, (EFI_FILE_PROTOCOL **)&Partition->Root);
 
   if (EFI_ERROR (Status)) {
@@ -346,7 +357,7 @@ Ext4CalculateChecksum (
       // For some reason, EXT4 really likes non-inverted CRC32C checksums, so we stick to that here.
       return ~CalculateCrc32c(Buffer, Length, ~InitialValue);
     default:
-      UNREACHABLE ();
+      ASSERT (FALSE);
       return 0;
   }
 }

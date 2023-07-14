@@ -1,5 +1,5 @@
 #
-#Copyright (c) 2011-2012, ARM Limited. All rights reserved.
+#Copyright (c) 2011-2022, ARM Limited. All rights reserved.
 #Copyright (C) 2016 Marvell International Ltd.
 #
 #SPDX-License-Identifier: BSD-2-Clause-Patent
@@ -69,6 +69,8 @@
   UefiHiiServicesLib|MdeModulePkg/Library/UefiHiiServicesLib/UefiHiiServicesLib.inf
   UefiRuntimeLib|MdePkg/Library/UefiRuntimeLib/UefiRuntimeLib.inf
   UefiUsbLib|MdePkg/Library/UefiUsbLib/UefiUsbLib.inf
+  VariableFlashInfoLib|MdeModulePkg/Library/BaseVariableFlashInfoLib/BaseVariableFlashInfoLib.inf
+  VariablePolicyHelperLib|MdeModulePkg/Library/VariablePolicyHelperLib/VariablePolicyHelperLib.inf
 
   PcdLib|MdePkg/Library/DxePcdLib/DxePcdLib.inf
 
@@ -175,7 +177,6 @@
   MemoryAllocationLib|MdePkg/Library/UefiMemoryAllocationLib/UefiMemoryAllocationLib.inf
   NonDiscoverableDeviceRegistrationLib|MdeModulePkg/Library/NonDiscoverableDeviceRegistrationLib/NonDiscoverableDeviceRegistrationLib.inf
   DtPlatformDtbLoaderLib|EmbeddedPkg/Library/DxeDtPlatformDtbLoaderLibDefault/DxeDtPlatformDtbLoaderLibDefault.inf
-  VariablePolicyHelperLib|MdeModulePkg/Library/VariablePolicyHelperLib/VariablePolicyHelperLib.inf
 
 [LibraryClasses.common.UEFI_APPLICATION]
   PerformanceLib|MdeModulePkg/Library/DxePerformanceLib/DxePerformanceLib.inf
@@ -198,7 +199,6 @@
 !endif
   DebugLib|MdePkg/Library/DxeRuntimeDebugLibSerialPort/DxeRuntimeDebugLibSerialPort.inf
   VariablePolicyLib|MdeModulePkg/Library/VariablePolicyLib/VariablePolicyLibRuntimeDxe.inf
-  VariablePolicyHelperLib|MdeModulePkg/Library/VariablePolicyHelperLib/VariablePolicyHelperLib.inf
 
 [LibraryClasses.ARM, LibraryClasses.AARCH64]
   #
@@ -387,7 +387,6 @@
   # SMBIOS/DMI
   gEfiMdeModulePkgTokenSpaceGuid.PcdSmbiosDocRev|0x0
   gEfiMdeModulePkgTokenSpaceGuid.PcdSmbiosEntryPointProvideMethod|0x2
-  gEfiMdeModulePkgTokenSpaceGuid.PcdSmbiosVersion|0x0302
   gMarvellTokenSpaceGuid.PcdFirmwareVersion|"EDK2 SH 1.1"
 
   # TRNG
@@ -493,7 +492,7 @@
   # SATA
   MdeModulePkg/Bus/Ata/AtaAtapiPassThru/AtaAtapiPassThru.inf
   MdeModulePkg/Bus/Ata/AtaBusDxe/AtaBusDxe.inf
-  OvmfPkg/SataControllerDxe/SataControllerDxe.inf
+  MdeModulePkg/Bus/Pci/SataControllerDxe/SataControllerDxe.inf
 
   # USB
   MdeModulePkg/Bus/Pci/XhciDxe/XhciDxe.inf

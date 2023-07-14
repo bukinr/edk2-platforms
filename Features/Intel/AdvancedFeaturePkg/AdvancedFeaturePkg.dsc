@@ -25,17 +25,17 @@
   DSC_SPECIFICATION                   = 0x00010005
   OUTPUT_DIRECTORY                    = Build/AdvancedFeaturePkg
   SUPPORTED_ARCHITECTURES             = IA32|X64
-  BUILD_TARGETS                       = DEBUG|RELEASE
+  BUILD_TARGETS                       = DEBUG|RELEASE|NOOPT
   SKUID_IDENTIFIER                    = DEFAULT
   PEI_ARCH                            = IA32
   DXE_ARCH                            = X64
+  FLASH_DEFINITION                    = AdvancedFeaturePkg/AdvancedFeaturePkg.fdf
 
 [Packages]
   MdePkg/MdePkg.dec
   MinPlatformPkg/MinPlatformPkg.dec
 
 !include AdvancedFeaturePkg/Include/AdvancedFeaturesPcd.dsc
-
 
 ################################################################################
 #
@@ -44,25 +44,83 @@
 #
 ################################################################################
 [PcdsFeatureFlag]
-  gAcpiDebugFeaturePkgTokenSpaceGuid.PcdAcpiDebugFeatureEnable            |TRUE
-  gIpmiFeaturePkgTokenSpaceGuid.PcdIpmiFeatureEnable                      |TRUE
-  gNetworkFeaturePkgTokenSpaceGuid.PcdNetworkFeatureEnable                |TRUE
-  gS3FeaturePkgTokenSpaceGuid.PcdS3FeatureEnable                          |TRUE
-  gSmbiosFeaturePkgTokenSpaceGuid.PcdSmbiosFeatureEnable                  |TRUE
-  gUsb3DebugFeaturePkgTokenSpaceGuid.PcdUsb3DebugFeatureEnable            |TRUE
-  gUserAuthFeaturePkgTokenSpaceGuid.PcdUserAuthenticationFeatureEnable    |TRUE
-  gLogoFeaturePkgTokenSpaceGuid.PcdLogoFeatureEnable                      |TRUE
-  gLogoFeaturePkgTokenSpaceGuid.PcdJpgEnable                              |FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable                |FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdUefiSecureBootEnable                   |FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdPerformanceEnable                      |FALSE
+  #
+  # Debugging features
+  #
+  gAcpiDebugFeaturePkgTokenSpaceGuid.PcdAcpiDebugFeatureEnable              |TRUE
+  gAcpiDebugFeaturePkgTokenSpaceGuid.PcdUseSmmVersion                       |FALSE
+  gBeepDebugFeaturePkgTokenSpaceGuid.PcdBeepDebugFeatureEnable              |TRUE
+  gPostCodeDebugFeaturePkgTokenSpaceGuid.PcdPostCodeDebugFeatureEnable      |TRUE
+  gUsb3DebugFeaturePkgTokenSpaceGuid.PcdUsb3DebugFeatureEnable              |TRUE
+
+  #
+  # Network features
+  #
+  gNetworkFeaturePkgTokenSpaceGuid.PcdNetworkFeatureEnable                  |TRUE
+
+  #
+  # OutOfBandManagement features
+  #
+  gIpmiFeaturePkgTokenSpaceGuid.PcdIpmiFeatureEnable                        |TRUE
+  gSpcrFeaturePkgTokenSpaceGuid.PcdSpcrFeatureEnable                        |TRUE
+  gAsfFeaturePkgTokenSpaceGuid.PcdAsfFeatureEnable                          |TRUE
+
+  #
+  # PowerManagement features
+  #
+  gS3FeaturePkgTokenSpaceGuid.PcdS3FeatureEnable                            |TRUE
+
+  #
+  # SystemInformation features
+  #
+  gSmbiosFeaturePkgTokenSpaceGuid.PcdSmbiosFeatureEnable                    |TRUE
+
+  #
+  # UserInterface features
+  #
+  gLogoFeaturePkgTokenSpaceGuid.PcdLogoFeatureEnable                        |TRUE
+  gUserAuthFeaturePkgTokenSpaceGuid.PcdUserAuthenticationFeatureEnable      |TRUE
+  gVirtualKeyboardFeaturePkgTokenSpaceGuid.PcdVirtualKeyboardFeatureEnable  |TRUE
+
+  #
+  # Individual features
+  #
+  gPlatformPayloadFeaturePkgTokenSpaceGuid.PcdPlatformPayloadFeatureEnable  |TRUE
 
 #
-# Include common library
+# PCD that are required to be set by the build target should be configured here for test purposes
+# These settings are only for the purposes of buildings, boards should follow instructions in Readme files.
+#
+
+[PcdsFixedAtBuild]
+  gUsb3DebugFeaturePkgTokenSpaceGuid.PcdUsb3DebugPortLibInstance|1
+
+[PcdsDynamicExDefault.X64]
+  gEfiMdeModulePkgTokenSpaceGuid.PcdConOutRow
+  gEfiMdeModulePkgTokenSpaceGuid.PcdSetupConOutRow
+
+#
+# MinPlatform common include for required feature PCD
+# These PCD must be set before the core include files, CoreCommonLib,
+# CorePeiLib, and CoreDxeLib.
+#
+!include MinPlatformPkg/Include/Dsc/MinPlatformFeaturesPcd.dsc.inc
+
+#
+# Include common libraries
 #
 !include MinPlatformPkg/Include/Dsc/CoreCommonLib.dsc
 !include MinPlatformPkg/Include/Dsc/CorePeiLib.dsc
 !include MinPlatformPkg/Include/Dsc/CoreDxeLib.dsc
+
+#
+# Libraries required to be specified by the build target
+#
+[LibraryClasses.Common]
+  PlatformHookLib|MdeModulePkg/Library/BasePlatformHookLibNull/BasePlatformHookLibNull.inf # Required by BeepDebugFeature
+
+[LibraryClasses.Common.PEIM]
+  SmmAccessLib|IntelSiliconPkg/Feature/SmmAccess/Library/PeiSmmAccessLib/PeiSmmAccessLib.inf # Required by S3Feature
 
 #
 # This package builds all advanced features.

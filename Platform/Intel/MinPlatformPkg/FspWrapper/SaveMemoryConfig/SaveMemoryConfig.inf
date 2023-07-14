@@ -1,7 +1,7 @@
 ### @file
 # Component information file for SaveMemoryConfig module
 #
-# Copyright (c) 2017 - 2021, Intel Corporation. All rights reserved.<BR>
+# Copyright (c) 2017 - 2022, Intel Corporation. All rights reserved.<BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -25,6 +25,8 @@
   BaseMemoryLib
   LargeVariableReadLib
   LargeVariableWriteLib
+  BaseLib
+  CompressLib
 
 [Packages]
   MdePkg/MdePkg.dec
@@ -43,6 +45,9 @@
   gFspNonVolatileStorageHobGuid                 ## CONSUMES
   gFspNonVolatileStorageHob2Guid                ## CONSUMES
   gFspNvsBufferVariableGuid                     ## PRODUCES
+
+[Pcd]
+  gMinPlatformPkgTokenSpaceGuid.PcdEnableCompressedFspNvsBuffer
 
 [Depex]
   gEfiVariableArchProtocolGuid        AND

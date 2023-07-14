@@ -15,7 +15,7 @@
   - SbiLegacyRemoteSfenceVmaAsid -> Use SbiRemoteSfenceVmaAsid
   - SbiLegacyShutdown            -> Wait for new System Reset extension
 
-  Copyright (c) 2021, Hewlett Packard Development LP. All rights reserved.<BR>
+  Copyright (c) 2021-2022, Hewlett Packard Development LP. All rights reserved.<BR>
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
   @par Revision Reference:
@@ -31,14 +31,13 @@
 #include <sbi/sbi_types.h>
 #include <sbi/sbi_init.h>
 
-
 //
 // Maximum arguments for SBI ecall
 // It's possible to pass more but no SBI call uses more as of SBI 0.2.
 // The additional arguments would have to be passed on the stack instead of as
 // registers, like it's done now.
 //
-#define SBI_CALL_MAX_ARGS 6
+#define SBI_CALL_MAX_ARGS  6
 
 /**
   Call SBI call using ecall instruction.
@@ -50,53 +49,55 @@
   @param[in] NumArgs  Number of arguments to pass to the ecall.
   @param[in] ...      Argument list for the ecall.
 
-  @retval  Returns SbiRet structure with value and error code.
+  @retval  Returns SBI_RET structure with value and error code.
 
 **/
 STATIC
-SbiRet
+SBI_RET
 EFIAPI
-SbiCall(
-  IN  UINTN ExtId,
-  IN  UINTN FuncId,
-  IN  UINTN NumArgs,
+SbiCall (
+  IN  UINTN  ExtId,
+  IN  UINTN  FuncId,
+  IN  UINTN  NumArgs,
   ...
   )
 {
-    UINTN I;
-    SbiRet Ret;
-    UINTN Args[SBI_CALL_MAX_ARGS];
-    VA_LIST ArgList;
-    VA_START (ArgList, NumArgs);
+  UINTN    I;
+  SBI_RET  Ret;
+  UINTN    Args[SBI_CALL_MAX_ARGS];
+  VA_LIST  ArgList;
 
-    ASSERT (NumArgs <= SBI_CALL_MAX_ARGS);
+  VA_START (ArgList, NumArgs);
 
-    for (I = 0; I < SBI_CALL_MAX_ARGS; I++) {
-      if (I < NumArgs) {
-        Args[I] = VA_ARG (ArgList, UINTN);
-      } else {
-        // Default to 0 for all arguments that are not given
-        Args[I] = 0;
-      }
+  ASSERT (NumArgs <= SBI_CALL_MAX_ARGS);
+
+  for (I = 0; I < SBI_CALL_MAX_ARGS; I++) {
+    if (I < NumArgs) {
+      Args[I] = VA_ARG (ArgList, UINTN);
+    } else {
+      // Default to 0 for all arguments that are not given
+      Args[I] = 0;
     }
+  }
 
-    VA_END(ArgList);
+  VA_END (ArgList);
 
-    register UINTN a0 asm ("a0") = Args[0];
-    register UINTN a1 asm ("a1") = Args[1];
-    register UINTN a2 asm ("a2") = Args[2];
-    register UINTN a3 asm ("a3") = Args[3];
-    register UINTN a4 asm ("a4") = Args[4];
-    register UINTN a5 asm ("a5") = Args[5];
-    register UINTN a6 asm ("a6") = (UINTN)(FuncId);
-    register UINTN a7 asm ("a7") = (UINTN)(ExtId);
-    asm volatile ("ecall" \
-         : "+r" (a0), "+r" (a1) \
-         : "r" (a2), "r" (a3), "r" (a4), "r" (a5), "r" (a6), "r" (a7) \
-         : "memory"); \
-    Ret.Error = a0;
-    Ret.Value = a1;
-    return Ret;
+  register UINTN  a0 asm ("a0") = Args[0];
+  register UINTN  a1 asm ("a1") = Args[1];
+  register UINTN  a2 asm ("a2") = Args[2];
+  register UINTN  a3 asm ("a3") = Args[3];
+  register UINTN  a4 asm ("a4") = Args[4];
+  register UINTN  a5 asm ("a5") = Args[5];
+  register UINTN  a6 asm ("a6") = (UINTN)(FuncId);
+  register UINTN  a7 asm ("a7") = (UINTN)(ExtId);
+
+  asm volatile ("ecall" \
+       : "+r" (a0), "+r" (a1) \
+       : "r" (a2), "r" (a3), "r" (a4), "r" (a5), "r" (a6), "r" (a7) \
+       : "memory"); \
+  Ret.Error = a0;
+  Ret.Value = a1;
+  return Ret;
 }
 
 /**
@@ -105,12 +106,11 @@ SbiCall(
   @param[in] SbiError   SBI error code
   @retval EFI_STATUS
 **/
-
 STATIC
 EFI_STATUS
 EFIAPI
-TranslateError(
-  IN  UINTN SbiError
+TranslateError (
+  IN  UINTN  SbiError
   )
 {
   switch (SbiError) {
@@ -160,10 +160,12 @@ TranslateError(
 VOID
 EFIAPI
 SbiGetSpecVersion (
-  OUT UINTN                       *SpecVersion
+  OUT UINTN  *SpecVersion
   )
 {
-  SbiRet Ret = SbiCall (SBI_EXT_BASE, SBI_EXT_BASE_GET_SPEC_VERSION, 0);
+  SBI_RET  Ret;
+
+  Ret = SbiCall (SBI_EXT_BASE, SBI_EXT_BASE_GET_SPEC_VERSION, 0);
 
   if (!Ret.Error) {
     *SpecVersion = (UINTN)Ret.Value;
@@ -173,7 +175,7 @@ SbiGetSpecVersion (
 /**
   Get the SBI implementation ID
 
-  This ID is used to idenetify a specific SBI implementation in order to work
+  This ID is used to identify a specific SBI implementation in order to work
   around any quirks it might have.
 
   @param[out] ImplId               The ID of the SBI implementation.
@@ -181,10 +183,13 @@ SbiGetSpecVersion (
 VOID
 EFIAPI
 SbiGetImplId (
-  OUT UINTN                       *ImplId
+  OUT UINTN  *ImplId
   )
 {
-  SbiRet Ret = SbiCall (SBI_EXT_BASE, SBI_EXT_BASE_GET_IMP_ID, 0);
+  SBI_RET  Ret;
+
+  Ret = SbiCall (SBI_EXT_BASE, SBI_EXT_BASE_GET_IMP_ID, 0);
+
   *ImplId = (UINTN)Ret.Value;
 }
 
@@ -199,10 +204,13 @@ SbiGetImplId (
 VOID
 EFIAPI
 SbiGetImplVersion (
-  OUT UINTN                       *ImplVersion
+  OUT UINTN  *ImplVersion
   )
 {
-  SbiRet Ret = SbiCall (SBI_EXT_BASE, SBI_EXT_BASE_GET_IMP_VERSION, 0);
+  SBI_RET  Ret;
+
+  Ret = SbiCall (SBI_EXT_BASE, SBI_EXT_BASE_GET_IMP_VERSION, 0);
+
   *ImplVersion = (UINTN)Ret.Value;
 }
 
@@ -218,11 +226,14 @@ SbiGetImplVersion (
 VOID
 EFIAPI
 SbiProbeExtension (
-  IN  INTN                         ExtensionId,
-  OUT INTN                        *ProbeResult
+  IN  INTN  ExtensionId,
+  OUT INTN  *ProbeResult
   )
 {
-  SbiRet Ret = SbiCall (SBI_EXT_BASE, SBI_EXT_BASE_PROBE_EXT, 0);
+  SBI_RET  Ret;
+
+  Ret = SbiCall (SBI_EXT_BASE, SBI_EXT_BASE_PROBE_EXT, 0);
+
   *ProbeResult = (UINTN)Ret.Value;
 }
 
@@ -236,10 +247,13 @@ SbiProbeExtension (
 VOID
 EFIAPI
 SbiGetMachineVendorId (
-  OUT UINTN                       *MachineVendorId
+  OUT UINTN  *MachineVendorId
   )
 {
-  SbiRet Ret = SbiCall (SBI_EXT_BASE, SBI_EXT_BASE_GET_MVENDORID, 0);
+  SBI_RET  Ret;
+
+  Ret = SbiCall (SBI_EXT_BASE, SBI_EXT_BASE_GET_MVENDORID, 0);
+
   *MachineVendorId = (UINTN)Ret.Value;
 }
 
@@ -253,10 +267,13 @@ SbiGetMachineVendorId (
 VOID
 EFIAPI
 SbiGetMachineArchId (
-  OUT UINTN                       *MachineArchId
+  OUT UINTN  *MachineArchId
   )
 {
-  SbiRet Ret = SbiCall (SBI_EXT_BASE, SBI_EXT_BASE_GET_MARCHID, 0);
+  SBI_RET  Ret;
+
+  Ret = SbiCall (SBI_EXT_BASE, SBI_EXT_BASE_GET_MARCHID, 0);
+
   *MachineArchId = (UINTN)Ret.Value;
 }
 
@@ -270,10 +287,13 @@ SbiGetMachineArchId (
 VOID
 EFIAPI
 SbiGetMachineImplId (
-  OUT UINTN                       *MachineImplId
+  OUT UINTN  *MachineImplId
   )
 {
-  SbiRet Ret = SbiCall (SBI_EXT_BASE, SBI_EXT_BASE_GET_MIMPID, 0);
+  SBI_RET  Ret;
+
+  Ret = SbiCall (SBI_EXT_BASE, SBI_EXT_BASE_GET_MIMPID, 0);
+
   *MachineImplId = (UINTN)Ret.Value;
 }
 
@@ -307,19 +327,22 @@ SbiGetMachineImplId (
 EFI_STATUS
 EFIAPI
 SbiHartStart (
-  IN  UINTN                          HartId,
-  IN  UINTN                          StartAddr,
-  IN  UINTN                          Priv
+  IN  UINTN  HartId,
+  IN  UINTN  StartAddr,
+  IN  UINTN  Priv
   )
 {
-  SbiRet Ret = SbiCall (
-                 SBI_EXT_HSM,
-                 SBI_EXT_HSM_HART_START,
-                 3,
-                 HartId,
-                 StartAddr,
-                 Priv
-                 );
+  SBI_RET  Ret;
+
+  Ret = SbiCall (
+          SBI_EXT_HSM,
+          SBI_EXT_HSM_HART_START,
+          3,
+          HartId,
+          StartAddr,
+          Priv
+          );
+
   return TranslateError (Ret.Error);
 }
 
@@ -337,7 +360,10 @@ EFIAPI
 SbiHartStop (
   )
 {
-  SbiRet Ret = SbiCall (SBI_EXT_HSM, SBI_EXT_HSM_HART_STOP, 0);
+  SBI_RET  Ret;
+
+  Ret = SbiCall (SBI_EXT_HSM, SBI_EXT_HSM_HART_STOP, 0);
+
   return TranslateError (Ret.Error);
 }
 
@@ -361,11 +387,13 @@ SbiHartStop (
 EFI_STATUS
 EFIAPI
 SbiHartGetStatus (
-  IN  UINTN                          HartId,
-  OUT UINTN                         *HartStatus
+  IN  UINTN  HartId,
+  OUT UINTN  *HartStatus
   )
 {
-  SbiRet Ret = SbiCall (SBI_EXT_HSM, SBI_EXT_HSM_HART_GET_STATUS, 1, HartId);
+  SBI_RET  Ret;
+
+  Ret = SbiCall (SBI_EXT_HSM, SBI_EXT_HSM_HART_GET_STATUS, 1, HartId);
 
   if (!Ret.Error) {
     *HartStatus = (UINTN)Ret.Value;
@@ -385,7 +413,7 @@ SbiHartGetStatus (
 VOID
 EFIAPI
 SbiSetTimer (
-  IN  UINT64                         Time
+  IN  UINT64  Time
   )
 {
   SbiCall (SBI_EXT_TIME, SBI_EXT_TIME_SET_TIMER, 1, Time);
@@ -394,17 +422,20 @@ SbiSetTimer (
 EFI_STATUS
 EFIAPI
 SbiSendIpi (
-  IN  UINTN                         *HartMask,
-  IN  UINTN                          HartMaskBase
+  IN  UINTN  *HartMask,
+  IN  UINTN  HartMaskBase
   )
 {
-  SbiRet Ret = SbiCall (
-                 SBI_EXT_IPI,
-                 SBI_EXT_IPI_SEND_IPI,
-                 2,
-                 (UINTN)HartMask,
-                 HartMaskBase
-                 );
+  SBI_RET  Ret;
+
+  Ret = SbiCall (
+          SBI_EXT_IPI,
+          SBI_EXT_IPI_SEND_IPI,
+          2,
+          (UINTN)HartMask,
+          HartMaskBase
+          );
+
   return TranslateError (Ret.Error);
 }
 
@@ -424,24 +455,27 @@ SbiSendIpi (
 EFI_STATUS
 EFIAPI
 SbiRemoteFenceI (
-  IN  UINTN                         *HartMask,
-  IN  UINTN                          HartMaskBase
+  IN  UINTN  *HartMask,
+  IN  UINTN  HartMaskBase
   )
 {
-  SbiRet Ret = SbiCall (
-                 SBI_EXT_RFENCE,
-                 SBI_EXT_RFENCE_REMOTE_FENCE_I,
-                 2,
-                 (UINTN)HartMask,
-                 HartMaskBase
-                 );
+  SBI_RET  Ret;
+
+  Ret = SbiCall (
+          SBI_EXT_RFENCE,
+          SBI_EXT_RFENCE_REMOTE_FENCE_I,
+          2,
+          (UINTN)HartMask,
+          HartMaskBase
+          );
+
   return TranslateError (Ret.Error);
 }
 
 /**
   Instructs the remote harts to execute one or more SFENCE.VMA instructions.
 
-  The SFENCE.VMA covers the range of virtual addresses between StartAaddr and Size.
+  The SFENCE.VMA covers the range of virtual addresses between StartAddr and Size.
 
   The remote fence function acts as a full tlb flush if * StartAddr and size
   are both 0 * size is equal to 2^XLEN-1
@@ -462,28 +496,31 @@ SbiRemoteFenceI (
 EFI_STATUS
 EFIAPI
 SbiRemoteSfenceVma (
-  IN  UINTN                         *HartMask,
-  IN  UINTN                          HartMaskBase,
-  IN  UINTN                          StartAddr,
-  IN  UINTN                          Size
+  IN  UINTN  *HartMask,
+  IN  UINTN  HartMaskBase,
+  IN  UINTN  StartAddr,
+  IN  UINTN  Size
   )
 {
-  SbiRet Ret = SbiCall (
-                 SBI_EXT_RFENCE,
-                 SBI_EXT_RFENCE_REMOTE_SFENCE_VMA,
-                 4,
-                 (UINTN)HartMask,
-                 HartMaskBase,
-                 StartAddr,
-                 Size
-                 );
+  SBI_RET  Ret;
+
+  Ret = SbiCall (
+          SBI_EXT_RFENCE,
+          SBI_EXT_RFENCE_REMOTE_SFENCE_VMA,
+          4,
+          (UINTN)HartMask,
+          HartMaskBase,
+          StartAddr,
+          Size
+          );
+
   return TranslateError (Ret.Error);
 }
 
 /**
   Instructs the remote harts to execute one or more SFENCE.VMA instructions.
 
-  The SFENCE.VMA covers the range of virtual addresses between StartAaddr and Size.
+  The SFENCE.VMA covers the range of virtual addresses between StartAddr and Size.
   Covers only the given ASID.
 
   The remote fence function acts as a full tlb flush if * StartAddr and size
@@ -505,30 +542,33 @@ SbiRemoteSfenceVma (
 EFI_STATUS
 EFIAPI
 SbiRemoteSfenceVmaAsid (
-  IN  UINTN                         *HartMask,
-  IN  UINTN                          HartMaskBase,
-  IN  UINTN                          StartAddr,
-  IN  UINTN                          Size,
-  IN  UINTN                          Asid
+  IN  UINTN  *HartMask,
+  IN  UINTN  HartMaskBase,
+  IN  UINTN  StartAddr,
+  IN  UINTN  Size,
+  IN  UINTN  Asid
   )
 {
-  SbiRet Ret = SbiCall (
-                 SBI_EXT_RFENCE,
-                 SBI_EXT_RFENCE_REMOTE_SFENCE_VMA_ASID,
-                 5,
-                 (UINTN)HartMask,
-                 HartMaskBase,
-                 StartAddr,
-                 Size,
-                 Asid
-                 );
+  SBI_RET  Ret;
+
+  Ret = SbiCall (
+          SBI_EXT_RFENCE,
+          SBI_EXT_RFENCE_REMOTE_SFENCE_VMA_ASID,
+          5,
+          (UINTN)HartMask,
+          HartMaskBase,
+          StartAddr,
+          Size,
+          Asid
+          );
+
   return TranslateError (Ret.Error);
 }
 
 /**
   Instructs the remote harts to execute one or more SFENCE.GVMA instructions.
 
-  The SFENCE.GVMA covers the range of virtual addresses between StartAaddr and Size.
+  The SFENCE.GVMA covers the range of virtual addresses between StartAddr and Size.
   Covers only the given VMID.
   This function call is only valid for harts implementing the hypervisor extension.
 
@@ -554,30 +594,33 @@ SbiRemoteSfenceVmaAsid (
 EFI_STATUS
 EFIAPI
 SbiRemoteHFenceGvmaVmid (
-  IN  UINTN                         *HartMask,
-  IN  UINTN                          HartMaskBase,
-  IN  UINTN                          StartAddr,
-  IN  UINTN                          Size,
-  IN  UINTN                          Vmid
+  IN  UINTN  *HartMask,
+  IN  UINTN  HartMaskBase,
+  IN  UINTN  StartAddr,
+  IN  UINTN  Size,
+  IN  UINTN  Vmid
   )
 {
-  SbiRet Ret = SbiCall (
-                 SBI_EXT_RFENCE,
-                 SBI_EXT_RFENCE_REMOTE_HFENCE_GVMA,
-                 5,
-                 (UINTN)HartMask,
-                 HartMaskBase,
-                 StartAddr,
-                 Size,
-                 Vmid
-                 );
+  SBI_RET  Ret;
+
+  Ret = SbiCall (
+          SBI_EXT_RFENCE,
+          SBI_EXT_RFENCE_REMOTE_HFENCE_GVMA,
+          5,
+          (UINTN)HartMask,
+          HartMaskBase,
+          StartAddr,
+          Size,
+          Vmid
+          );
+
   return TranslateError (Ret.Error);
 }
 
 /**
   Instructs the remote harts to execute one or more SFENCE.GVMA instructions.
 
-  The SFENCE.GVMA covers the range of virtual addresses between StartAaddr and Size.
+  The SFENCE.GVMA covers the range of virtual addresses between StartAddr and Size.
   This function call is only valid for harts implementing the hypervisor extension.
 
   The remote fence function acts as a full tlb flush if * StartAddr and size
@@ -602,28 +645,31 @@ SbiRemoteHFenceGvmaVmid (
 EFI_STATUS
 EFIAPI
 SbiRemoteHFenceGvma (
-  IN  UINTN                         *HartMask,
-  IN  UINTN                          HartMaskBase,
-  IN  UINTN                          StartAddr,
-  IN  UINTN                          Size
+  IN  UINTN  *HartMask,
+  IN  UINTN  HartMaskBase,
+  IN  UINTN  StartAddr,
+  IN  UINTN  Size
   )
 {
-  SbiRet Ret = SbiCall (
-                 SBI_EXT_RFENCE,
-                 SBI_EXT_RFENCE_REMOTE_HFENCE_GVMA_VMID,
-                 4,
-                 (UINTN)HartMask,
-                 HartMaskBase,
-                 StartAddr,
-                 Size
-                 );
+  SBI_RET  Ret;
+
+  Ret = SbiCall (
+          SBI_EXT_RFENCE,
+          SBI_EXT_RFENCE_REMOTE_HFENCE_GVMA_VMID,
+          4,
+          (UINTN)HartMask,
+          HartMaskBase,
+          StartAddr,
+          Size
+          );
+
   return TranslateError (Ret.Error);
 }
 
 /**
   Instructs the remote harts to execute one or more SFENCE.VVMA instructions.
 
-  The SFENCE.GVMA covers the range of virtual addresses between StartAaddr and Size.
+  The SFENCE.GVMA covers the range of virtual addresses between StartAddr and Size.
   Covers only the given ASID.
   This function call is only valid for harts implementing the hypervisor extension.
 
@@ -649,30 +695,33 @@ SbiRemoteHFenceGvma (
 EFI_STATUS
 EFIAPI
 SbiRemoteHFenceVvmaAsid (
-  IN  UINTN                         *HartMask,
-  IN  UINTN                          HartMaskBase,
-  IN  UINTN                          StartAddr,
-  IN  UINTN                          Size,
-  IN  UINTN                          Asid
+  IN  UINTN  *HartMask,
+  IN  UINTN  HartMaskBase,
+  IN  UINTN  StartAddr,
+  IN  UINTN  Size,
+  IN  UINTN  Asid
   )
 {
-  SbiRet Ret = SbiCall (
-                 SBI_EXT_RFENCE,
-                 SBI_EXT_RFENCE_REMOTE_HFENCE_VVMA,
-                 5,
-                 (UINTN)HartMask,
-                 HartMaskBase,
-                 StartAddr,
-                 Size,
-                 Asid
-                 );
+  SBI_RET  Ret;
+
+  Ret = SbiCall (
+          SBI_EXT_RFENCE,
+          SBI_EXT_RFENCE_REMOTE_HFENCE_VVMA,
+          5,
+          (UINTN)HartMask,
+          HartMaskBase,
+          StartAddr,
+          Size,
+          Asid
+          );
+
   return TranslateError (Ret.Error);
 }
 
 /**
   Instructs the remote harts to execute one or more SFENCE.VVMA instructions.
 
-  The SFENCE.GVMA covers the range of virtual addresses between StartAaddr and Size.
+  The SFENCE.GVMA covers the range of virtual addresses between StartAddr and Size.
   This function call is only valid for harts implementing the hypervisor extension.
 
   The remote fence function acts as a full tlb flush if * StartAddr and size
@@ -697,21 +746,24 @@ SbiRemoteHFenceVvmaAsid (
 EFI_STATUS
 EFIAPI
 SbiRemoteHFenceVvma (
-  IN  UINTN                         *HartMask,
-  IN  UINTN                          HartMaskBase,
-  IN  UINTN                          StartAddr,
-  IN  UINTN                          Size
+  IN  UINTN  *HartMask,
+  IN  UINTN  HartMaskBase,
+  IN  UINTN  StartAddr,
+  IN  UINTN  Size
   )
 {
-  SbiRet Ret = SbiCall (
-                 SBI_EXT_RFENCE,
-                 SBI_EXT_RFENCE_REMOTE_HFENCE_VVMA_ASID,
-                 4,
-                 (UINTN)HartMask,
-                 HartMaskBase,
-                 StartAddr,
-                 Size
-                 );
+  SBI_RET  Ret;
+
+  Ret = SbiCall (
+          SBI_EXT_RFENCE,
+          SBI_EXT_RFENCE_REMOTE_HFENCE_VVMA_ASID,
+          4,
+          (UINTN)HartMask,
+          HartMaskBase,
+          StartAddr,
+          Size
+          );
+
   return TranslateError (Ret.Error);
 }
 
@@ -743,17 +795,20 @@ SbiRemoteHFenceVvma (
 EFI_STATUS
 EFIAPI
 SbiSystemReset (
-  IN  UINTN                          ResetType,
-  IN  UINTN                          ResetReason
+  IN  UINTN  ResetType,
+  IN  UINTN  ResetReason
   )
 {
-  SbiRet Ret = SbiCall (
-                 SBI_EXT_SRST,
-                 SBI_EXT_SRST_RESET,
-                 2,
-                 ResetType,
-                 ResetReason
-                 );
+  SBI_RET  Ret;
+
+  Ret = SbiCall (
+          SBI_EXT_SRST,
+          SBI_EXT_SRST_RESET,
+          2,
+          ResetType,
+          ResetReason
+          );
+
   return TranslateError (Ret.Error);
 }
 
@@ -777,59 +832,91 @@ SbiSystemReset (
 EFI_STATUS
 EFIAPI
 SbiVendorCall (
-  IN  UINTN                          ExtensionId,
-  IN  UINTN                          FunctionId,
-  IN  UINTN                          NumArgs,
+  IN  UINTN  ExtensionId,
+  IN  UINTN  FunctionId,
+  IN  UINTN  NumArgs,
   ...
   )
 {
-    SbiRet Ret;
-    VA_LIST Args;
-    VA_START (Args, NumArgs);
+  SBI_RET  Ret;
+  VA_LIST  Args;
 
-    ASSERT (ExtensionId >= SBI_EXT_VENDOR_START && ExtensionId <= SBI_EXT_VENDOR_END);
-    ASSERT (NumArgs <= SBI_CALL_MAX_ARGS);
+  VA_START (Args, NumArgs);
 
-    switch (NumArgs) {
-      case 0:
-        Ret = SbiCall (ExtensionId, FunctionId, NumArgs);
-        break;
-      case 1:
-        Ret = SbiCall (ExtensionId, FunctionId, NumArgs, VA_ARG (Args, UINTN));
-        break;
-      case 2:
-        Ret = SbiCall (ExtensionId, FunctionId, NumArgs, VA_ARG (Args, UINTN),
-                       VA_ARG (Args, UINTN));
-        break;
-      case 3:
-        Ret = SbiCall (ExtensionId, FunctionId, NumArgs, VA_ARG (Args, UINTN),
-                       VA_ARG (Args, UINTN), VA_ARG (Args, UINTN));
-        break;
-      case 4:
-        Ret = SbiCall (ExtensionId, FunctionId, NumArgs, VA_ARG (Args, UINTN),
-                       VA_ARG (Args, UINTN), VA_ARG (Args, UINTN),
-                       VA_ARG (Args, UINTN));
-        break;
-      case 5:
-        Ret = SbiCall (ExtensionId, FunctionId, NumArgs, VA_ARG (Args, UINTN),
-                       VA_ARG (Args, UINTN), VA_ARG (Args, UINTN),
-                       VA_ARG (Args, UINTN), VA_ARG (Args, UINTN));
-        break;
-      case 6:
-        Ret = SbiCall (ExtensionId, FunctionId, NumArgs, VA_ARG (Args, UINTN),
-                       VA_ARG (Args, UINTN), VA_ARG (Args, UINTN),
-                       VA_ARG (Args, UINTN), VA_ARG (Args, UINTN),
-                       VA_ARG (Args, UINTN));
-        break;
-      default:
-        // Too many args. In theory SBI can handle more arguments when they are
-        // passed on the stack but no SBI extension uses this, therefore it's
-        // not yet implemented here.
-        return EFI_INVALID_PARAMETER;
-     }
+  ASSERT (ExtensionId >= SBI_EXT_VENDOR_START && ExtensionId <= SBI_EXT_VENDOR_END);
+  ASSERT (NumArgs <= SBI_CALL_MAX_ARGS);
 
-    VA_END(Args);
-    return TranslateError (Ret.Error);
+  switch (NumArgs) {
+    case 0:
+      Ret = SbiCall (ExtensionId, FunctionId, NumArgs);
+      break;
+    case 1:
+      Ret = SbiCall (ExtensionId, FunctionId, NumArgs, VA_ARG (Args, UINTN));
+      break;
+    case 2:
+      Ret = SbiCall (
+              ExtensionId,
+              FunctionId,
+              NumArgs,
+              VA_ARG (Args, UINTN),
+              VA_ARG (Args, UINTN)
+              );
+      break;
+    case 3:
+      Ret = SbiCall (
+              ExtensionId,
+              FunctionId,
+              NumArgs,
+              VA_ARG (Args, UINTN),
+              VA_ARG (Args, UINTN),
+              VA_ARG (Args, UINTN)
+              );
+      break;
+    case 4:
+      Ret = SbiCall (
+              ExtensionId,
+              FunctionId,
+              NumArgs,
+              VA_ARG (Args, UINTN),
+              VA_ARG (Args, UINTN),
+              VA_ARG (Args, UINTN),
+              VA_ARG (Args, UINTN)
+              );
+      break;
+    case 5:
+      Ret = SbiCall (
+              ExtensionId,
+              FunctionId,
+              NumArgs,
+              VA_ARG (Args, UINTN),
+              VA_ARG (Args, UINTN),
+              VA_ARG (Args, UINTN),
+              VA_ARG (Args, UINTN),
+              VA_ARG (Args, UINTN)
+              );
+      break;
+    case 6:
+      Ret = SbiCall (
+              ExtensionId,
+              FunctionId,
+              NumArgs,
+              VA_ARG (Args, UINTN),
+              VA_ARG (Args, UINTN),
+              VA_ARG (Args, UINTN),
+              VA_ARG (Args, UINTN),
+              VA_ARG (Args, UINTN),
+              VA_ARG (Args, UINTN)
+              );
+      break;
+    default:
+      // Too many args. In theory SBI can handle more arguments when they are
+      // passed on the stack but no SBI extension uses this, therefore it's
+      // not yet implemented here.
+      return EFI_INVALID_PARAMETER;
+  }
+
+  VA_END (Args);
+  return TranslateError (Ret.Error);
 }
 
 //
@@ -847,10 +934,12 @@ SbiVendorCall (
 VOID
 EFIAPI
 SbiGetMscratch (
-  OUT SBI_SCRATCH                    **ScratchSpace
+  OUT SBI_SCRATCH  **ScratchSpace
   )
 {
-  SbiRet Ret = SbiCall (SBI_EDK2_FW_EXT, SBI_EXT_FW_MSCRATCH_FUNC, 0);
+  SBI_RET  Ret;
+
+  Ret = SbiCall (SBI_EDK2_FW_EXT, SBI_EXT_FW_MSCRATCH_FUNC, 0);
 
   // Our ecall handler never returns an error, only when the func id is invalid
   ASSERT (Ret.Error == SBI_OK);
@@ -867,16 +956,18 @@ SbiGetMscratch (
 VOID
 EFIAPI
 SbiGetMscratchHartid (
-  IN  UINTN                            HartId,
-  OUT SBI_SCRATCH                    **ScratchSpace
+  IN  UINTN        HartId,
+  OUT SBI_SCRATCH  **ScratchSpace
   )
 {
-  SbiRet Ret = SbiCall (
-                 SBI_EDK2_FW_EXT,
-                 SBI_EXT_FW_MSCRATCH_HARTID_FUNC,
-                 1,
-                 HartId
-                 );
+  SBI_RET  Ret;
+
+  Ret = SbiCall (
+          SBI_EDK2_FW_EXT,
+          SBI_EXT_FW_MSCRATCH_HARTID_FUNC,
+          1,
+          HartId
+          );
 
   // Our ecall handler never returns an error, only when the func id is invalid
   ASSERT (Ret.Error == SBI_OK);
@@ -893,14 +984,14 @@ SbiGetMscratchHartid (
 VOID
 EFIAPI
 SbiGetFirmwareContext (
-  OUT EFI_RISCV_OPENSBI_FIRMWARE_CONTEXT **FirmwareContext
+  OUT EFI_RISCV_OPENSBI_FIRMWARE_CONTEXT  **FirmwareContext
   )
 {
-  SBI_SCRATCH  *ScratchSpace;
-  SBI_PLATFORM *SbiPlatform;
+  SBI_SCRATCH   *ScratchSpace;
+  SBI_PLATFORM  *SbiPlatform;
 
-  SbiGetMscratch(&ScratchSpace);
-  SbiPlatform = (SBI_PLATFORM *)sbi_platform_ptr(ScratchSpace);
+  SbiGetMscratch (&ScratchSpace);
+  SbiPlatform      = (SBI_PLATFORM *)sbi_platform_ptr (ScratchSpace);
   *FirmwareContext = (EFI_RISCV_OPENSBI_FIRMWARE_CONTEXT *)SbiPlatform->firmware_context;
 }
 
@@ -912,14 +1003,14 @@ SbiGetFirmwareContext (
 VOID
 EFIAPI
 SbiSetFirmwareContext (
-  IN EFI_RISCV_OPENSBI_FIRMWARE_CONTEXT *FirmwareContext
+  IN EFI_RISCV_OPENSBI_FIRMWARE_CONTEXT  *FirmwareContext
   )
 {
-  SBI_SCRATCH  *ScratchSpace;
-  SBI_PLATFORM *SbiPlatform;
+  SBI_SCRATCH   *ScratchSpace;
+  SBI_PLATFORM  *SbiPlatform;
 
-  SbiGetMscratch(&ScratchSpace);
+  SbiGetMscratch (&ScratchSpace);
 
-  SbiPlatform = (SBI_PLATFORM *)sbi_platform_ptr (ScratchSpace);
+  SbiPlatform                   = (SBI_PLATFORM *)sbi_platform_ptr (ScratchSpace);
   SbiPlatform->firmware_context = (UINTN)FirmwareContext;
 }

@@ -50,6 +50,11 @@ Ext4ReadInode (
   EXT4_BLOCK_NR          InodeTableStart;
   EFI_STATUS             Status;
 
+  if (!EXT4_IS_VALID_INODE_NR (Partition, InodeNum)) {
+    DEBUG ((DEBUG_ERROR, "[ext4] Error reading inode: inode number %lu isn't valid\n", InodeNum));
+    return EFI_VOLUME_CORRUPTED;
+  }
+
   BlockGroupNumber = (UINT32)DivU64x64Remainder (
                                InodeNum - 1,
                                Partition->SuperBlock.s_inodes_per_group,
@@ -168,12 +173,12 @@ Ext4CalculateBlockGroupDescChecksumGdtCsum (
 
   Dummy = 0;
 
-  Csum = CalculateCrc16 (Partition->SuperBlock.s_uuid, 16, 0);
-  Csum = CalculateCrc16 (&BlockGroupNum, sizeof (BlockGroupNum), Csum);
-  Csum = CalculateCrc16 (BlockGroupDesc, OFFSET_OF (EXT4_BLOCK_GROUP_DESC, bg_checksum), Csum);
-  Csum = CalculateCrc16 (&Dummy, sizeof (Dummy), Csum);
+  Csum = CalculateCrc16Ansi (Partition->SuperBlock.s_uuid, 16, 0);
+  Csum = CalculateCrc16Ansi (&BlockGroupNum, sizeof (BlockGroupNum), Csum);
+  Csum = CalculateCrc16Ansi (BlockGroupDesc, OFFSET_OF (EXT4_BLOCK_GROUP_DESC, bg_checksum), Csum);
+  Csum = CalculateCrc16Ansi (&Dummy, sizeof (Dummy), Csum);
   Csum =
-    CalculateCrc16 (
+    CalculateCrc16Ansi (
       &BlockGroupDesc->bg_block_bitmap_hi,
       Partition->DescSize - OFFSET_OF (EXT4_BLOCK_GROUP_DESC, bg_block_bitmap_hi),
       Csum
@@ -218,9 +223,9 @@ Ext4CalculateBlockGroupDescChecksum (
   IN UINT32                       BlockGroupNum
   )
 {
-  if (Partition->FeaturesRoCompat & EXT4_FEATURE_RO_COMPAT_METADATA_CSUM) {
+  if (EXT4_HAS_METADATA_CSUM (Partition)) {
     return Ext4CalculateBlockGroupDescChecksumMetadataCsum (Partition, BlockGroupDesc, BlockGroupNum);
-  } else if (Partition->FeaturesRoCompat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM) {
+  } else if (EXT4_HAS_GDT_CSUM (Partition)) {
     return Ext4CalculateBlockGroupDescChecksumGdtCsum (Partition, BlockGroupDesc, BlockGroupNum);
   }
 

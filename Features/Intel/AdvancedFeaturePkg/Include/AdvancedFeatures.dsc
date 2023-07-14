@@ -11,50 +11,78 @@
 ##
 
 #
-# Debug Advanced Features
+# Debugging features
 #
 !if gAcpiDebugFeaturePkgTokenSpaceGuid.PcdAcpiDebugFeatureEnable == TRUE
-  !include Debugging/AcpiDebugFeaturePkg/Include/AcpiDebugFeature.dsc
+  !include AcpiDebugFeaturePkg/Include/AcpiDebugFeature.dsc
 !endif
+
+!if gBeepDebugFeaturePkgTokenSpaceGuid.PcdBeepDebugFeatureEnable == TRUE
+  !include BeepDebugFeaturePkg/Include/BeepDebugFeature.dsc
+!endif
+
+!if gPostCodeDebugFeaturePkgTokenSpaceGuid.PcdPostCodeDebugFeatureEnable == TRUE
+  !include PostCodeDebugFeaturePkg/Include/PostCodeDebugFeature.dsc
+!endif
+
 !if gUsb3DebugFeaturePkgTokenSpaceGuid.PcdUsb3DebugFeatureEnable == TRUE
-  !include Debugging/Usb3DebugFeaturePkg/Include/Usb3DebugFeature.dsc
+  !include Usb3DebugFeaturePkg/Include/Usb3DebugFeature.dsc
 !endif
 
 #
-# Network Advanced Features
+# Network features
 #
 !if gNetworkFeaturePkgTokenSpaceGuid.PcdNetworkFeatureEnable == TRUE
-  !include Network/NetworkFeaturePkg/Include/NetworkFeature.dsc
+  !include NetworkFeaturePkg/Include/NetworkFeature.dsc
 !endif
 
 #
-# Out-of-Band Management Advanced Features
+# OutOfBandManagement features
 #
 !if gIpmiFeaturePkgTokenSpaceGuid.PcdIpmiFeatureEnable == TRUE
-  !include OutOfBandManagement/IpmiFeaturePkg/Include/IpmiFeature.dsc
+  !include IpmiFeaturePkg/Include/IpmiFeature.dsc
+!endif
+
+!if gSpcrFeaturePkgTokenSpaceGuid.PcdSpcrFeatureEnable == TRUE
+  !include SpcrFeaturePkg/Include/SpcrFeature.dsc
+!endif
+
+!if gAsfFeaturePkgTokenSpaceGuid.PcdAsfFeatureEnable == TRUE
+  !include AsfFeaturePkg/Include/AsfFeature.dsc
 !endif
 
 #
-# Power Management Advanced Features
+# PowerManagement features
 #
 !if gS3FeaturePkgTokenSpaceGuid.PcdS3FeatureEnable == TRUE
-  !include PowerManagement/S3FeaturePkg/Include/S3Feature.dsc
+  !include S3FeaturePkg/Include/S3Feature.dsc
 !endif
 
 #
-# System Information Advanced Features
+# SystemInformation features
 #
 !if gSmbiosFeaturePkgTokenSpaceGuid.PcdSmbiosFeatureEnable == TRUE
-  !include SystemInformation/SmbiosFeaturePkg/Include/SmbiosFeature.dsc
+  !include SmbiosFeaturePkg/Include/SmbiosFeature.dsc
 !endif
 
 #
-# User Interface Advanced Features
+# UserInterface features
 #
-!if gUserAuthFeaturePkgTokenSpaceGuid.PcdUserAuthenticationFeatureEnable == TRUE
-  !include UserInterface/UserAuthFeaturePkg/Include/UserAuthFeature.dsc
-!endif
-
 !if gLogoFeaturePkgTokenSpaceGuid.PcdLogoFeatureEnable == TRUE
   !include LogoFeaturePkg/Include/LogoFeature.dsc
+!endif
+
+!if gUserAuthFeaturePkgTokenSpaceGuid.PcdUserAuthenticationFeatureEnable == TRUE
+  !include UserAuthFeaturePkg/Include/UserAuthFeature.dsc
+!endif
+
+!if gVirtualKeyboardFeaturePkgTokenSpaceGuid.PcdVirtualKeyboardFeatureEnable == TRUE
+  !include VirtualKeyboardFeaturePkg/Include/VirtualKeyboardFeature.dsc
+!endif
+
+#
+# Individual features
+#
+!if gPlatformPayloadFeaturePkgTokenSpaceGuid.PcdPlatformPayloadFeatureEnable == TRUE
+  !include PlatformPayloadFeaturePkg/Include/PlatformPayloadFeature.dsc
 !endif

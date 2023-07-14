@@ -1,7 +1,7 @@
-## @file  RiscVProcesssorPkg.dec
+## @file  RiscVProcessorPkg.dec
 # This Package provides UEFI RISC-V processor modules and libraries.
 #
-# Copyright (c) 2020, Hewlett Packard Enterprise Development LP. All rights reserved.<BR>
+# Copyright (c) 2020-2022, Hewlett Packard Enterprise Development LP. All rights reserved.<BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -22,10 +22,11 @@
   Library/RiscVOpensbiLib/opensbi/platform/generic/include # Header file reference from opensbi files, ("sbi/...")
 
 [LibraryClasses]
-  RiscVPlatformDxeIplLib|Include/Library/RiscVPlatformDxeIpl.h
   RiscVCpuLib|Include/Library/RiscVCpuLib.h
   RiscVEdk2SbiLib|Include/Library/RiscVEdk2SbiLib.h
   RiscVFirmwareContextLib|Include/Library/RiscVFirmwareContextLib.h
+  RiscVPlatformTimerLib|Include/Library/RiscVPlatformTimerLib.h
+  MachineModeTimerLib|Include/Library/MachineModeTimerLib.h
 
 [Guids]
   gUefiRiscVPkgTokenSpaceGuid  = { 0x4261e9c8, 0x52c0, 0x4b34, { 0x85, 0x3d, 0x48, 0x46, 0xea, 0xd3, 0xb7, 0x2c}}

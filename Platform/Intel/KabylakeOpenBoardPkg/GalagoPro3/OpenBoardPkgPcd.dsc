@@ -1,7 +1,7 @@
 ## @file
 #  PCD configuration build description file for the GalagoPro3 board.
 #
-# Copyright (c) 2019 - 2020, Intel Corporation. All rights reserved.<BR>
+# Copyright (c) 2019 - 2022, Intel Corporation. All rights reserved.<BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -41,6 +41,26 @@
   gMinPlatformPkgTokenSpaceGuid.PcdFspWrapperBootMode|TRUE
 
   #
+  # FALSE: The PEI Main included in FvPreMemory is used to dispatch all PEIMs
+  #        (both inside FSP and outside FSP).
+  #        Pros:
+  #          * PEI Main is re-built from source and is always the latest version
+  #          * Platform code can link any desired LibraryClass to PEI Main
+  #            (Ex: Custom DebugLib instance, SerialPortLib, etc.)
+  #        Cons:
+  #          * The PEI Main being used to execute FSP PEIMs is not the PEI Main
+  #            that the FSP PEIMs were tested with, adding risk of breakage.
+  #          * Two copies of PEI Main will exist in the final binary,
+  #            #1 in FSP-M, #2 in FvPreMemory. The copy in FSP-M is never
+  #            executed, wasting space.
+  #
+  # <b>TRUE</b>:  The PEI Main included in FSP is used to dispatch all PEIMs
+  #        (both inside FSP and outside FSP). PEI Main will not be included in
+  #        FvPreMemory. This is the default and is the recommended choice.
+  #
+  gMinPlatformPkgTokenSpaceGuid.PcdFspDispatchModeUseFspPeiMain|TRUE
+
+  #
   # FSP Base address PCD will be updated in FDF basing on flash map.
   #
   gIntelFsp2WrapperTokenSpaceGuid.PcdFsptBaseAddress|0
@@ -52,6 +72,7 @@
   gSiPkgTokenSpaceGuid.PcdTemporaryRamSize|0x00040000
   gSiPkgTokenSpaceGuid.PcdTsegSize|0x1000000
 
+!if gIntelFsp2WrapperTokenSpaceGuid.PcdFspModeSelection == 1
   #
   # FSP API mode does not share stack with the boot loader,
   # so FSP needs more temporary memory for FSP heap + stack size.
@@ -63,6 +84,24 @@
   # since the stacks are separate.
   #
   gSiPkgTokenSpaceGuid.PcdPeiTemporaryRamStackSize|0x20000
+!else
+  #
+  # In FSP Dispatch mode boot loader stack size must be large
+  # enough for executing both boot loader and FSP.
+  #
+  gSiPkgTokenSpaceGuid.PcdPeiTemporaryRamStackSize|0x40000
+!endif
+
+!if (gMinPlatformPkgTokenSpaceGuid.PcdFspWrapperBootMode == FALSE) || (gIntelFsp2WrapperTokenSpaceGuid.PcdFspModeSelection == 1)
+  gSiPkgTokenSpaceGuid.PcdSiPciExpressBaseAddress|gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress
+  gSiPkgTokenSpaceGuid.PcdSiPciExpressRegionLength|gMinPlatformPkgTokenSpaceGuid.PcdPciExpressRegionLength
+!else
+  #
+  # FSP Dispatch mode requires more platform memory as boot loader and FSP sharing the same
+  # platform memory.
+  #
+  gSiPkgTokenSpaceGuid.PcdPeiMinMemorySize|0x5500000
+!endif
 
 [PcdsFeatureFlag.common]
   ######################################
@@ -124,42 +163,18 @@
   ######################################
   # Platform Configuration
   ######################################
-  gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterDebugInit|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterMemInit|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdPerformanceEnable|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdTpm2Enable|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdUefiSecureBootEnable|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdSerialTerminalEnable|FALSE
+  #
+  # MinPlatform common include for required feature PCD
+  # These PCD must be set before the core include files, CoreCommonLib,
+  # CorePeiLib, and CoreDxeLib.
+  # Optional MinPlatformPkg features should be enabled after this
+  #
+  !include MinPlatformPkg/Include/Dsc/MinPlatformFeaturesPcd.dsc.inc
 
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 1
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterDebugInit|TRUE
-!endif
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 2
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterDebugInit|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterMemInit|TRUE
-!endif
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 3
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterMemInit|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly|TRUE
-!endif
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 4
-  gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly|FALSE
-!endif
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 5
-  gMinPlatformPkgTokenSpaceGuid.PcdUefiSecureBootEnable|TRUE
-  gMinPlatformPkgTokenSpaceGuid.PcdTpm2Enable|TRUE
-!endif
-
-!if $(TARGET) == DEBUG
-  gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable|TRUE
-!else
-  gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable|FALSE
-!endif
+  #
+  # Commonly used MinPlatform feature configuration logic that maps functionity to stage
+  #
+  !include BoardModulePkg/Include/Dsc/CommonStageConfig.dsc.inc
 
   ######################################
   # Board Configuration
@@ -179,6 +194,7 @@
   gEfiMdePkgTokenSpaceGuid.PcdReportStatusCodePropertyMask|0x07
 !endif
   gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress|0xE0000000
+  gIntelSiliconPkgTokenSpaceGuid.PcdAcpiBaseAddress|0x1800
 !if gMinPlatformPkgTokenSpaceGuid.PcdPerformanceEnable == TRUE
   gEfiMdePkgTokenSpaceGuid.PcdPerformanceLibraryPropertyMask|0x1
 !endif
@@ -194,9 +210,6 @@
 !endif
   gEfiMdeModulePkgTokenSpaceGuid.PcdMaxVariableSize|0x5000
   gEfiMdeModulePkgTokenSpaceGuid.PcdReclaimVariableSpaceAtEndOfDxe|TRUE
-!if gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable == TRUE
-  gEfiMdeModulePkgTokenSpaceGuid.PcdSmiHandlerProfilePropertyMask|0x1
-!endif
   gEfiMdeModulePkgTokenSpaceGuid.PcdSrIovSupport|FALSE
 !if $(TARGET) == DEBUG
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialUseHardwareFlowControl|FALSE
@@ -222,7 +235,7 @@
   gUefiCpuPkgTokenSpaceGuid.PcdCpuApInitTimeOutInMicroSeconds|1000
   gUefiCpuPkgTokenSpaceGuid.PcdCpuSmmApSyncTimeout|10000
   gUefiCpuPkgTokenSpaceGuid.PcdCpuSmmStackSize|0x20000
-
+!if (gMinPlatformPkgTokenSpaceGuid.PcdFspWrapperBootMode == FALSE) || (gIntelFsp2WrapperTokenSpaceGuid.PcdFspModeSelection == 1)
   #
   # In non-FSP build (EDK2 build) or FSP API mode below PCD are FixedAtBuild
   # (They will be DynamicEx in FSP Dispatch mode)
@@ -242,6 +255,7 @@
   #  3: Place AP in the Run-Loop state.
   # @Prompt The AP wait loop state.
   gUefiCpuPkgTokenSpaceGuid.PcdCpuApLoopMode|2
+!endif
 
   ######################################
   # Silicon Configuration
@@ -251,8 +265,12 @@
   gSiPkgTokenSpaceGuid.PcdHstiIhvFeature1|0xF2
   gSiPkgTokenSpaceGuid.PcdHstiIhvFeature2|0x07
 
-  gSiPkgTokenSpaceGuid.PcdSiPciExpressBaseAddress|gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress
-  gSiPkgTokenSpaceGuid.PcdSiPciExpressRegionLength|gMinPlatformPkgTokenSpaceGuid.PcdPciExpressRegionLength
+  #
+  # Set the location of the DUTY_CYCLE field in the P_CNT register
+  # and indicate the width of the clock duty cycle to OS power management
+  #
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtDutyOffset|0x1
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtDutyWidth|0x3
 
   ######################################
   # Platform Configuration
@@ -261,6 +279,7 @@
   gMinPlatformPkgTokenSpaceGuid.PcdMaxCpuCoreCount|8
   gMinPlatformPkgTokenSpaceGuid.PcdMaxCpuThreadCount|2
   gMinPlatformPkgTokenSpaceGuid.PcdPciExpressRegionLength|0x10000000
+  gIntelFsp2WrapperTokenSpaceGuid.PcdPeiMinMemSize|0x3800000
 
   #
   # The PCDs are used to control the Windows SMM Security Mitigations Table - Protection Flags
@@ -315,6 +334,46 @@
   ######################################
   gBoardModulePkgTokenSpaceGuid.PcdPs2KbMsEnable|1
   gBoardModulePkgTokenSpaceGuid.PcdSuperIoPciIsaBridgeDevice|{0x00, 0x00, 0x1F, 0x00}
+  gKabylakeOpenBoardPkgTokenSpaceGuid.PcdGttMmAddress|0xDF000000
+
+  ## Enable usage the HDMI DDC channel as a debug port - Causes the BIOS debug log
+  #  to be written to the HDMI DDC channel.
+  #  The value is defined as below.
+  #  FALSE: Do NOT use the HDMI DDC channel as a debug port
+  #  TRUE:  Use the HDMI DDC channel as a debug port
+  # @Prompt Enable usage the HDMI DDC channel as a debug port
+  gKabylakeOpenBoardPkgTokenSpaceGuid.PcdI2cHdmiDebugPortEnable|FALSE
+
+  ## Enable usage the HDMI DDC channel as a serial terminal - Enables usage of the
+  #  HDMI DDC channel to display BIOS Setup, UEFI Shell, etc. using a terminal
+  #  emulator. Useful for cases where video is not operating correctly.
+  #
+  #  The value is defined as below.
+  #  FALSE: Do NOT use the HDMI DDC channel as a debug port
+  #  TRUE:  Use the HDMI DDC channel as a debug port
+  # @Prompt Enable usage the HDMI DDC channel as a debug port
+  gKabylakeOpenBoardPkgTokenSpaceGuid.PcdI2cHdmiDebugPortSerialTerminalEnable|FALSE
+  gMinPlatformPkgTokenSpaceGuid.PcdSerialTerminalEnable|gKabylakeOpenBoardPkgTokenSpaceGuid.PcdI2cHdmiDebugPortSerialTerminalEnable
+
+  ## Indicates the type of terminal to use.
+  #  If PcdI2cHdmiDebugPortSerialTerminalEnable is TRUE, this PCD will be used
+  #  to determine which terminal protocol to use.
+  #  0 - PCANSI
+  #  1 - VT100
+  #  2 - VT100+
+  #  3 - UTF8
+  #  4 - TTYTERM
+  # @Prompt Default Terminal Type.
+  # @ValidRange 0x80000001 | 0 - 4
+  gEfiMdePkgTokenSpaceGuid.PcdDefaultTerminalType|3
+
+  ## Specifies the DDC I2C channel to claim as the HDMI debug port
+  #  The value is defined as below.
+  #  2: DDC channel B
+  #  3: DDC channel C
+  #  4: DDC channel D
+  # @Prompt DDC I2C channel to claim as the HDMI debug port
+  gKabylakeOpenBoardPkgTokenSpaceGuid.PcdI2cHdmiDebugPortDdcI2cChannel|0x03
 
 [PcdsFixedAtBuild.IA32]
   ######################################
@@ -322,7 +381,6 @@
   ######################################
   gEfiMdeModulePkgTokenSpaceGuid.PcdVpdBaseAddress|0x0
   gIntelFsp2PkgTokenSpaceGuid.PcdGlobalDataPointerAddress|0xFED00148
-  gIntelFsp2WrapperTokenSpaceGuid.PcdPeiMinMemSize|0x3800000
 
   ######################################
   # Platform Configuration

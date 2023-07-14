@@ -1,7 +1,7 @@
 /** @file
   Configuration Manager Dxe
 
-  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
+  Copyright (c) 2021 - 2023, ARM Limited. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -28,15 +28,15 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
   { CONFIGURATION_MANAGER_REVISION, CFG_MGR_OEM_ID },
 
   // Boot architecture information
-  { EFI_ACPI_6_3_ARM_PSCI_COMPLIANT },              // BootArchFlags
+  { EFI_ACPI_6_4_ARM_PSCI_COMPLIANT },              // BootArchFlags
 
 #ifdef HEADLESS_PLATFORM
   // Fixed feature flag information
-  { EFI_ACPI_6_3_HEADLESS },                        // Fixed feature flags
+  { EFI_ACPI_6_4_HEADLESS },                        // Fixed feature flags
 #endif
 
   // Power management profile information
-  { EFI_ACPI_6_3_PM_PROFILE_ENTERPRISE_SERVER },    // PowerManagement Profile
+  { EFI_ACPI_6_4_PM_PROFILE_ENTERPRISE_SERVER },    // PowerManagement Profile
 
   /* GIC CPU Interface information
      GIC_ENTRY (CPUInterfaceNumber, Mpidr, PmuIrq, VGicIrq, GicRedistBase,
@@ -164,11 +164,11 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       REFERENCE_TOKEN (ProcHierarchyInfo[0]),
       // UINT32  Flags
       PROC_NODE_FLAGS (
-        EFI_ACPI_6_3_PPTT_PACKAGE_PHYSICAL,
-        EFI_ACPI_6_3_PPTT_PROCESSOR_ID_INVALID,
-        EFI_ACPI_6_3_PPTT_PROCESSOR_IS_NOT_THREAD,
-        EFI_ACPI_6_3_PPTT_NODE_IS_NOT_LEAF,
-        EFI_ACPI_6_3_PPTT_IMPLEMENTATION_IDENTICAL
+        EFI_ACPI_6_4_PPTT_PACKAGE_PHYSICAL,
+        EFI_ACPI_6_4_PPTT_PROCESSOR_ID_INVALID,
+        EFI_ACPI_6_4_PPTT_PROCESSOR_IS_NOT_THREAD,
+        EFI_ACPI_6_4_PPTT_NODE_IS_NOT_LEAF,
+        EFI_ACPI_6_4_PPTT_IMPLEMENTATION_IDENTICAL
       ),
       // CM_OBJECT_TOKEN  ParentToken
       CM_NULL_TOKEN,
@@ -186,11 +186,11 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       REFERENCE_TOKEN (ProcHierarchyInfo[1]),
       // UINT32  Flags
       PROC_NODE_FLAGS (
-        EFI_ACPI_6_3_PPTT_PACKAGE_NOT_PHYSICAL,
-        EFI_ACPI_6_3_PPTT_PROCESSOR_ID_INVALID,
-        EFI_ACPI_6_3_PPTT_PROCESSOR_IS_NOT_THREAD,
-        EFI_ACPI_6_3_PPTT_NODE_IS_NOT_LEAF,
-        EFI_ACPI_6_3_PPTT_IMPLEMENTATION_IDENTICAL
+        EFI_ACPI_6_4_PPTT_PACKAGE_NOT_PHYSICAL,
+        EFI_ACPI_6_4_PPTT_PROCESSOR_ID_INVALID,
+        EFI_ACPI_6_4_PPTT_PROCESSOR_IS_NOT_THREAD,
+        EFI_ACPI_6_4_PPTT_NODE_IS_NOT_LEAF,
+        EFI_ACPI_6_4_PPTT_IMPLEMENTATION_IDENTICAL
       ),
       // CM_OBJECT_TOKEN  ParentToken
       REFERENCE_TOKEN (ProcHierarchyInfo[0]), // -> Package
@@ -199,7 +199,7 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       // UINT32  NoOfPrivateResources
       CLUSTER_RESOURCE_COUNT,
       // CM_OBJECT_TOKEN  PrivateResourcesArrayToken
-      REFERENCE_TOKEN (ClusterResources)
+      REFERENCE_TOKEN (Cluster0Resources)
     },
     // Cluster1
     {
@@ -207,11 +207,11 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       REFERENCE_TOKEN (ProcHierarchyInfo[2]),
       // UINT32  Flags
       PROC_NODE_FLAGS (
-        EFI_ACPI_6_3_PPTT_PACKAGE_NOT_PHYSICAL,
-        EFI_ACPI_6_3_PPTT_PROCESSOR_ID_INVALID,
-        EFI_ACPI_6_3_PPTT_PROCESSOR_IS_NOT_THREAD,
-        EFI_ACPI_6_3_PPTT_NODE_IS_NOT_LEAF,
-        EFI_ACPI_6_3_PPTT_IMPLEMENTATION_IDENTICAL
+        EFI_ACPI_6_4_PPTT_PACKAGE_NOT_PHYSICAL,
+        EFI_ACPI_6_4_PPTT_PROCESSOR_ID_INVALID,
+        EFI_ACPI_6_4_PPTT_PROCESSOR_IS_NOT_THREAD,
+        EFI_ACPI_6_4_PPTT_NODE_IS_NOT_LEAF,
+        EFI_ACPI_6_4_PPTT_IMPLEMENTATION_IDENTICAL
       ),
       // CM_OBJECT_TOKEN  ParentToken
       REFERENCE_TOKEN (ProcHierarchyInfo[0]), // -> Package
@@ -220,7 +220,7 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       // UINT32  NoOfPrivateResources
       CLUSTER_RESOURCE_COUNT,
       // CM_OBJECT_TOKEN  PrivateResourcesArrayToken
-      REFERENCE_TOKEN (ClusterResources)
+      REFERENCE_TOKEN (Cluster1Resources)
     },
     // Cluster0 - Cpu0
     {
@@ -228,11 +228,11 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       REFERENCE_TOKEN (ProcHierarchyInfo[3]),
       // UINT32  Flags
       PROC_NODE_FLAGS (
-        EFI_ACPI_6_3_PPTT_PACKAGE_NOT_PHYSICAL,
-        EFI_ACPI_6_3_PPTT_PROCESSOR_ID_VALID,
-        EFI_ACPI_6_3_PPTT_PROCESSOR_IS_NOT_THREAD,
-        EFI_ACPI_6_3_PPTT_NODE_IS_LEAF,
-        EFI_ACPI_6_3_PPTT_IMPLEMENTATION_NOT_IDENTICAL
+        EFI_ACPI_6_4_PPTT_PACKAGE_NOT_PHYSICAL,
+        EFI_ACPI_6_4_PPTT_PROCESSOR_ID_VALID,
+        EFI_ACPI_6_4_PPTT_PROCESSOR_IS_NOT_THREAD,
+        EFI_ACPI_6_4_PPTT_NODE_IS_LEAF,
+        EFI_ACPI_6_4_PPTT_IMPLEMENTATION_NOT_IDENTICAL
       ),
       // CM_OBJECT_TOKEN  ParentToken
       REFERENCE_TOKEN (ProcHierarchyInfo[1]), // -> 'cluster in Cluster0
@@ -241,7 +241,7 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       // UINT32  NoOfPrivateResources
       CORE_RESOURCE_COUNT,
       // CM_OBJECT_TOKEN  PrivateResourcesArrayToken
-      REFERENCE_TOKEN (CoreResources)
+      REFERENCE_TOKEN (Core0Resources)
     },
     // Cluster0 - Cpu1
     {
@@ -249,11 +249,11 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       REFERENCE_TOKEN (ProcHierarchyInfo[4]),
       // UINT32  Flags
       PROC_NODE_FLAGS (
-        EFI_ACPI_6_3_PPTT_PACKAGE_NOT_PHYSICAL,
-        EFI_ACPI_6_3_PPTT_PROCESSOR_ID_VALID,
-        EFI_ACPI_6_3_PPTT_PROCESSOR_IS_NOT_THREAD,
-        EFI_ACPI_6_3_PPTT_NODE_IS_LEAF,
-        EFI_ACPI_6_3_PPTT_IMPLEMENTATION_NOT_IDENTICAL
+        EFI_ACPI_6_4_PPTT_PACKAGE_NOT_PHYSICAL,
+        EFI_ACPI_6_4_PPTT_PROCESSOR_ID_VALID,
+        EFI_ACPI_6_4_PPTT_PROCESSOR_IS_NOT_THREAD,
+        EFI_ACPI_6_4_PPTT_NODE_IS_LEAF,
+        EFI_ACPI_6_4_PPTT_IMPLEMENTATION_NOT_IDENTICAL
       ),
       // CM_OBJECT_TOKEN  ParentToken
       REFERENCE_TOKEN (ProcHierarchyInfo[1]), // -> 'cluster in Cluster0
@@ -262,7 +262,7 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       // UINT32  NoOfPrivateResources
       CORE_RESOURCE_COUNT,
       // CM_OBJECT_TOKEN  PrivateResourcesArrayToken
-      REFERENCE_TOKEN (CoreResources)
+      REFERENCE_TOKEN (Core1Resources)
     },
     // Cluster1 - Cpu0
     {
@@ -270,11 +270,11 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       REFERENCE_TOKEN (ProcHierarchyInfo[3]),
       // UINT32  Flags
       PROC_NODE_FLAGS (
-        EFI_ACPI_6_3_PPTT_PACKAGE_NOT_PHYSICAL,
-        EFI_ACPI_6_3_PPTT_PROCESSOR_ID_VALID,
-        EFI_ACPI_6_3_PPTT_PROCESSOR_IS_NOT_THREAD,
-        EFI_ACPI_6_3_PPTT_NODE_IS_LEAF,
-        EFI_ACPI_6_3_PPTT_IMPLEMENTATION_NOT_IDENTICAL
+        EFI_ACPI_6_4_PPTT_PACKAGE_NOT_PHYSICAL,
+        EFI_ACPI_6_4_PPTT_PROCESSOR_ID_VALID,
+        EFI_ACPI_6_4_PPTT_PROCESSOR_IS_NOT_THREAD,
+        EFI_ACPI_6_4_PPTT_NODE_IS_LEAF,
+        EFI_ACPI_6_4_PPTT_IMPLEMENTATION_NOT_IDENTICAL
       ),
       // CM_OBJECT_TOKEN  ParentToken
       REFERENCE_TOKEN (ProcHierarchyInfo[2]), // -> 'cluster in Cluster1
@@ -283,7 +283,7 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       // UINT32  NoOfPrivateResources
       CORE_RESOURCE_COUNT,
       // CM_OBJECT_TOKEN  PrivateResourcesArrayToken
-      REFERENCE_TOKEN (CoreResources)
+      REFERENCE_TOKEN (Core2Resources)
     },
 
     // Cluster1 - Cpu1
@@ -292,11 +292,11 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       REFERENCE_TOKEN (ProcHierarchyInfo[4]),
       // UINT32  Flags
       PROC_NODE_FLAGS (
-        EFI_ACPI_6_3_PPTT_PACKAGE_NOT_PHYSICAL,
-        EFI_ACPI_6_3_PPTT_PROCESSOR_ID_VALID,
-        EFI_ACPI_6_3_PPTT_PROCESSOR_IS_NOT_THREAD,
-        EFI_ACPI_6_3_PPTT_NODE_IS_LEAF,
-        EFI_ACPI_6_3_PPTT_IMPLEMENTATION_NOT_IDENTICAL
+        EFI_ACPI_6_4_PPTT_PACKAGE_NOT_PHYSICAL,
+        EFI_ACPI_6_4_PPTT_PROCESSOR_ID_VALID,
+        EFI_ACPI_6_4_PPTT_PROCESSOR_IS_NOT_THREAD,
+        EFI_ACPI_6_4_PPTT_NODE_IS_LEAF,
+        EFI_ACPI_6_4_PPTT_IMPLEMENTATION_NOT_IDENTICAL
       ),
       // CM_OBJECT_TOKEN  ParentToken
       REFERENCE_TOKEN (ProcHierarchyInfo[2]), // -> 'cluster in Cluster1
@@ -305,13 +305,13 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       // UINT32  NoOfPrivateResources
       CORE_RESOURCE_COUNT,
       // CM_OBJECT_TOKEN  PrivateResourcesArrayToken
-      REFERENCE_TOKEN (CoreResources)
+      REFERENCE_TOKEN (Core3Resources)
     },
   },
 
   // Cache information
   {
-    // 'cluster's L3 cache
+    // Cluster0 L3 cache
     {
       REFERENCE_TOKEN (CacheInfo[0]),  // CM_OBJECT_TOKEN  Token
       CM_NULL_TOKEN,                   // CM_OBJECT_TOKEN  NextLevelOfCacheToken
@@ -319,82 +319,256 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       2048,                            // UINT32  NumberOfSets
       8,                               // UINT32  Associativity
       CACHE_ATTRIBUTES (               // UINT8   Attributes
-        EFI_ACPI_6_3_CACHE_ATTRIBUTES_ALLOCATION_READ,
-        EFI_ACPI_6_3_CACHE_ATTRIBUTES_CACHE_TYPE_UNIFIED,
-        EFI_ACPI_6_3_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_ALLOCATION_READ,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_CACHE_TYPE_UNIFIED,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
       ),
-      64                               // UINT16  LineSize
+      64,                               // UINT16  LineSize
+      1                                 // UINT32  CacheID
     },
-    // 'core's L1 instruction cache
+    // Cluster1 L3 cache
     {
       REFERENCE_TOKEN (CacheInfo[1]),  // CM_OBJECT_TOKEN  Token
-      REFERENCE_TOKEN (CacheInfo[3]),  // CM_OBJECT_TOKEN  NextLevelOfCacheToken
-      SIZE_64KB,                       // UINT32  Size
-      256,                             // UINT32  NumberOfSets
-      4,                               // UINT32  Associativity
-      CACHE_ATTRIBUTES (               // UINT8   Attributes
-        EFI_ACPI_6_3_CACHE_ATTRIBUTES_ALLOCATION_READ,
-        EFI_ACPI_6_3_CACHE_ATTRIBUTES_CACHE_TYPE_INSTRUCTION,
-        EFI_ACPI_6_3_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
-      ),
-      64                               // UINT16  LineSize
-    },
-    // 'core's L1 data cache
-    {
-      REFERENCE_TOKEN (CacheInfo[2]),  // CM_OBJECT_TOKEN  Token
-      REFERENCE_TOKEN (CacheInfo[3]),  // CM_OBJECT_TOKEN  NextLevelOfCacheToken
-      SIZE_64KB,                       // UINT32  Size
-      256,                             // UINT32  NumberOfSets
-      4,                               // UINT32  Associativity
-      CACHE_ATTRIBUTES (               // UINT8   Attributes
-        EFI_ACPI_6_3_CACHE_ATTRIBUTES_ALLOCATION_READ_WRITE,
-        EFI_ACPI_6_3_CACHE_ATTRIBUTES_CACHE_TYPE_DATA,
-        EFI_ACPI_6_3_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
-      ),
-      64                               // UINT16  LineSize
-    },
-    // cores's L2 cache
-    {
-      REFERENCE_TOKEN (CacheInfo[3]),  // CM_OBJECT_TOKEN  Token
       CM_NULL_TOKEN,                   // CM_OBJECT_TOKEN  NextLevelOfCacheToken
       SIZE_1MB,                        // UINT32  Size
       2048,                            // UINT32  NumberOfSets
       8,                               // UINT32  Associativity
       CACHE_ATTRIBUTES (               // UINT8   Attributes
-        EFI_ACPI_6_3_CACHE_ATTRIBUTES_ALLOCATION_READ,
-        EFI_ACPI_6_3_CACHE_ATTRIBUTES_CACHE_TYPE_UNIFIED,
-        EFI_ACPI_6_3_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_ALLOCATION_READ,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_CACHE_TYPE_UNIFIED,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
       ),
-      64                               // UINT16  LineSize
+      64,                               // UINT16  LineSize
+      2                                 // UINT32  CacheID
+    },
+    // Cluster0 - Cpu0 L1 instruction cache
+    {
+      REFERENCE_TOKEN (CacheInfo[2]),  // CM_OBJECT_TOKEN  Token
+      REFERENCE_TOKEN (CacheInfo[10]), // CM_OBJECT_TOKEN  NextLevelOfCacheToken
+      SIZE_64KB,                       // UINT32  Size
+      256,                             // UINT32  NumberOfSets
+      4,                               // UINT32  Associativity
+      CACHE_ATTRIBUTES (               // UINT8   Attributes
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_ALLOCATION_READ,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_CACHE_TYPE_INSTRUCTION,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
+      ),
+      64,                               // UINT16  LineSize
+      3                                 // UINT32  CacheID
+    },
+    // Cluster0 - Cpu0 L1 data cache
+    {
+      REFERENCE_TOKEN (CacheInfo[3]),  // CM_OBJECT_TOKEN  Token
+      REFERENCE_TOKEN (CacheInfo[10]), // CM_OBJECT_TOKEN  NextLevelOfCacheToken
+      SIZE_64KB,                       // UINT32  Size
+      256,                             // UINT32  NumberOfSets
+      4,                               // UINT32  Associativity
+      CACHE_ATTRIBUTES (               // UINT8   Attributes
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_ALLOCATION_READ_WRITE,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_CACHE_TYPE_DATA,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
+      ),
+      64,                               // UINT16  LineSize
+      4                                 // UINT32  CacheID
+    },
+    // Cluster0 - Cpu1 L1 instruction cache
+    {
+      REFERENCE_TOKEN (CacheInfo[4]),  // CM_OBJECT_TOKEN  Token
+      REFERENCE_TOKEN (CacheInfo[11]), // CM_OBJECT_TOKEN  NextLevelOfCacheToken
+      SIZE_64KB,                       // UINT32  Size
+      256,                             // UINT32  NumberOfSets
+      4,                               // UINT32  Associativity
+      CACHE_ATTRIBUTES (               // UINT8   Attributes
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_ALLOCATION_READ,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_CACHE_TYPE_INSTRUCTION,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
+      ),
+      64,                               // UINT16  LineSize
+      5                                 // UINT32  CacheID
+    },
+    // Cluster0 - Cpu0 L1 data cache
+    {
+      REFERENCE_TOKEN (CacheInfo[5]),  // CM_OBJECT_TOKEN  Token
+      REFERENCE_TOKEN (CacheInfo[11]), // CM_OBJECT_TOKEN  NextLevelOfCacheToken
+      SIZE_64KB,                       // UINT32  Size
+      256,                             // UINT32  NumberOfSets
+      4,                               // UINT32  Associativity
+      CACHE_ATTRIBUTES (               // UINT8   Attributes
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_ALLOCATION_READ_WRITE,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_CACHE_TYPE_DATA,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
+      ),
+      64,                               // UINT16  LineSize
+      6                                 // UINT32  CacheID
+    },
+    // Cluster1 - Cpu0 L1 instruction cache
+    {
+      REFERENCE_TOKEN (CacheInfo[6]),  // CM_OBJECT_TOKEN  Token
+      REFERENCE_TOKEN (CacheInfo[12]), // CM_OBJECT_TOKEN  NextLevelOfCacheToken
+      SIZE_64KB,                       // UINT32  Size
+      256,                             // UINT32  NumberOfSets
+      4,                               // UINT32  Associativity
+      CACHE_ATTRIBUTES (               // UINT8   Attributes
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_ALLOCATION_READ,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_CACHE_TYPE_INSTRUCTION,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
+      ),
+      64,                               // UINT16  LineSize
+      7                                 // UINT32  CacheID
+    },
+    // Cluster1 - Cpu0 L1 data cache
+    {
+      REFERENCE_TOKEN (CacheInfo[7]),  // CM_OBJECT_TOKEN  Token
+      REFERENCE_TOKEN (CacheInfo[12]), // CM_OBJECT_TOKEN  NextLevelOfCacheToken
+      SIZE_64KB,                       // UINT32  Size
+      256,                             // UINT32  NumberOfSets
+      4,                               // UINT32  Associativity
+      CACHE_ATTRIBUTES (               // UINT8   Attributes
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_ALLOCATION_READ_WRITE,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_CACHE_TYPE_DATA,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
+      ),
+      64,                               // UINT16  LineSize
+      8                                 // UINT32  CacheID
+    },
+    // Cluster1 - Cpu1 L1 instruction cache
+    {
+      REFERENCE_TOKEN (CacheInfo[8]),  // CM_OBJECT_TOKEN  Token
+      REFERENCE_TOKEN (CacheInfo[13]), // CM_OBJECT_TOKEN  NextLevelOfCacheToken
+      SIZE_64KB,                       // UINT32  Size
+      256,                             // UINT32  NumberOfSets
+      4,                               // UINT32  Associativity
+      CACHE_ATTRIBUTES (               // UINT8   Attributes
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_ALLOCATION_READ,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_CACHE_TYPE_INSTRUCTION,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
+      ),
+      64,                               // UINT16  LineSize
+      9                                 // UINT32  CacheID
+    },
+    // Cluster1 - Cpu1 L1 data cache
+    {
+      REFERENCE_TOKEN (CacheInfo[9]),  // CM_OBJECT_TOKEN  Token
+      REFERENCE_TOKEN (CacheInfo[13]), // CM_OBJECT_TOKEN  NextLevelOfCacheToken
+      SIZE_64KB,                       // UINT32  Size
+      256,                             // UINT32  NumberOfSets
+      4,                               // UINT32  Associativity
+      CACHE_ATTRIBUTES (               // UINT8   Attributes
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_ALLOCATION_READ_WRITE,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_CACHE_TYPE_DATA,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
+      ),
+      64,                               // UINT16  LineSize
+      10                                // UINT32  CacheID
+    },
+    //  Cluster0 - Cpu0 L2 cache
+    {
+      REFERENCE_TOKEN (CacheInfo[10]), // CM_OBJECT_TOKEN  Token
+      CM_NULL_TOKEN,                   // CM_OBJECT_TOKEN  NextLevelOfCacheToken
+      SIZE_1MB,                        // UINT32  Size
+      2048,                            // UINT32  NumberOfSets
+      8,                               // UINT32  Associativity
+      CACHE_ATTRIBUTES (               // UINT8   Attributes
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_ALLOCATION_READ,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_CACHE_TYPE_UNIFIED,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
+      ),
+      64,                               // UINT16  LineSize
+      11                                // UINT32  CacheID
+    },
+    //  Cluster0 - Cpu1 L2 cache
+    {
+      REFERENCE_TOKEN (CacheInfo[11]), // CM_OBJECT_TOKEN  Token
+      CM_NULL_TOKEN,                   // CM_OBJECT_TOKEN  NextLevelOfCacheToken
+      SIZE_1MB,                        // UINT32  Size
+      2048,                            // UINT32  NumberOfSets
+      8,                               // UINT32  Associativity
+      CACHE_ATTRIBUTES (               // UINT8   Attributes
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_ALLOCATION_READ,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_CACHE_TYPE_UNIFIED,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
+      ),
+      64,                               // UINT16  LineSize
+      12                                // UINT32  CacheID
+    },
+    //  Cluster1 - Cpu0 L2 cache
+    {
+      REFERENCE_TOKEN (CacheInfo[12]), // CM_OBJECT_TOKEN  Token
+      CM_NULL_TOKEN,                   // CM_OBJECT_TOKEN  NextLevelOfCacheToken
+      SIZE_1MB,                        // UINT32  Size
+      2048,                            // UINT32  NumberOfSets
+      8,                               // UINT32  Associativity
+      CACHE_ATTRIBUTES (               // UINT8   Attributes
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_ALLOCATION_READ,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_CACHE_TYPE_UNIFIED,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
+      ),
+      64,                               // UINT16  LineSize
+      13                                // UINT32  CacheID
+    },
+    //  Cluster1 - Cpu1 L2 cache
+    {
+      REFERENCE_TOKEN (CacheInfo[13]), // CM_OBJECT_TOKEN  Token
+      CM_NULL_TOKEN,                   // CM_OBJECT_TOKEN  NextLevelOfCacheToken
+      SIZE_1MB,                        // UINT32  Size
+      2048,                            // UINT32  NumberOfSets
+      8,                               // UINT32  Associativity
+      CACHE_ATTRIBUTES (               // UINT8   Attributes
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_ALLOCATION_READ,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_CACHE_TYPE_UNIFIED,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
+      ),
+      64,                               // UINT16  LineSize
+      14                                // UINT32  CacheID
     },
     // slc cache
     {
-      REFERENCE_TOKEN (CacheInfo[4]),  // CM_OBJECT_TOKEN  Token
+      REFERENCE_TOKEN (CacheInfo[14]), // CM_OBJECT_TOKEN  Token
       CM_NULL_TOKEN,                   // CM_OBJECT_TOKEN  NextLevelOfCacheToken
       SIZE_8MB,                        // UINT32  Size
       4096,                            // UINT32  NumberOfSets
       16,                              // UINT32  Associativity
       CACHE_ATTRIBUTES (               // UINT8   Attributes
-        EFI_ACPI_6_3_CACHE_ATTRIBUTES_ALLOCATION_READ,
-        EFI_ACPI_6_3_CACHE_ATTRIBUTES_CACHE_TYPE_UNIFIED,
-        EFI_ACPI_6_3_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_ALLOCATION_READ,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_CACHE_TYPE_UNIFIED,
+        EFI_ACPI_6_4_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
       ),
-      64                               // UINT16  LineSize
+      64,                               // UINT16  LineSize
+      15                                // UINT32  CacheID
     },
   },
-  // Resources private to the 'cluster (shared among cores) in Cluster
+  // Resources private to Cluster0
   {
-    { REFERENCE_TOKEN (CacheInfo[0]) }  // -> 'cluster's L3 cache in Cluster
+    { REFERENCE_TOKEN (CacheInfo[0]) }  // -> L3 cache
   },
-  // Resources private to each individual 'core instance in Cluster
+  // Resources private to Cluster1
   {
-    { REFERENCE_TOKEN (CacheInfo[1]) }, // -> 'core's L1 I-cache in Cluster
-    { REFERENCE_TOKEN (CacheInfo[2]) }  // -> 'core's L1 D-cache in Cluster
-  },
+    { REFERENCE_TOKEN (CacheInfo[1]) }  // -> L3 cache
 
-  // Resources private to the SoC
+  },
+  // Resources private to Cpu0 instance in Cluster0
   {
-    { REFERENCE_TOKEN (CacheInfo[4]) }  // -> slc for SoC
+    { REFERENCE_TOKEN (CacheInfo[2]) }, // -> L1 I-cache
+    { REFERENCE_TOKEN (CacheInfo[3]) }  // -> L1 D-cache
+  },
+  // Resources private to Cpu1 instance in Cluster0
+  {
+    { REFERENCE_TOKEN (CacheInfo[4]) }, // -> L1 I-cache
+    { REFERENCE_TOKEN (CacheInfo[5]) }  // -> L1 D-cache
+  },
+  // Resources private to Cpu0 instance in Cluster1
+  {
+    { REFERENCE_TOKEN (CacheInfo[6]) }, // -> L1 I-cache
+    { REFERENCE_TOKEN (CacheInfo[7]) }  // -> L1 D-cache
+  },
+  // Resources private to Cpu0 instance in Cluster1
+  {
+    { REFERENCE_TOKEN (CacheInfo[8]) }, // -> L1 I-cache
+    { REFERENCE_TOKEN (CacheInfo[9]) }  // -> L1 D-cache
+  },
+  // Resources private to SoC
+  {
+    { REFERENCE_TOKEN (CacheInfo[14]) } // -> slc cache
   },
 };
 
@@ -677,16 +851,40 @@ GetCmObjRefs (
 
   CommonPlatRepo = This->PlatRepoInfo->CommonPlatRepoInfo;
 
-  if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->ClusterResources) {
-    CmObject->Size = sizeof (CommonPlatRepo->ClusterResources);
-    CmObject->Data = (VOID*)&CommonPlatRepo->ClusterResources;
-    CmObject->Count = ARRAY_SIZE (CommonPlatRepo->ClusterResources);
+  if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->Cluster0Resources) {
+    CmObject->Size = sizeof (CommonPlatRepo->Cluster0Resources);
+    CmObject->Data = (VOID*)&CommonPlatRepo->Cluster0Resources;
+    CmObject->Count = ARRAY_SIZE (CommonPlatRepo->Cluster0Resources);
     return EFI_SUCCESS;
   }
-  if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->CoreResources) {
-    CmObject->Size = sizeof (CommonPlatRepo->CoreResources);
-    CmObject->Data = (VOID*)&CommonPlatRepo->CoreResources;
-    CmObject->Count = ARRAY_SIZE (CommonPlatRepo->CoreResources);
+  if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->Cluster1Resources) {
+    CmObject->Size = sizeof (CommonPlatRepo->Cluster1Resources);
+    CmObject->Data = (VOID*)&CommonPlatRepo->Cluster1Resources;
+    CmObject->Count = ARRAY_SIZE (CommonPlatRepo->Cluster1Resources);
+    return EFI_SUCCESS;
+  }
+  if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->Core0Resources) {
+    CmObject->Size = sizeof (CommonPlatRepo->Core0Resources);
+    CmObject->Data = (VOID*)&CommonPlatRepo->Core0Resources;
+    CmObject->Count = ARRAY_SIZE (CommonPlatRepo->Core0Resources);
+    return EFI_SUCCESS;
+  }
+  if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->Core1Resources) {
+    CmObject->Size = sizeof (CommonPlatRepo->Core1Resources);
+    CmObject->Data = (VOID*)&CommonPlatRepo->Core1Resources;
+    CmObject->Count = ARRAY_SIZE (CommonPlatRepo->Core1Resources);
+    return EFI_SUCCESS;
+  }
+  if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->Core2Resources) {
+    CmObject->Size = sizeof (CommonPlatRepo->Core2Resources);
+    CmObject->Data = (VOID*)&CommonPlatRepo->Core2Resources;
+    CmObject->Count = ARRAY_SIZE (CommonPlatRepo->Core2Resources);
+    return EFI_SUCCESS;
+  }
+  if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->Core3Resources) {
+    CmObject->Size = sizeof (CommonPlatRepo->Core3Resources);
+    CmObject->Data = (VOID*)&CommonPlatRepo->Core3Resources;
+    CmObject->Count = ARRAY_SIZE (CommonPlatRepo->Core3Resources);
     return EFI_SUCCESS;
   }
   if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->SocResources) {

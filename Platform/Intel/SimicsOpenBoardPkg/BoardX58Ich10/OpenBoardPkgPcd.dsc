@@ -1,7 +1,7 @@
 ## @file
 #  PCD configuration build description file for the X58Ich10 board.
 #
-# Copyright (c) 2019 - 2020, Intel Corporation. All rights reserved. <BR>
+# Copyright (c) 2019 - 2023, Intel Corporation. All rights reserved. <BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -31,8 +31,6 @@
   # Edk2 Configuration
   ######################################
   gEfiMdeModulePkgTokenSpaceGuid.PcdBrowerGrayOutReadOnlyMenu|TRUE
-  gEfiMdeModulePkgTokenSpaceGuid.PcdConOutGopSupport|TRUE
-  gEfiMdeModulePkgTokenSpaceGuid.PcdConOutUgaSupport|FALSE
   gEfiMdeModulePkgTokenSpaceGuid.PcdDxeIplSupportUefiDecompress|FALSE
   gEfiMdeModulePkgTokenSpaceGuid.PcdDxeIplSwitchToLongMode|TRUE
   gEfiMdeModulePkgTokenSpaceGuid.PcdInstallAcpiSdtProtocol|TRUE
@@ -40,46 +38,24 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdSupportUpdateCapsuleReset|FALSE
   gUefiCpuPkgTokenSpaceGuid.PcdCpuHotPlugSupport|FALSE
   gUefiCpuPkgTokenSpaceGuid.PcdCpuSmmEnableBspElection|FALSE
+  gUefiCpuPkgTokenSpaceGuid.PcdSmmFeatureControlEnable|FALSE
+  gUefiCpuPkgTokenSpaceGuid.PcdSmrrEnable|FALSE
 
   ######################################
   # Platform Configuration
   ######################################
-  gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterDebugInit|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdPerformanceEnable|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterMemInit|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdTpm2Enable|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdUefiSecureBootEnable|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdSerialTerminalEnable|FALSE
+  #
+  # MinPlatform common include for required feature PCD
+  # These PCD must be set before the core include files, CoreCommonLib,
+  # CorePeiLib, and CoreDxeLib.
+  # Optional MinPlatformPkg features should be enabled after this
+  #
+  !include MinPlatformPkg/Include/Dsc/MinPlatformFeaturesPcd.dsc.inc
 
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 1
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterDebugInit|TRUE
-!endif
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 2
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterDebugInit|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterMemInit|TRUE
-!endif
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 3
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterMemInit|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly|TRUE
-!endif
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 4
-  gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly|FALSE
-!endif
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 5
-  gMinPlatformPkgTokenSpaceGuid.PcdUefiSecureBootEnable|TRUE
-  gMinPlatformPkgTokenSpaceGuid.PcdTpm2Enable|TRUE
-!endif
-
-!if $(TARGET) == DEBUG
-  gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable|TRUE
-!else
-  gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable|FALSE
-!endif
+  #
+  # Commonly used MinPlatform feature configuration logic that maps functionity to stage
+  #
+  !include BoardModulePkg/Include/Dsc/CommonStageConfig.dsc.inc
 
   ######################################
   # Silicon Configuration
@@ -93,6 +69,7 @@
   ######################################
   gNetworkFeaturePkgTokenSpaceGuid.PcdNetworkFeatureEnable|TRUE
   gSmbiosFeaturePkgTokenSpaceGuid.PcdSmbiosFeatureEnable|TRUE
+  gMinPlatformPkgTokenSpaceGuid.PcdSerialTerminalEnable|TRUE
 
 [PcdsFeatureFlag.X64]
   ######################################
@@ -155,7 +132,16 @@
   gEfiMdePkgTokenSpaceGuid.PcdMaximumGuidedExtractHandler|0x10
   gEfiMdePkgTokenSpaceGuid.PcdPerformanceLibraryPropertyMask|0x0
 !if gMinPlatformPkgTokenSpaceGuid.PcdPerformanceEnable == TRUE
-  gEfiMdePkgTokenSpaceGuid.PcdPerformanceLibraryPropertyMask|0x1
+  #  BIT0 - Enable Performance Measurement.<BR>
+  #  BIT1 - Disable Start Image Logging.<BR>
+  #  BIT2 - Disable Load Image logging.<BR>
+  #  BIT3 - Disable Binding Support logging.<BR>
+  #  BIT4 - Disable Binding Start logging.<BR>
+  #  BIT5 - Disable Binding Stop logging.<BR>
+  #  BIT6 - Disable all other general Perfs.<BR>
+  #  BIT1-BIT6 are evaluated when BIT0 is set.<BR>
+  #  Enable performance measurement but disable driver binding support logging.
+  gEfiMdePkgTokenSpaceGuid.PcdPerformanceLibraryPropertyMask|0x09
 !endif
 !if $(TARGET) == "RELEASE"
   gEfiMdePkgTokenSpaceGuid.PcdReportStatusCodePropertyMask|0x03
@@ -172,7 +158,6 @@
   gPcAtChipsetPkgTokenSpaceGuid.PcdAcpiIoPortBaseAddressMask|0xFFFC
   gPcAtChipsetPkgTokenSpaceGuid.PcdAcpiPm1TmrOffset|0x0008
   gUefiCpuPkgTokenSpaceGuid.PcdCpuApStackSize|0x1000
-  gUefiCpuPkgTokenSpaceGuid.PcdCpuInitIpiDelayInMicroSeconds|10
   gUefiCpuPkgTokenSpaceGuid.PcdCpuMaxLogicalProcessorNumber|512
   gUefiCpuPkgTokenSpaceGuid.PcdCpuSmmApSyncTimeout|10000
   gUefiCpuPkgTokenSpaceGuid.PcdCpuSmmStackSize|0x4000
@@ -188,9 +173,6 @@
   gMinPlatformPkgTokenSpaceGuid.PcdAcpiPm1BEventBlockAddress|0
   gMinPlatformPkgTokenSpaceGuid.PcdAcpiPm2ControlBlockAddress|0x450
   gMinPlatformPkgTokenSpaceGuid.PcdAcpiPmTimerBlockAddress|0x408
-  gMinPlatformPkgTokenSpaceGuid.PcdFadtFlags|0x000004A5
-  gMinPlatformPkgTokenSpaceGuid.PcdFadtIaPcBootArch|0x0003
-  gMinPlatformPkgTokenSpaceGuid.PcdFadtPreferredPmProfile|0x0
   gMinPlatformPkgTokenSpaceGuid.PcdLocalApicAddress|0xFEE00000
   gMinPlatformPkgTokenSpaceGuid.PcdMaxCpuCoreCount|128
   gMinPlatformPkgTokenSpaceGuid.PcdMaxCpuSocketCount|4
@@ -217,9 +199,6 @@
   ######################################
   # Edk2 Configuration
   ######################################
-!if gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable == TRUE
-  gEfiMdeModulePkgTokenSpaceGuid.PcdSmiHandlerProfilePropertyMask|0x1
-!endif
   gEfiMdeModulePkgTokenSpaceGuid.PcdUse1GPageTable|TRUE
   gPcAtChipsetPkgTokenSpaceGuid.PcdHpetBaseAddress|0xFED00000
 
@@ -269,6 +248,13 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdSrIovSystemPageSize|0x1F
   gUefiCpuPkgTokenSpaceGuid.PcdCpuApInitTimeOutInMicroSeconds|30000
   gUefiCpuPkgTokenSpaceGuid.PcdCpuS3DataAddress|0
+
+  ######################################
+  # Platform Configuration
+  ######################################
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtFlags|0x000004A5
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtIaPcBootArch|0x0003
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtPreferredPmProfile|0x0
 
 [PcdsDynamicExDefault.X64]
   ######################################

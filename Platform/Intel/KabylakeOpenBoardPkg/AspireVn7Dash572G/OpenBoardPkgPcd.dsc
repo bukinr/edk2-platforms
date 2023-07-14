@@ -1,7 +1,7 @@
 ## @file
 #  PCD configuration build description file for the Aspire VN7-572G board.
 #
-# Copyright (c) 2017 - 2020, Intel Corporation. All rights reserved.<BR>
+# Copyright (c) 2017 - 2022, Intel Corporation. All rights reserved.<BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -127,10 +127,7 @@
   # PcdIpmiFeatureEnable will not be enabled (no BMC)
   # TODO: Can be build-time (user) choice
   gNetworkFeaturePkgTokenSpaceGuid.PcdNetworkFeatureEnable                |FALSE
-  # TODO: Continue developing support. Broken at present.
-  # - PeiSmmAccessLib in IntelSiliconPkg seems like a stub
-  #   - May require a PeiSmmControlLib to SMM communicate
-  gS3FeaturePkgTokenSpaceGuid.PcdS3FeatureEnable                          |FALSE
+  gS3FeaturePkgTokenSpaceGuid.PcdS3FeatureEnable                          |TRUE
   # TODO: Definitions (now added SmbiosDxe)
   gSmbiosFeaturePkgTokenSpaceGuid.PcdSmbiosFeatureEnable                  |TRUE
   # Requires actual hook-up
@@ -195,43 +192,18 @@
   ######################################
   # Platform Configuration
   ######################################
-  gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterDebugInit|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterMemInit|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdPerformanceEnable|FALSE  # FIXME: Define by PERFORMANCE_BUILD?
-  gMinPlatformPkgTokenSpaceGuid.PcdTpm2Enable|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdUefiSecureBootEnable|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdSerialTerminalEnable|FALSE  # FIXME: Define in build-system?
+  #
+  # MinPlatform common include for required feature PCD
+  # These PCD must be set before the core include files, CoreCommonLib,
+  # CorePeiLib, and CoreDxeLib.
+  # Optional MinPlatformPkg features should be enabled after this
+  #
+  !include MinPlatformPkg/Include/Dsc/MinPlatformFeaturesPcd.dsc.inc
 
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 1
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterDebugInit|TRUE
-!endif
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 2
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterDebugInit|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterMemInit|TRUE
-!endif
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 3
-  gMinPlatformPkgTokenSpaceGuid.PcdStopAfterMemInit|FALSE
-  gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly|TRUE
-!endif
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 4
-  gMinPlatformPkgTokenSpaceGuid.PcdBootToShellOnly|FALSE
-!endif
-
-!if gMinPlatformPkgTokenSpaceGuid.PcdBootStage >= 5
-  gMinPlatformPkgTokenSpaceGuid.PcdUefiSecureBootEnable|TRUE
-  gMinPlatformPkgTokenSpaceGuid.PcdTpm2Enable|TRUE
-!endif
-
-# TODO: Is TESTING setting, is not test point
-!if $(TARGET) == DEBUG
-  gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable|TRUE
-!else
-  gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable|FALSE
-!endif
+  #
+  # Commonly used MinPlatform feature configuration logic that maps functionity to stage
+  #
+  !include BoardModulePkg/Include/Dsc/CommonStageConfig.dsc.inc
 
   ######################################
   # Board Configuration
@@ -266,6 +238,7 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdMaxPeiPerformanceLogEntries|140
 !endif
   gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress|0xE0000000
+  gIntelSiliconPkgTokenSpaceGuid.PcdAcpiBaseAddress|0x1800
 
   gEfiMdeModulePkgTokenSpaceGuid.PcdAriSupport|FALSE
   gEfiMdeModulePkgTokenSpaceGuid.PcdBrowserFieldTextColor|0x01
@@ -285,9 +258,6 @@
 !endif
   gEfiMdeModulePkgTokenSpaceGuid.PcdReclaimVariableSpaceAtEndOfDxe|TRUE
   gEfiMdeModulePkgTokenSpaceGuid.PcdSetNxForStack|TRUE
-!if gMinPlatformPkgTokenSpaceGuid.PcdSmiHandlerProfileEnable == TRUE
-  gEfiMdeModulePkgTokenSpaceGuid.PcdSmiHandlerProfilePropertyMask|0x1
-!endif
   gEfiMdeModulePkgTokenSpaceGuid.PcdSrIovSupport|FALSE
   gEfiMdeModulePkgTokenSpaceGuid.PcdStatusCodeUseMemory|FALSE
 !if $(TARGET) == RELEASE
@@ -346,6 +316,13 @@
   gSiPkgTokenSpaceGuid.PcdHstiIhvFeature1|0xF2  # FIXME: Boot Guard and BIOS Guard not present, measured boot enforcement checking code not present
   gSiPkgTokenSpaceGuid.PcdHstiIhvFeature2|0x07
 
+  #
+  # Set the location of the DUTY_CYCLE field in the P_CNT register
+  # and indicate the width of the clock duty cycle to OS power management
+  #
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtDutyOffset|0x1
+  gMinPlatformPkgTokenSpaceGuid.PcdFadtDutyWidth|0x3
+
   ######################################
   # Platform Configuration
   ######################################
@@ -353,6 +330,7 @@
   gMinPlatformPkgTokenSpaceGuid.PcdMaxCpuCoreCount|4
   gMinPlatformPkgTokenSpaceGuid.PcdMaxCpuThreadCount|2
   gMinPlatformPkgTokenSpaceGuid.PcdPciExpressRegionLength|0x10000000
+  gIntelFsp2WrapperTokenSpaceGuid.PcdPeiMinMemSize|0x3800000
 
   #
   # The PCDs are used to control the Windows SMM Security Mitigations Table - Protection Flags
@@ -378,13 +356,8 @@
   #      0x7F, 0xFF, 0x04, 0x00}<BR>
   gMinPlatformPkgTokenSpaceGuid.PcdTrustedConsoleInputDevicePath|{0x02, 0x01, 0x0C, 0x00,  0xd0, 0x41, 0x03, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x06, 0x00,  0x00, 0x1F, 0x02, 0x01, 0x0C, 0x00,  0xd0, 0x41, 0x03, 0x03, 0x00, 0x00, 0x00, 0x00, 0x7F, 0xFF, 0x04, 0x00}
 
-!if $(TARGET) == RELEASE
-  gMinPlatformPkgTokenSpaceGuid.PcdPlatformEfiReservedMemorySize|0x800
-!else
-  gMinPlatformPkgTokenSpaceGuid.PcdPlatformEfiReservedMemorySize|0x188B  # TODO
-!endif
-  # TODO: Consider using reserved space instead for debug log
-  gMinPlatformPkgTokenSpaceGuid.PcdPlatformEfiRtDataMemorySize|0x200
+  gMinPlatformPkgTokenSpaceGuid.PcdPlatformEfiAcpiNvsMemorySize|0x4800
+  gMinPlatformPkgTokenSpaceGuid.PcdPlatformEfiRtDataMemorySize|0x100
 !if $(TARGET) == RELEASE
   gMinPlatformPkgTokenSpaceGuid.PcdPlatformEfiRtCodeMemorySize|0x70
 !else
@@ -420,13 +393,21 @@
   ######################################
   gBoardModulePkgTokenSpaceGuid.PcdPs2KbMsEnable|1
   gBoardModulePkgTokenSpaceGuid.PcdSuperIoPciIsaBridgeDevice|{0x00, 0x00, 0x1F, 0x00}
+  gKabylakeOpenBoardPkgTokenSpaceGuid.PcdGttMmAddress|0xDF000000
+
+  ## Specifies the DDC I2C channel to claim as the HDMI debug port
+  #  The value is defined as below.
+  #  2: DDC channel B
+  #  3: DDC channel C
+  #  4: DDC channel D
+  # @Prompt DDC I2C channel to claim as the HDMI debug port
+  gKabylakeOpenBoardPkgTokenSpaceGuid.PcdI2cHdmiDebugPortDdcI2cChannel|0x00  #@todo - Set to correct value for VN7-572G
 
 [PcdsFixedAtBuild.IA32]
   ######################################
   # Edk2 Configuration
   ######################################
   gIntelFsp2PkgTokenSpaceGuid.PcdGlobalDataPointerAddress|0xFED00148
-  gIntelFsp2WrapperTokenSpaceGuid.PcdPeiMinMemSize|0x3800000
 
   ######################################
   # Platform Configuration

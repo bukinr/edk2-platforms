@@ -2,13 +2,15 @@
   Reset System Library functions for RISC-V
 
   Copyright (c) 2021, Hewlett Packard Development LP. All rights reserved.<BR>
+  Copyright (c) 2023, Intel Corporation. All rights reserved.<BR>
+
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
 
 #include <Library/DebugLib.h>
 #include <Library/ResetSystemLib.h>
-#include <Library/RiscVEdk2SbiLib.h>
+#include <Library/BaseRiscVSbiLib.h>
 
 /**
   This function causes a system-wide reset (cold reset), in which
@@ -74,8 +76,8 @@ ResetShutdown (
 VOID
 EFIAPI
 ResetPlatformSpecific (
-  IN UINTN   DataSize,
-  IN VOID    *ResetData
+  IN UINTN  DataSize,
+  IN VOID   *ResetData
   )
 {
   //
@@ -99,30 +101,30 @@ ResetPlatformSpecific (
 VOID
 EFIAPI
 ResetSystem (
-  IN EFI_RESET_TYPE               ResetType,
-  IN EFI_STATUS                   ResetStatus,
-  IN UINTN                        DataSize,
-  IN VOID                         *ResetData OPTIONAL
+  IN EFI_RESET_TYPE  ResetType,
+  IN EFI_STATUS      ResetStatus,
+  IN UINTN           DataSize,
+  IN VOID            *ResetData OPTIONAL
   )
 {
   switch (ResetType) {
-  case EfiResetWarm:
-    ResetWarm ();
-    break;
+    case EfiResetWarm:
+      ResetWarm ();
+      break;
 
-  case EfiResetCold:
-    ResetCold ();
-    break;
+    case EfiResetCold:
+      ResetCold ();
+      break;
 
-  case EfiResetShutdown:
-    ResetShutdown ();
-    return;
+    case EfiResetShutdown:
+      ResetShutdown ();
+      return;
 
-  case EfiResetPlatformSpecific:
-    ResetPlatformSpecific (DataSize, ResetData);
-    return;
+    case EfiResetPlatformSpecific:
+      ResetPlatformSpecific (DataSize, ResetData);
+      return;
 
-  default:
-    return;
+    default:
+      return;
   }
 }

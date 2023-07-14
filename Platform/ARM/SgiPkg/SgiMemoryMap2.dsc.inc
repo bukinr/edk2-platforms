@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2020, ARM Limited. All rights reserved.
+#  Copyright (c) 2020 - 2023, Arm Limited. All rights reserved.
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -17,14 +17,14 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareBase64|0x1052800000
 
   # PL011 - Serial Terminal
-  gEfiMdeModulePkgTokenSpaceGuid.PcdSerialRegisterBase|0x0EF70000
+  gArmPlatformTokenSpaceGuid.PL011UartInterrupt|112
 
   # PL370 - HDLCD1
   gArmPlatformTokenSpaceGuid.PcdArmHdLcdBase|0x0EF60000
 
   # PL011 - Serial Debug UART
   gArmPlatformTokenSpaceGuid.PcdSerialDbgRegisterBase|0x0EF70000
-  gArmPlatformTokenSpaceGuid.PL011UartInterrupt|403
+  gArmPlatformTokenSpaceGuid.PcdSerialDbgInterrupt|403
 
   # PL031 RealTimeClock
   gArmPlatformTokenSpaceGuid.PcdPL031RtcBase|0x0C170000
@@ -38,12 +38,20 @@
   gArmSgiTokenSpaceGuid.PcdVirtioNetBaseAddress|0x0C150000
   gArmSgiTokenSpaceGuid.PcdVirtioNetInterrupt|460
 
+  # Virtio P9
+  gArmSgiTokenSpaceGuid.PcdVirtioP9BaseAddress|0x0C190000
+  gArmSgiTokenSpaceGuid.PcdVirtioP9Size|0x10000
+  gArmSgiTokenSpaceGuid.PcdVirtioP9Interrupt|459
+
   # PCIe
   gArmTokenSpaceGuid.PcdPciMmio32Base|0x60000000
   gArmTokenSpaceGuid.PcdPciMmio32Size|0x10000000
   gArmTokenSpaceGuid.PcdPciMmio64Base|0x4000000000
   gArmTokenSpaceGuid.PcdPciMmio64Size|0x4000000000
   gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress|0x1010000000
+
+  # Address bus width - 64TB address space
+  gArmSgiTokenSpaceGuid.PcdMaxAddressBitsPerChip|46
 
   # Timer & Watchdog interrupts
   gArmSgiTokenSpaceGuid.PcdGtFrame0Gsiv|109
@@ -64,3 +72,6 @@
   gArmSgiTokenSpaceGuid.PcdGpioController0BaseAddress|0x0C1D0000
   gArmSgiTokenSpaceGuid.PcdGpioController0Size|0x00010000
   gArmSgiTokenSpaceGuid.PcdGpioController0Interrupt|392
+
+  # IO virtualization block
+  gArmSgiTokenSpaceGuid.PcdIoVirtSocExpBlk0Base|0x1080000000

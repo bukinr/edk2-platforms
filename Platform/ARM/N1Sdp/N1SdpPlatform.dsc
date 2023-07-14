@@ -75,9 +75,7 @@
 [LibraryClasses.common.DXE_DRIVER]
   FdtLib|EmbeddedPkg/Library/FdtLib/FdtLib.inf
   PciHostBridgeLib|Silicon/ARM/NeoverseN1Soc/Library/PciHostBridgeLib/PciHostBridgeLib.inf
-  PciSegmentLib|MdePkg/Library/BasePciSegmentLibPci/BasePciSegmentLibPci.inf
-  PciLib|MdePkg/Library/BasePciLibPciExpress/BasePciLibPciExpress.inf
-  PciExpressLib|Silicon/ARM/NeoverseN1Soc/Library/NeoverseN1SocPciExpressLib/PciExpressLib.inf
+  PciSegmentLib|Silicon/ARM/NeoverseN1Soc/Library/PciSegmentLib/PciSegmentLib.inf
 
 [LibraryClasses.common.DXE_RUNTIME_DRIVER]
   BaseMemoryLib|MdePkg/Library/BaseMemoryLib/BaseMemoryLib.inf
@@ -127,7 +125,6 @@
   gArmTokenSpaceGuid.PcdGicRedistributorsBase|0x300C0000
 
   # PCIe
-  gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress|0x70000000
   gEmbeddedTokenSpaceGuid.PcdPrePiCpuIoSize|24
   gEfiMdeModulePkgTokenSpaceGuid.PcdSrIovSupport|FALSE
 
@@ -179,7 +176,7 @@
   # PEI Phase modules
   ArmPkg/Drivers/CpuPei/CpuPei.inf
   ArmPlatformPkg/MemoryInitPei/MemoryInitPeim.inf
-  ArmPlatformPkg/PrePeiCore/PrePeiCoreMPCore.inf
+  ArmPlatformPkg/PrePeiCore/PrePeiCoreUniCore.inf
   ArmPlatformPkg/PlatformPei/PlatformPeim.inf
   MdeModulePkg/Core/Pei/PeiMain.inf
   MdeModulePkg/Universal/PCD/Pei/Pcd.inf {
@@ -241,12 +238,14 @@
   FatPkg/EnhancedFatDxe/Fat.inf
 
   # Bds
+  MdeModulePkg/Universal/BootManagerPolicyDxe/BootManagerPolicyDxe.inf
   MdeModulePkg/Universal/BdsDxe/BdsDxe.inf
   MdeModulePkg/Universal/DevicePathDxe/DevicePathDxe.inf
   MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
   MdeModulePkg/Universal/SetupBrowserDxe/SetupBrowserDxe.inf
   MdeModulePkg/Application/UiApp/UiApp.inf {
     <LibraryClasses>
+      NULL|MdeModulePkg/Library/BootDiscoveryPolicyUiLib/BootDiscoveryPolicyUiLib.inf
       NULL|MdeModulePkg/Library/DeviceManagerUiLib/DeviceManagerUiLib.inf
       NULL|MdeModulePkg/Library/BootManagerUiLib/BootManagerUiLib.inf
       NULL|MdeModulePkg/Library/BootMaintenanceManagerUiLib/BootMaintenanceManagerUiLib.inf

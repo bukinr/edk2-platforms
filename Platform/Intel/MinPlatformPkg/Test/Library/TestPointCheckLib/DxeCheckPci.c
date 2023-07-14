@@ -75,7 +75,7 @@ DumpPciDevice (
     PciData->Device.Bar[2],
     PciData->Device.Bar[3],
     PciData->Device.Bar[4],
-    PciData->Device.Bar[6]
+    PciData->Device.Bar[5]
     ));
   DEBUG ((DEBUG_INFO, " %04x\n",
     PciData->Hdr.Command
@@ -114,7 +114,7 @@ DumpPciBridge (
     PciData->Bridge.SecondaryBus,
     PciData->Bridge.SubordinateBus
     ));
-  DEBUG ((DEBUG_INFO, " [00:00] [0000:0000] [0000:0000]",
+  DEBUG ((DEBUG_INFO, " [%02x:%02x] [%04x:%04x] [%04x:%04x]",
     PciData->Bridge.IoBase,
     PciData->Bridge.IoLimit,
     PciData->Bridge.MemoryBase,
@@ -122,7 +122,7 @@ DumpPciBridge (
     PciData->Bridge.PrefetchableMemoryBase,
     PciData->Bridge.PrefetchableMemoryLimit
     ));
-  DEBUG ((DEBUG_INFO, " [00000000:00000000] [0000:0000]",
+  DEBUG ((DEBUG_INFO, " [%08x:%08x] [%04x:%04x]",
     PciData->Bridge.PrefetchableBaseUpper32,
     PciData->Bridge.PrefetchableLimitUpper32,
     PciData->Bridge.IoBaseUpper16,
@@ -256,7 +256,7 @@ TestPointCheckPciResource (
   UINT16                            MinBus;
   UINT16                            MaxBus;
   BOOLEAN                           IsEnd;
-  
+
   DEBUG ((DEBUG_INFO, "==== TestPointCheckPciResource - Enter\n"));
   HandleBuf = NULL;
   Status = gBS->LocateHandleBuffer (
@@ -338,7 +338,7 @@ TestPointCheckPciResource (
                 // Device
                 DumpPciDevice ((UINT8)Bus, (UINT8)Device, (UINT8)Func, &PciData);
               }
-              
+
               //
               // If this is not a multi-function device, we can leave the loop
               // to deal with the next device.
@@ -360,7 +360,7 @@ TestPointCheckPciResource (
       }
     }
   }
-  
+
 Done:
   if (HandleBuf != NULL) {
     FreePool (HandleBuf);

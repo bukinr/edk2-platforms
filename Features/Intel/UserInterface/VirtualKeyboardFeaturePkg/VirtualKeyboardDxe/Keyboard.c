@@ -512,6 +512,18 @@ VkTimer (
   if (!VkContext->TouchActive) {
     VkContext->KeyPressed = FALSE;
   }
+
+  //
+  // On one Touch, multiple Reads happend and  this reads varying based on Key Press time.
+  // Resulting in Multiple key press update on screen. This condition avoids KeyPressed skips
+  // resulting due to faster key press and update only on valid key press.
+  //
+  if ((Point.CurrentX != VkContext->PreviousX) || (Point.CurrentY != VkContext->PreviousY)) {
+     VkContext->KeyPressed = FALSE;
+  }
+  VkContext->PreviousX = Point.CurrentX;
+  VkContext->PreviousY = Point.CurrentY;
+
   ConvertCoordinate (VkContext, Point, &TouchX, &TouchY);
 
   if (!VkContext->KeyPressed &&
@@ -759,7 +771,7 @@ VkApiStart (
 
   Status = gBS->CreateEvent (
                   EVT_TIMER | EVT_NOTIFY_SIGNAL,
-                  TPL_VK_SYNC,
+                  TPL_CALLBACK,
                   VkTimer,
                   (VOID *)VkContext,
                   &(VkContext->TimerEvent)

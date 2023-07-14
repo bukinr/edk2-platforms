@@ -1,7 +1,7 @@
 /** @file
   RISC-V SEC phase module definitions..
 
-  Copyright (c) 2019, Hewlett Packard Enterprise Development LP. All rights reserved.<BR>
+  Copyright (c) 2019-2022, Hewlett Packard Enterprise Development LP. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -27,25 +27,38 @@
 #include <Library/PeiServicesLib.h>
 #include <Library/RiscVCpuLib.h>
 
-int
-SecPostOpenSbiPlatformEarlylInit(
-  IN BOOLEAN ColdBoot
+/**
+  OpenSBI platform early init hook.
+
+  @param[in]   ColdBoot  Is cold boot path or warm boot path.
+  @retval      OpenSBI error code.
+
+**/
+INT32
+SecPostOpenSbiPlatformEarlyInit (
+  IN BOOLEAN  ColdBoot
   );
 
-int
+/**
+  OpenSBI platform final init hook.
+  We restore the next_arg1 to the pointer of EFI_RISCV_OPENSBI_FIRMWARE_CONTEXT.
+
+  @param[in]   ColdBoot  Is cold boot path or warm boot path.
+  @retval      OpenSBI error code.
+
+**/
+INT32
 SecPostOpenSbiPlatformFinalInit (
-  IN BOOLEAN ColdBoot
+  IN BOOLEAN  ColdBoot
   );
 
+/**
+  SEC machine mode trap handler.
+
+**/
 VOID
 SecMachineModeTrapHandler (
   IN VOID
-  );
-
-VOID
-EFIAPI
-SecStartupPhase2 (
-  IN VOID                     *Context
   );
 
 #endif // _SECMAIN_H_
