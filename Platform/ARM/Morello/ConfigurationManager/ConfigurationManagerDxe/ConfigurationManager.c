@@ -595,7 +595,7 @@ HandleCmObject (
 {
   CmObjectDesc->ObjectId = CmObjectId;
   CmObjectDesc->Size = ObjectSize;
-  CmObjectDesc->Data = (VOID*)Object;
+  CmObjectDesc->Data = (UINTPTR_T)Object;
   CmObjectDesc->Count = ObjectCount;
   DEBUG ((
     DEBUG_INFO,
@@ -643,7 +643,7 @@ HandleCmObjectRefByToken (
   CmObjectDesc->ObjectId = CmObjectId;
   if (Token == CM_NULL_TOKEN) {
     CmObjectDesc->Size = ObjectSize;
-    CmObjectDesc->Data = (VOID*)Object;
+    CmObjectDesc->Data = (UINTPTR_T)Object;
     CmObjectDesc->Count = ObjectCount;
     Status = EFI_SUCCESS;
   } else {
@@ -653,7 +653,7 @@ HandleCmObjectRefByToken (
   DEBUG ((
     DEBUG_INFO,
     "INFO: Token = 0x%p, CmObjectId = %x, Ptr = 0x%p, Size = %d, Count = %d\n",
-    (VOID*)Token,
+    Token,
     CmObjectId,
     CmObjectDesc->Data,
     CmObjectDesc->Size,
@@ -705,7 +705,7 @@ HandleCmObjectSearchPlatformRepo (
     DEBUG_INFO,
     "INFO: Token = 0x%p, CmObjectId = %x, Ptr = 0x%p, Size = %d, Count = %d\n",
     CmObjectId,
-    (VOID*)Token,
+    Token,
     CmObjectDesc->Data,
     CmObjectDesc->Size,
     CmObjectDesc->Count
@@ -767,7 +767,7 @@ GetGTBlockTimerFrameInfo (
 
   CmObject->ObjectId = CmObjectId;
   CmObject->Size = sizeof (PlatformRepo->GTBlock0TimerInfo);
-  CmObject->Data = (VOID*)&PlatformRepo->GTBlock0TimerInfo;
+  CmObject->Data = (UINTPTR_T)&PlatformRepo->GTBlock0TimerInfo;
   CmObject->Count = ARRAY_SIZE (PlatformRepo->GTBlock0TimerInfo);
   return EFI_SUCCESS;
 }
@@ -809,7 +809,7 @@ GetGicCInfo (
     if (SearchToken == (CM_OBJECT_TOKEN)&PlatformRepo->GicCInfo[ObjIndex]) {
       CmObject->ObjectId = CmObjectId;
       CmObject->Size = sizeof (PlatformRepo->GicCInfo[ObjIndex]);
-      CmObject->Data = (VOID*)&PlatformRepo->GicCInfo[ObjIndex];
+      CmObject->Data = (UINTPTR_T)&PlatformRepo->GicCInfo[ObjIndex];
       CmObject->Count = 1;
       return EFI_SUCCESS;
     }
@@ -853,43 +853,43 @@ GetCmObjRefs (
 
   if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->Cluster0Resources) {
     CmObject->Size = sizeof (CommonPlatRepo->Cluster0Resources);
-    CmObject->Data = (VOID*)&CommonPlatRepo->Cluster0Resources;
+    CmObject->Data = (UINTPTR_T)&CommonPlatRepo->Cluster0Resources;
     CmObject->Count = ARRAY_SIZE (CommonPlatRepo->Cluster0Resources);
     return EFI_SUCCESS;
   }
   if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->Cluster1Resources) {
     CmObject->Size = sizeof (CommonPlatRepo->Cluster1Resources);
-    CmObject->Data = (VOID*)&CommonPlatRepo->Cluster1Resources;
+    CmObject->Data = (UINTPTR_T)&CommonPlatRepo->Cluster1Resources;
     CmObject->Count = ARRAY_SIZE (CommonPlatRepo->Cluster1Resources);
     return EFI_SUCCESS;
   }
   if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->Core0Resources) {
     CmObject->Size = sizeof (CommonPlatRepo->Core0Resources);
-    CmObject->Data = (VOID*)&CommonPlatRepo->Core0Resources;
+    CmObject->Data = (UINTPTR_T)&CommonPlatRepo->Core0Resources;
     CmObject->Count = ARRAY_SIZE (CommonPlatRepo->Core0Resources);
     return EFI_SUCCESS;
   }
   if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->Core1Resources) {
     CmObject->Size = sizeof (CommonPlatRepo->Core1Resources);
-    CmObject->Data = (VOID*)&CommonPlatRepo->Core1Resources;
+    CmObject->Data = (UINTPTR_T)&CommonPlatRepo->Core1Resources;
     CmObject->Count = ARRAY_SIZE (CommonPlatRepo->Core1Resources);
     return EFI_SUCCESS;
   }
   if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->Core2Resources) {
     CmObject->Size = sizeof (CommonPlatRepo->Core2Resources);
-    CmObject->Data = (VOID*)&CommonPlatRepo->Core2Resources;
+    CmObject->Data = (UINTPTR_T)&CommonPlatRepo->Core2Resources;
     CmObject->Count = ARRAY_SIZE (CommonPlatRepo->Core2Resources);
     return EFI_SUCCESS;
   }
   if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->Core3Resources) {
     CmObject->Size = sizeof (CommonPlatRepo->Core3Resources);
-    CmObject->Data = (VOID*)&CommonPlatRepo->Core3Resources;
+    CmObject->Data = (UINTPTR_T)&CommonPlatRepo->Core3Resources;
     CmObject->Count = ARRAY_SIZE (CommonPlatRepo->Core3Resources);
     return EFI_SUCCESS;
   }
   if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->SocResources) {
     CmObject->Size = sizeof (CommonPlatRepo->SocResources);
-    CmObject->Data = (VOID*)&CommonPlatRepo->SocResources;
+    CmObject->Data = (UINTPTR_T)&CommonPlatRepo->SocResources;
     CmObject->Count = ARRAY_SIZE (CommonPlatRepo->SocResources);
     return EFI_SUCCESS;
   }

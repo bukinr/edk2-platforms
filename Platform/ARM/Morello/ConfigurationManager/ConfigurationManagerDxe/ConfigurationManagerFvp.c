@@ -323,7 +323,7 @@ GetDeviceIdMappingArray (
     return EFI_NOT_FOUND;
   }
 
-  CmObject->Data = (VOID*)Token;
+  CmObject->Data = Token;
   CmObject->ObjectId = CmObjectId;
   CmObject->Count = Count;
   CmObject->Size = Count * sizeof (CM_ARM_ID_MAPPING);
@@ -370,7 +370,7 @@ GetItsIdentifierArray (
     if (Token == (CM_OBJECT_TOKEN)&PlatformRepo->ItsIdentifierArray[Index]) {
       CmObject->ObjectId = CmObjectId;
       CmObject->Size = sizeof (PlatformRepo->ItsIdentifierArray[0]);
-      CmObject->Data = (VOID*)&PlatformRepo->ItsIdentifierArray[Index];
+      CmObject->Data = (UINTPTR_T)&PlatformRepo->ItsIdentifierArray[Index];
       CmObject->Count = 1;
       return EFI_SUCCESS;
     }
@@ -418,7 +418,7 @@ GetItsGroupInfo (
     if (Token == (CM_OBJECT_TOKEN)&PlatformRepo->ItsGroupInfo[Index]) {
       CmObject->ObjectId = CmObjectId;
       CmObject->Size = sizeof (PlatformRepo->ItsGroupInfo[0]);
-      CmObject->Data = (VOID*)&PlatformRepo->ItsGroupInfo[Index];
+      CmObject->Data = (UINTPTR_T)&PlatformRepo->ItsGroupInfo[Index];
       CmObject->Count = 1;
       return EFI_SUCCESS;
     }

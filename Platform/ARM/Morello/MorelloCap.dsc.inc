@@ -9,11 +9,22 @@
 
 [Defines]
 
-[BuildOptions.AARCH64]
+[BuildOptions.AARCH64__]
 # Required for pre-processing Platform Dxe which includes platform-type specific build flags.
 !ifdef $(ENABLE_MORELLO_CAP)
   *_CLANGDWARF_AARCH64_CC_FLAGS     = -DENABLE_MORELLO_CAP
   *_CLANGDWARF_AARCH64_PP_FLAGS     = -DENABLE_MORELLO_CAP
   *_CLANGDWARF_AARCH64_ASLCC_FLAGS  = -DENABLE_MORELLO_CAP
   *_CLANGDWARF_AARCH64_ASM_FLAGS    = -DENABLE_MORELLO_CAP -march=morello
+!endif
+
+[BuildOptions.AARCH64]
+# Required for pre-processing Platform Dxe which includes platform-type specific build flags.
+!ifdef $(ENABLE_MORELLO_CAP)
+  *_CLANGDWARF_AARCH64_CC_FLAGS     = -DENABLE_MORELLO_CAP -march=morello -mabi=purecap
+  *_CLANGDWARF_AARCH64_PP_FLAGS     = -DENABLE_MORELLO_CAP -march=morello -mabi=purecap
+  *_CLANGDWARF_AARCH64_ASLCC_FLAGS  = -DENABLE_MORELLO_CAP -march=morello -mabi=purecap
+  *_CLANGDWARF_AARCH64_ASM_FLAGS    = -DENABLE_MORELLO_CAP -march=morello -mabi=purecap
+  *_CLANGDWARF_AARCH64_LD_FLAGS     = -DENABLE_MORELLO_CAP -march=morello -mabi=purecap
+  *_CLANGDWARF_AARCH64_DLINK_FLAGS  = -DENABLE_MORELLO_CAP -march=morello -mabi=purecap
 !endif
