@@ -28,8 +28,8 @@ GCC_ASM_IMPORT(NtFwConfigDtBlob)
 //  VOID
 //  );
 ASM_PFX(ArmPlatformPeiBootAction):
-  adr  x10, NtFwConfigDtBlob
-  str  x0, [x10]
+  adr  c10, NtFwConfigDtBlob
+  str  c0, [c10]
   ret
 
 //UINTN
