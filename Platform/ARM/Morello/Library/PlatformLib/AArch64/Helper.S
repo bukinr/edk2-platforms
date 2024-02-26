@@ -19,10 +19,12 @@
 // the UEFI firmware through the CPU registers.
 //
 ASM_FUNC(ArmPlatformPeiBootAction)
-  adrp  c10, gArgNtFwConfigDtPtr
-  str  x0, [c10]
-  adrp  c10, gArgHwConfigDtPtr
-  str  x1, [c10]
+  adrp  c10, :got:gArgNtFwConfigDtPtr
+  ldr   c10, [c10, :got_lo12:gArgNtFwConfigDtPtr]
+  str  c0, [c10]
+  adrp  c10, :got:gArgHwConfigDtPtr
+  ldr   c10, [c10, :got_lo12:gArgHwConfigDtPtr]
+  str  c1, [c10]
   ret
 
 //
