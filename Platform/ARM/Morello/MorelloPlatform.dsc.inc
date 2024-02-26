@@ -84,7 +84,7 @@
 
   # Stacks for MPCores in Normal World
   gArmPlatformTokenSpaceGuid.PcdCPUCoresStackBase|0x80000000
-  gArmPlatformTokenSpaceGuid.PcdCPUCorePrimaryStackSize|0x40000
+  gArmPlatformTokenSpaceGuid.PcdCPUCorePrimaryStackSize|0x80000
   gArmPlatformTokenSpaceGuid.PcdCPUCoreSecondaryStackSize|0x0
 
   # System Memory (2GB - 16MB - The GOP frame-buffer)
