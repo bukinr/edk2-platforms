@@ -7,6 +7,7 @@
 
 #include <Library/ArmPlatformLib.h>
 #include <Library/BaseLib.h>
+#include <Library/CheriLib.h>
 #include <Ppi/ArmMpCoreInfo.h>
 #include <MorelloPlatform.h>
 
@@ -50,8 +51,10 @@ ArmPlatformInitialize (
   IN  UINTN                     MpId
   )
 {
-  mMorelloParameterPpi.HwConfig   = (VOID *)gArgHwConfigDtPtr;
-  mMorelloParameterPpi.NtFwConfig = (VOID *)gArgNtFwConfigDtPtr;
+
+  mMorelloParameterPpi.HwConfig   = (VOID *)MakeCap((UINT64)gArgHwConfigDtPtr);
+  mMorelloParameterPpi.NtFwConfig = (VOID *)MakeCap((UINT64)gArgNtFwConfigDtPtr);
+
   return RETURN_SUCCESS;
 }
 
