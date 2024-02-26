@@ -7,6 +7,7 @@
 
 #include <Library/DebugLib.h>
 #include <Library/HobLib.h>
+#include <Library/CheriLib.h>
 #include <Library/PeiServicesLib.h>
 
 #include <MorelloPlatform.h>
@@ -71,9 +72,10 @@ Load (
   if (fdt_check_header (ParamPpi->NtFwConfig) != 0) {
     DEBUG ((
       DEBUG_ERROR,
-      "[%a]: invalid NT_FW_CONFIG DTB\n",
+      "[%a]: invalid NT_FW_CONFIG DTB %p pcc %p\n",
+      gEfiCallerBaseName,
       ParamPpi->NtFwConfig,
-      gEfiCallerBaseName
+      cheri_getpcc()
       ));
     return EFI_INVALID_PARAMETER;
   }
